@@ -1,11 +1,34 @@
-import type { Metadata } from 'next';
+import type { Metadata, Viewport } from 'next';
 import React from 'react';
-import './globals.css';
+import { Plus_Jakarta_Sans } from 'next/font/google';
 import { RealtimeProvider } from '@/components/providers/RealtimeProvider';
+import './globals.css';
+
+/**
+ * Self-hosted through next/font: the font is downloaded at build time, so
+ * there is no render-blocking request to Google and no layout shift. The
+ * previously loaded but unused Inter family has been removed.
+ */
+const jakarta = Plus_Jakarta_Sans({
+  subsets: ['latin'],
+  display: 'swap',
+  weight: ['400', '500', '600', '700', '800'],
+  variable: '--font-jakarta',
+});
 
 export const metadata: Metadata = {
-  title: 'Sowtek OrderFlow',
+  title: {
+    default: 'Sowtek OrderFlow',
+    template: '%s · Sowtek OrderFlow',
+  },
   description: 'WhatsApp-first order management system for restaurant supply',
+  applicationName: 'Sowtek OrderFlow',
+};
+
+export const viewport: Viewport = {
+  width: 'device-width',
+  initialScale: 1,
+  themeColor: '#142340',
 };
 
 export default function RootLayout({
@@ -14,20 +37,8 @@ export default function RootLayout({
   children: React.ReactNode;
 }) {
   return (
-    <html lang="en" className="h-full bg-[#f1f3f7]">
-      <head>
-        <link rel="preconnect" href="https://fonts.googleapis.com" />
-        <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="" />
-        <link
-          href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Plus+Jakarta+Sans:wght@400;500;600;700;800;900&display=swap"
-          rel="stylesheet"
-        />
-        <link
-          rel="stylesheet"
-          href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200"
-        />
-      </head>
-      <body className="h-full text-slate-800 antialiased font-sans bg-[#f1f3f7]" style={{ margin: 0 }}>
+    <html lang="en" className={`${jakarta.variable} h-full`}>
+      <body className="h-full bg-canvas font-sans text-ink antialiased">
         <RealtimeProvider>{children}</RealtimeProvider>
       </body>
     </html>

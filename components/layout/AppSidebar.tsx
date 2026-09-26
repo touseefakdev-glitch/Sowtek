@@ -1,8 +1,11 @@
 'use client';
 
-import React, { useEffect, useState } from 'react';
+import React, { useCallback, useEffect, useState } from 'react';
 import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
+import { Icon } from '@/components/ui/Icon';
+import { PRIMARY_NAV, isNavItemActive } from '@/lib/navigation';
+import { cn } from '@/lib/utils/cn';
 
 interface UserProfile {
   id: string;
@@ -12,295 +15,163 @@ interface UserProfile {
   is_online?: boolean;
 }
 
-export function AppSidebar() {
+export function AppSidebar({ onNavigate }: { onNavigate?: () => void }) {
   const pathname = usePathname();
   const router = useRouter();
   const [profile, setProfile] = useState<UserProfile | null>(null);
   const [signingOut, setSigningOut] = useState(false);
 
   useEffect(() => {
+    let cancelled = false;
+
     async function loadProfile() {
       try {
         const res = await fetch('/api/auth/me');
-        if (res.ok) {
-          const json = await res.json();
-          if (json.data) setProfile(json.data);
-        }
-      } catch (err) {
-        console.error('Failed to load profile for sidebar', err);
+        if (!res.ok) return;
+        const json = await res.json();
+        if (!cancelled && json.data) setProfile(json.data);
+      } catch {
+        // A failed profile lookup must not break navigation; the sidebar
+        // simply falls back to neutral placeholders.
       }
     }
-    loadProfile();
+
+    void loadProfile();
+    return () => {
+      cancelled = true;
+    };
   }, []);
 
-  const handleSignOut = async () => {
+  const handleSignOut = useCallback(async () => {
     setSigningOut(true);
     try {
       await fetch('/api/auth/logout', { method: 'POST' });
     } catch {
-      // The local session is cleared regardless of the server response.
+      // Local navigation proceeds regardless of the server response.
     }
     setSigningOut(false);
     router.push('/login');
     router.refresh();
-  };
-
-  if (pathname === '/login') {
-    return null;
-  }
-
-  const navItems = [
-    {
-      label: 'Unified Inbox',
-      href: '/inbox',
-      icon: (
-        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path
-            d="M20 13V6a2 2 0 00-2-2H6a2 2 0 00-2 2v7m16 0v5a2 2 0 01-2 2H6a2 2 0 01-2-2v-5m16 0h-2.586a1 1 0 00-.707.293l-2.414 2.414a1 1 0 01-.707.293h-3.172a1 1 0 01-.707-.293l-2.414-2.414A1 1 0 006.586 13H4"
-            strokeLinecap="round"
-            strokeLinejoin="round"
-            strokeWidth="2"
-          />
-        </svg>
-      ),
-    },
-    {
-      label: 'Tickets',
-      href: '/tickets',
-      icon: (
-        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path
-            d="M15 5v2m0 4v2m0 4v2M5 5a2 2 0 00-2 2v3a2 2 0 110 4v3a2 2 0 002 2h14a2 2 0 002-2v-3a2 2 0 110-4V7a2 2 0 00-2-2H5z"
-            strokeLinecap="round"
-            strokeLinejoin="round"
-            strokeWidth="2"
-          />
-        </svg>
-      ),
-    },
-    {
-      label: 'Orders & Sales',
-      href: '/orders',
-      icon: (
-        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path
-            d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6"
-            strokeLinecap="round"
-            strokeLinejoin="round"
-            strokeWidth="2"
-          />
-        </svg>
-      ),
-    },
-    {
-      label: 'Dashboard',
-      href: '/dashboard',
-      icon: (
-        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path
-            d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"
-            strokeLinecap="round"
-            strokeLinejoin="round"
-            strokeWidth="2"
-          />
-        </svg>
-      ),
-    },
-    {
-      label: 'Contacts & 360°',
-      href: '/contacts',
-      icon: (
-        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path
-            d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"
-            strokeLinecap="round"
-            strokeLinejoin="round"
-            strokeWidth="2"
-          />
-        </svg>
-      ),
-    },
-    {
-      label: 'Products Catalog',
-      href: '/products',
-      icon: (
-        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path
-            d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"
-            strokeLinecap="round"
-            strokeLinejoin="round"
-            strokeWidth="2"
-          />
-        </svg>
-      ),
-    },
-    {
-      label: 'Notifications',
-      href: '/notifications',
-      icon: (
-        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path
-            d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"
-            strokeLinecap="round"
-            strokeLinejoin="round"
-            strokeWidth="2"
-          />
-        </svg>
-      ),
-    },
-    {
-      label: 'Settings',
-      href: '/settings',
-      icon: (
-        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path
-            d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"
-            strokeLinecap="round"
-            strokeLinejoin="round"
-            strokeWidth="2"
-          />
-          <path
-            d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"
-            strokeLinecap="round"
-            strokeLinejoin="round"
-            strokeWidth="2"
-          />
-        </svg>
-      ),
-    },
-  ];
+  }, [router]);
 
   return (
     <aside
-      className="w-60 flex-shrink-0 bg-white border-r border-slate-200/90 flex flex-col justify-between z-30 h-screen sticky top-0"
+      className="flex h-full w-60 shrink-0 flex-col justify-between border-r border-line bg-surface"
       data-purpose="primary-navigation"
     >
       <div>
-        {/* Logo section */}
-        <div className="h-16 flex items-center justify-between px-5 border-b border-slate-100">
-          <Link href="/inbox" className="flex items-center gap-2.5 no-underline">
-            {/* Arabic calligraphic / geometric mark */}
-            <div className="w-8 h-8 rounded-lg bg-[#142340] text-white flex items-center justify-center font-bold text-sm shadow-sm">
-              <svg className="w-5 h-5 text-white" fill="currentColor" viewBox="0 0 24 24">
-                <path d="M4 4h7v7H4V4zm9 0h7v7h-7V4zM4 13h7v7H4v-7zm11 0h2v7h-2v-7zm4 0h2v7h-2v-7z" />
-              </svg>
-            </div>
-            <div className="flex flex-col tracking-tight leading-none">
-              <span className="text-lg font-black text-[#142340]">sowtek</span>
-              <span className="text-[9px] font-bold text-[#70b928] uppercase tracking-widest mt-0.5">ORDERFLOW</span>
-            </div>
+        <div className="flex h-16 items-center border-b border-line px-5">
+          <Link
+            href="/inbox"
+            onClick={onNavigate}
+            className="flex items-center gap-2.5 rounded-control"
+          >
+            <span
+              className="flex h-8 w-8 items-center justify-center rounded-control bg-navy text-sm font-bold text-ink-inverse"
+              aria-hidden
+            >
+              S
+            </span>
+            <span className="flex flex-col leading-none">
+              <span className="text-lg font-extrabold tracking-tight text-ink">sowtek</span>
+              <span className="mt-0.5 text-xs font-bold uppercase tracking-widest text-lime-600">
+                Orderflow
+              </span>
+            </span>
           </Link>
-          <div className="w-2 h-2 rounded-full bg-slate-300" title="Signed in" />
         </div>
 
-        {/* Navigation Menu Items */}
-        <nav className="p-3.5 space-y-1.5 text-[13px] font-medium">
-          {navItems.map((item) => {
-            const isActive = pathname === item.href || (item.href !== '/inbox' && pathname.startsWith(item.href));
+        <nav aria-label="Primary" className="space-y-1 p-3.5">
+          {PRIMARY_NAV.map((item) => {
+            const isActive = isNavItemActive(pathname, item);
             return (
               <Link
                 key={item.href}
                 href={item.href}
-                className={`flex items-center gap-3 px-3 py-2 rounded-xl transition-colors ${
+                onClick={onNavigate}
+                aria-current={isActive ? 'page' : undefined}
+                className={cn(
+                  'flex items-center gap-3 rounded-control px-3 py-2 text-sm font-medium transition-colors',
                   isActive
-                    ? 'bg-[#eef8eb] text-[#2c771c] font-semibold border border-[#d6eed0] shadow-xs'
-                    : 'text-slate-600 hover:text-slate-900 hover:bg-slate-50'
-                }`}
+                    ? 'bg-lime-tint font-semibold text-lime-800 ring-1 ring-lime-tint-border'
+                    : 'text-ink-secondary hover:bg-surface-hover hover:text-ink'
+                )}
               >
-                <span className={isActive ? 'text-[#358a22]' : 'text-slate-500'}>
-                  {item.icon}
-                </span>
-                <span>{item.label}</span>
+                <Icon
+                  name={item.icon}
+                  size="sm"
+                  filled={isActive}
+                  className={isActive ? 'text-lime-700' : 'text-ink-subtle'}
+                />
+                {item.label}
               </Link>
             );
           })}
 
-          {/* + Actions / New Order Pill Button */}
           <div className="pt-2">
             <Link
               href="/orders/new"
-              className="w-full flex items-center justify-center gap-1.5 py-2 px-3 bg-[#e8f2fc] hover:bg-[#dbeafc] text-[#2463eb] text-xs font-bold rounded-xl transition-all shadow-xs no-underline"
-              id="btn-actions-menu"
+              onClick={onNavigate}
+              className="flex w-full items-center justify-center gap-1.5 rounded-control bg-sky-tint px-3 py-2 text-xs font-bold text-status-info ring-1 ring-sky-tint-border transition-colors hover:bg-sky-tint-border"
             >
-              <span className="text-base leading-none font-medium">+</span>
-              <span>New Order</span>
+              <Icon name="add" size="sm" />
+              New Order
             </Link>
           </div>
         </nav>
       </div>
 
-      {/* Bottom Navigation & Agent Profile */}
-      <div className="p-3.5 border-t border-slate-100 space-y-2">
-        <Link
-          href="/notifications"
-          className="flex items-center gap-3 px-3 py-1.5 text-xs text-slate-500 hover:text-slate-800 transition-colors no-underline"
-        >
-          <svg className="w-4 h-4 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path
-              d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              strokeWidth="2"
-            />
-          </svg>
-          <span>Notifications</span>
-        </Link>
-
-        {/* Logged in User Profile Card matching Stitch reference */}
-        <div className="pt-2">
-          <div className="flex items-center justify-between p-2 rounded-xl bg-slate-50/80 border border-slate-200/60">
-            <div className="flex items-center gap-2.5 min-w-0">
-              <div className="relative w-8 h-8 rounded-full overflow-hidden bg-slate-200 ring-1 ring-slate-300 shrink-0">
-                {profile?.avatar_url ? (
-                  // eslint-disable-next-line @next/next/no-img-element
-                  <img
-                    src={profile.avatar_url}
-                    alt={profile.full_name || 'User avatar'}
-                    className="w-full h-full object-cover"
-                  />
-                ) : (
-                  <div className="w-full h-full bg-[#142340] text-white flex items-center justify-center font-bold text-xs uppercase">
-                    {profile?.full_name ? profile.full_name.substring(0, 2) : '--'}
-                  </div>
-                )}
-                <span
-                  className={`absolute bottom-0 right-0 w-2.5 h-2.5 border-2 border-white rounded-full ${
-                    profile?.is_online ? 'bg-emerald-500' : 'bg-slate-300'
-                  }`}
+      <div className="space-y-2 border-t border-line p-3.5">
+        <div className="flex items-center justify-between gap-2 rounded-card border border-line bg-surface-sunken p-2">
+          <div className="flex min-w-0 items-center gap-2.5">
+            <div className="relative h-8 w-8 shrink-0 overflow-hidden rounded-pill bg-line-strong ring-1 ring-line-strong">
+              {profile?.avatar_url ? (
+                // eslint-disable-next-line @next/next/no-img-element
+                <img
+                  src={profile.avatar_url}
+                  alt=""
+                  className="h-full w-full object-cover"
                 />
-              </div>
-              <div className="min-w-0">
-                <div className="text-[12px] font-bold text-slate-900 leading-tight truncate">
-                  {profile?.full_name || 'Signed in'}
-                </div>
-                <div
-                  className={`inline-flex items-center gap-1 mt-0.5 px-1.5 py-0.5 rounded-full border text-[9px] font-bold ${
-                    profile?.is_online
-                      ? 'bg-emerald-50 border-emerald-300 text-emerald-700'
-                      : 'bg-slate-100 border-slate-200 text-slate-500'
-                  }`}
+              ) : (
+                <span
+                  className="flex h-full w-full items-center justify-center bg-navy text-xs font-bold uppercase text-ink-inverse"
+                  aria-hidden
                 >
-                  <span
-                    className={`w-1.5 h-1.5 rounded-full ${
-                      profile?.is_online ? 'bg-emerald-500' : 'bg-slate-400'
-                    }`}
-                  />
-                  <span>{profile?.is_online ? 'Online' : 'Offline'}</span>
-                </div>
-              </div>
+                  {profile?.full_name ? profile.full_name.slice(0, 2) : '—'}
+                </span>
+              )}
+              <span
+                className={cn(
+                  'absolute bottom-0 right-0 h-2.5 w-2.5 rounded-pill ring-2 ring-surface',
+                  profile?.is_online ? 'bg-status-success' : 'bg-line-strong'
+                )}
+                aria-hidden
+              />
             </div>
-            <button
-              type="button"
-              onClick={handleSignOut}
-              disabled={signingOut}
-              className="text-slate-400 hover:text-slate-600 p-1 disabled:opacity-50"
-              title="Sign out"
-            >
-              <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path d="M9 5l7 7-7 7" strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" />
-              </svg>
-            </button>
+            <div className="min-w-0">
+              <p className="truncate text-sm font-bold leading-tight text-ink">
+                {profile?.full_name || 'Signed in'}
+              </p>
+              <p className="mt-0.5 flex items-center gap-1 text-xs text-ink-muted">
+                <span
+                  className={cn(
+                    'h-1.5 w-1.5 rounded-pill',
+                    profile?.is_online ? 'bg-status-success' : 'bg-line-strong'
+                  )}
+                  aria-hidden
+                />
+                {profile?.is_online ? 'Online' : 'Offline'}
+              </p>
+            </div>
           </div>
+          <button
+            type="button"
+            onClick={handleSignOut}
+            disabled={signingOut}
+            className="rounded-control p-1.5 text-ink-subtle transition-colors hover:bg-surface-hover hover:text-ink disabled:cursor-not-allowed disabled:opacity-50"
+          >
+            <Icon name="logout" size="sm" label="Sign out" />
+          </button>
         </div>
       </div>
     </aside>
