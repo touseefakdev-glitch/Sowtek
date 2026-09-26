@@ -1,151 +1,38 @@
-'use client';
+import React, { Suspense } from 'react';
+import type { Metadata } from 'next';
+import { fetchOrders } from '@/lib/data/orders';
+import { LoadingState } from '@/components/ui';
+import { OrdersView } from './OrdersView';
 
-import React, { useEffect, useState } from 'react';
-import Link from 'next/link';
-import { getOrders } from '@/lib/api/orders';
+export const metadata: Metadata = { title: 'Orders' };
 
-export default function OrdersListPage() {
-  const [orders, setOrders] = useState<any[]>([]);
-  const [statusFilter, setStatusFilter] = useState('');
-  const [search, setSearch] = useState('');
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
+/**
+ * Server Component: resolves the initial order list on the server so the first
+ * paint already contains data. Filtering and other interactions live in the
+ * client child, and the URL carries the filter state.
+ */
+export default async function OrdersPage({
+  searchParams,
+}: {
+  searchParams: { status?: string; search?: string };
+}) {
+  const status = searchParams.status ?? '';
+  const search = searchParams.search ?? '';
 
-  useEffect(() => {
-    let cancelled = false;
-
-    async function load() {
-      setLoading(true);
-      setError(null);
-      try {
-        const res = await getOrders({ status: statusFilter || undefined, search: search || undefined });
-        if (cancelled) return;
-        setOrders(res.data ?? []);
-      } catch (err) {
-        if (cancelled) return;
-        setOrders([]);
-        setError(err instanceof Error ? err.message : 'Unable to load orders.');
-      } finally {
-        if (!cancelled) setLoading(false);
-      }
-    }
-    load();
-
-    return () => {
-      cancelled = true;
-    };
-  }, [statusFilter, search]);
+  const result = await fetchOrders({
+    status: status || undefined,
+    search: search || undefined,
+    limit: 50,
+  }).catch(() => null);
 
   return (
-    <>
-      <div className="flex-1 flex flex-col overflow-y-auto">
-        {/* Header */}
-        <div className="p-6 bg-white border-b border-slate-200 flex items-center justify-between shrink-0">
-          <div>
-            <h1 className="text-xl font-bold text-[#142340]">Orders Management</h1>
-            <p className="text-xs text-slate-500 mt-0.5">Track and fulfill restaurant wholesale orders</p>
-          </div>
-          <Link
-            href="/orders/new"
-            className="px-4 py-2 bg-[#70b928] hover:bg-[#5a991f] text-white font-semibold rounded-xl text-xs flex items-center gap-1.5 shadow-sm transition"
-          >
-            <span>➕</span>
-            <span>Create New Order</span>
-          </Link>
-        </div>
-
-        {/* Filters */}
-        <div className="p-6 max-w-7xl w-full">
-          <div className="flex flex-col sm:flex-row gap-3 mb-6">
-            <input
-              type="text"
-              placeholder="Search by order #, restaurant name..."
-              value={search}
-              onChange={(e) => setSearch(e.target.value)}
-              className="flex-1 px-4 py-2.5 bg-white border border-slate-200 rounded-xl text-xs text-slate-900 focus:outline-none focus:border-[#70b928]"
-            />
-            <select
-              value={statusFilter}
-              onChange={(e) => setStatusFilter(e.target.value)}
-              className="px-4 py-2.5 bg-white border border-slate-200 rounded-xl text-xs text-slate-700 focus:outline-none focus:border-[#70b928]"
-            >
-              <option value="">All Statuses</option>
-              <option value="pending_confirmation">Pending Confirmation</option>
-              <option value="picking">Picking</option>
-              <option value="out_for_delivery">Out for Delivery</option>
-              <option value="delivered">Delivered</option>
-            </select>
-          </div>
-
-          {/* Orders Table */}
-          <div className="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
-            <table className="w-full text-left text-xs">
-              <thead className="bg-slate-50 border-b border-slate-200 text-slate-400 uppercase font-semibold">
-                <tr>
-                  <th className="p-4">Order #</th>
-                  <th className="p-4">Restaurant</th>
-                  <th className="p-4">Delivery Date</th>
-                  <th className="p-4">Total Amount</th>
-                  <th className="p-4">Status</th>
-                  <th className="p-4 text-right">Actions</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-slate-100">
-                {loading && orders.length === 0 && (
-                  <tr>
-                    <td colSpan={6} className="p-8 text-center text-xs text-slate-400">
-                      Loading orders...
-                    </td>
-                  </tr>
-                )}
-                {!loading && error && (
-                  <tr>
-                    <td colSpan={6} className="p-8 text-center text-xs text-red-600">
-                      {error}
-                    </td>
-                  </tr>
-                )}
-                {!loading && !error && orders.length === 0 && (
-                  <tr>
-                    <td colSpan={6} className="p-8 text-center text-xs text-slate-400">
-                      No orders found{search ? ` for "${search}"` : ''}.
-                    </td>
-                  </tr>
-                )}
-                {orders.map((o) => (
-                  <tr key={o.id} className="hover:bg-slate-50">
-                    <td className="p-4 font-bold text-[#142340]">
-                      <Link href={`/orders/${o.id}`} className="hover:underline">
-                        {o.order_number || o.id}
-                      </Link>
-                    </td>
-                    <td className="p-4 font-medium text-slate-900">
-                      {o.restaurant?.name || 'Unknown restaurant'}
-                    </td>
-                    <td className="p-4 text-slate-500">{o.delivery_date || 'Not set'}</td>
-                    <td className="p-4 font-mono font-bold text-slate-900">
-                      SAR {Number(o.total_amount).toFixed(2)}
-                    </td>
-                    <td className="p-4">
-                      <span className="px-2.5 py-1 bg-blue-50 text-blue-700 rounded-full font-bold text-[10px] uppercase">
-                        {o.status?.replace(/_/g, ' ')}
-                      </span>
-                    </td>
-                    <td className="p-4 text-right">
-                      <Link
-                        href={`/orders/${o.id}`}
-                        className="px-3 py-1 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-lg font-semibold transition"
-                      >
-                        Inspect &rarr;
-                      </Link>
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-        </div>
-      </div>
-    </>
+    <Suspense fallback={<LoadingState label="Loading orders" />}>
+      <OrdersView
+        initialOrders={result?.orders ?? []}
+        initialCount={result?.count ?? 0}
+        initialStatus={status}
+        initialSearch={search}
+      />
+    </Suspense>
   );
 }
