@@ -28,7 +28,13 @@ const IGNORED = new Set(['material-symbols-outlined']);
 const RAW_PALETTE =
   /(?:^|[\s"'`:])(?:[a-z-]+:)?(?:bg|text|border|ring|fill|stroke|from|via|to|divide|outline|decoration|shadow|accent|caret|placeholder)-(slate|gray|zinc|stone|red|orange|amber|yellow|emerald|green|indigo|violet|purple|fuchsia|pink|rose|teal|cyan|neutral)-(?:[0-9]{2,3})/g;
 
-const RAW_HEX = /#[0-9a-fA-F]{3,8}\b/g;
+/**
+ * Hex that is legitimately not a Tailwind colour: the browser theme colour
+ * meta tag, and fills inside inline SVG assets. These are not class names, so
+ * routing them through the token layer is not possible or desirable.
+ */
+const HEX_ALLOWED = /themeColor|fill=|stroke=/;
+const RAW_HEX_GLOBAL = /#[0-9a-fA-F]{3,8}\b/g;
 
 /** Project tokens that look like raw palette entries but are legitimate. */
 const ALLOWED = [
@@ -217,9 +223,14 @@ for (const file of sourceFiles) {
     if (ALLOWED.some((allowed) => token.includes(allowed))) continue;
     note(bypasses, token.replace(/^[\s"'`]+/, ''), rel);
   }
-  for (const match of source.matchAll(RAW_HEX)) {
-    note(bypasses, match[0], rel);
-  }
+  // Report hex values, ignoring lines where a raw colour is legitimate.
+  const hexLines = source.split(/\r?\n/);
+  hexLines.forEach((lineText, index) => {
+    if (HEX_ALLOWED.test(lineText)) return;
+    for (const match of lineText.matchAll(RAW_HEX_GLOBAL)) {
+      note(bypasses, match[0], `${rel}:${index + 1}`);
+    }
+  });
 
   if (MOJIBAKE.test(source)) {
     const line = source.split(/\r?\n/).findIndex((value) => MOJIBAKE.test(value)) + 1;

@@ -1,6 +1,7 @@
 'use client';
 
 import React, { createContext, useContext, useEffect, useState, useCallback } from 'react';
+import Link from 'next/link';
 import {
   subscribeToConversations,
   subscribeToNotifications,
@@ -142,76 +143,43 @@ export function RealtimeProvider({ children }: { children: React.ReactNode }) {
     >
       {children}
 
-      {/* Floating Toast Notification Container */}
+      {/* Realtime toasts. Announced politely so a screen reader hears new
+          orders without being interrupted mid-sentence. */}
       <div
-        style={{
-          position: 'fixed',
-          bottom: '1.5rem',
-          right: '1.5rem',
-          zIndex: 9999,
-          display: 'flex',
-          flexDirection: 'column',
-          gap: '0.75rem',
-          maxWidth: '380px',
-          width: '100%',
-          pointerEvents: 'none',
-        }}
+        role="status"
+        aria-live="polite"
+        aria-relevant="additions text"
+        className="pointer-events-none fixed bottom-6 right-6 z-50 flex w-full max-w-sm flex-col gap-3"
       >
         {toasts.map((toast) => (
           <div
             key={toast.id}
-            style={{
-              pointerEvents: 'auto',
-              backgroundColor: '#142340',
-              color: '#ffffff',
-              borderRadius: '12px',
-              padding: '1rem',
-              boxShadow: '0 10px 25px -5px rgba(0, 0, 0, 0.3)',
-              borderLeft: '4px solid #70b928',
-              display: 'flex',
-              flexDirection: 'column',
-              gap: '0.25rem',
-              fontFamily: 'Inter, system-ui, sans-serif',
-              animation: 'fadeIn 0.2s ease-in-out',
-            }}
+            className="pointer-events-auto flex flex-col gap-1 rounded-card border-l-4 border-l-lime bg-ink p-4 text-white shadow-card-lg"
           >
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-              <strong style={{ fontSize: '13px', fontWeight: 600, color: '#f8fafc' }}>
-                {toast.title}
-              </strong>
+            <div className="flex items-start justify-between gap-2">
+              <strong className="text-sm font-semibold">{toast.title}</strong>
               <button
+                type="button"
                 onClick={() => dismissToast(toast.id)}
-                style={{
-                  background: 'none',
-                  border: 'none',
-                  color: '#94a3b8',
-                  cursor: 'pointer',
-                  fontSize: '14px',
-                  padding: '2px 4px',
-                }}
+                aria-label={`Dismiss notification: ${toast.title}`}
+                className="-mr-1 -mt-1 rounded-control p-1 text-ink-subtle transition hover:text-white"
               >
-                &times;
+                <span aria-hidden className="material-symbols-outlined text-[16px]">
+                  close
+                </span>
               </button>
             </div>
-            {toast.body && (
-              <p style={{ margin: 0, fontSize: '12px', color: '#cbd5e1', lineHeight: '1.4' }}>
-                {toast.body}
-              </p>
-            )}
-            {toast.link && (
-              <a
+
+            {toast.body ? <p className="m-0 text-xs leading-relaxed text-ink-muted">{toast.body}</p> : null}
+
+            {toast.link ? (
+              <Link
                 href={toast.link}
-                style={{
-                  fontSize: '11px',
-                  color: '#70b928',
-                  textDecoration: 'none',
-                  fontWeight: 600,
-                  marginTop: '4px',
-                }}
+                className="mt-1 text-[11px] font-semibold text-lime hover:underline"
               >
-                View details &rarr;
-              </a>
-            )}
+                View details
+              </Link>
+            ) : null}
           </div>
         ))}
       </div>

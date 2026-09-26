@@ -1,305 +1,216 @@
-'use client';
-
-import React, { useCallback, useEffect, useState } from 'react';
+import React from 'react';
+import type { Metadata } from 'next';
 import Link from 'next/link';
+import { fetchAgents, getWhatsAppConfigStatus, type AgentProfile } from '@/lib/data/team';
+import {
+  Badge,
+  Card,
+  CardBody,
+  CardHeader,
+  EmptyState,
+  ErrorState,
+  PageBody,
+  PageHeader,
+  RefreshButton,
+  Table,
+  TBody,
+  TD,
+  TH,
+  THead,
+  TR,
+} from '@/components/ui';
+import { humanize } from '@/lib/domain/status';
+import { formatRelative } from '@/lib/format';
 
-interface AgentProfile {
-  id: string;
-  full_name: string;
-  role: string;
-  is_online: boolean;
-  last_seen_at: string | null;
-}
+export const metadata: Metadata = { title: 'Settings' };
 
-interface WhatsappConfigStatus {
-  whatsapp_token_configured: boolean;
-  whatsapp_phone_number_id_configured: boolean;
-  webhook_verify_token_configured: boolean;
-}
+const TABS = [
+  { id: 'team', label: 'Team and roles' },
+  { id: 'whatsapp', label: 'WhatsApp API' },
+  { id: 'sla', label: 'SLA rules' },
+] as const;
 
-type Tab = 'team' | 'whatsapp' | 'sla';
+type TabId = (typeof TABS)[number]['id'];
 
-function StatusPill({ configured, label }: { configured: boolean; label: string }) {
+function ConfigRow({
+  name,
+  description,
+  configured,
+}: {
+  name: string;
+  description: string;
+  configured: boolean;
+}) {
   return (
-    <span
-      className={`inline-flex items-center gap-1.5 rounded-full px-2.5 py-1 text-[11px] font-bold ${
-        configured ? 'bg-emerald-50 text-emerald-700' : 'bg-amber-50 text-amber-800'
-      }`}
-    >
-      <span
-        className={`w-1.5 h-1.5 rounded-full ${configured ? 'bg-emerald-500' : 'bg-amber-500'}`}
-      />
-      {label}
-    </span>
+    <li className="flex flex-wrap items-center justify-between gap-3 rounded-card border border-line bg-surface-sunken px-3 py-2.5">
+      <div className="min-w-0">
+        <p className="font-mono text-xs font-bold text-ink">{name}</p>
+        <p className="text-[11px] text-ink-muted">{description}</p>
+      </div>
+      <Badge tone={configured ? 'success' : 'warning'} dot>
+        {configured ? 'Configured' : 'Missing'}
+      </Badge>
+    </li>
   );
 }
 
-export default function SettingsPage() {
-  const [activeTab, setActiveTab] = useState<Tab>('team');
-  const [agents, setAgents] = useState<AgentProfile[]>([]);
-  const [agentsLoading, setAgentsLoading] = useState(true);
-  const [agentsError, setAgentsError] = useState<string | null>(null);
-  const [whatsapp, setWhatsapp] = useState<WhatsappConfigStatus | null>(null);
-  const [whatsappError, setWhatsappError] = useState<string | null>(null);
-
-  const loadAgents = useCallback(async () => {
-    setAgentsError(null);
-    try {
-      const res = await fetch('/api/agents');
-      const json = await res.json();
-      if (!res.ok || json.error) {
-        throw new Error(json.error?.message || 'Unable to load team members.');
-      }
-      setAgents((json.data ?? []) as AgentProfile[]);
-    } catch (err) {
-      setAgents([]);
-      setAgentsError(err instanceof Error ? err.message : 'Unable to load team members.');
-    } finally {
-      setAgentsLoading(false);
-    }
-  }, []);
-
-  useEffect(() => {
-    void loadAgents();
-  }, [loadAgents]);
-
-  useEffect(() => {
-    if (activeTab !== 'whatsapp' || whatsapp) return;
-    let cancelled = false;
-
-    async function load() {
-      setWhatsappError(null);
-      try {
-        const res = await fetch('/api/integrations/whatsapp');
-        const json = await res.json();
-        if (!res.ok || json.error) {
-          throw new Error(json.error?.message || 'Unable to read the integration status.');
-        }
-        if (!cancelled) setWhatsapp(json.data as WhatsappConfigStatus);
-      } catch (err) {
-        if (!cancelled) {
-          setWhatsappError(
-            err instanceof Error ? err.message : 'Unable to read the integration status.'
-          );
-        }
-      }
-    }
-    load();
-
-    return () => {
-      cancelled = true;
-    };
-  }, [activeTab, whatsapp]);
-
-  const tabButton = (tab: Tab, label: string) => (
-    <button
-      type="button"
-      onClick={() => setActiveTab(tab)}
-      className={`px-4 py-2 rounded-xl text-xs font-semibold transition ${
-        activeTab === tab
-          ? 'bg-[#142340] text-white shadow-sm'
-          : 'bg-white text-slate-600 border border-slate-200 hover:bg-slate-50'
-      }`}
-    >
-      {label}
-    </button>
+function TeamTab({ agents }: { agents: AgentProfile[] | null }) {
+  return (
+    <Card className="overflow-hidden">
+      <CardHeader
+        title="Team members"
+        action={<RefreshButton />}
+      />
+      {agents === null ? (
+        <CardBody>
+          <ErrorState message="Unable to load team members." />
+        </CardBody>
+      ) : agents.length === 0 ? (
+        <EmptyState
+          icon="group"
+          title="No team members yet"
+          description="Profiles appear here as users are registered in Supabase Auth."
+          className="border-0"
+        />
+      ) : (
+        <Table>
+          <caption className="sr-only">Team members and their roles</caption>
+          <THead>
+            <TR>
+              <TH>Name</TH>
+              <TH>Role</TH>
+              <TH>Status</TH>
+              <TH>Last seen</TH>
+            </TR>
+          </THead>
+          <TBody>
+            {agents.map((agent) => (
+              <TR key={agent.id}>
+                <TD className="font-bold text-ink">{agent.full_name}</TD>
+                <TD>
+                  <Badge tone="neutral">{humanize(agent.role ?? 'agent')}</Badge>
+                </TD>
+                <TD>
+                  <Badge tone={agent.is_online ? 'success' : 'neutral'} dot>
+                    {agent.is_online ? 'Online' : 'Offline'}
+                  </Badge>
+                </TD>
+                <TD className="text-ink-muted">{formatRelative(agent.last_seen_at)}</TD>
+              </TR>
+            ))}
+          </TBody>
+        </Table>
+      )}
+    </Card>
   );
+}
+
+function WhatsAppTab() {
+  const status = getWhatsAppConfigStatus();
+
+  return (
+    <Card>
+      <CardHeader title="Meta Cloud API configuration" />
+      <CardBody>
+        <ul className="space-y-3">
+          <ConfigRow
+            name="WHATSAPP_TOKEN"
+            description="Cloud API access token, read server-side only"
+            configured={status.whatsappToken}
+          />
+          <ConfigRow
+            name="WHATSAPP_PHONE_NUMBER_ID"
+            description="Sender number used for outbound messages"
+            configured={status.whatsappPhoneNumberId}
+          />
+          <ConfigRow
+            name="WHATSAPP_WEBHOOK_VERIFY_TOKEN"
+            description="Shared secret for inbound webhook verification"
+            configured={status.webhookVerifyToken}
+          />
+        </ul>
+
+        <p className="mt-4 rounded-card border border-dashed border-line-strong p-4 text-[11px] leading-relaxed text-ink-muted">
+          Credential values are never sent to the browser. Outbound dispatch is performed by the
+          server route, and a missing token is reported as a failed send rather than a success. Set
+          these values in the deployment environment, not in the repository.
+        </p>
+      </CardBody>
+    </Card>
+  );
+}
+
+function SlaTab() {
+  return (
+    <Card>
+      <CardHeader title="SLA handling" />
+      <CardBody>
+        <div className="space-y-2 rounded-card border border-line bg-surface-sunken p-4">
+          <p className="font-bold text-ink">Deadlines are stored per record</p>
+          <p className="text-[11px] leading-relaxed text-ink-muted">
+            Orders, tickets and conversations each carry their own{' '}
+            <span className="font-mono">sla_deadline</span> column. There is no global
+            warning-window table, so the dashboard and inbox compare the current time against each
+            record&rsquo;s own deadline instead of applying fixed thresholds.
+          </p>
+          <Link
+            href="/dashboard"
+            className="inline-block rounded-control bg-surface px-3 py-1.5 text-[11px] font-semibold text-ink transition hover:bg-ink hover:text-white"
+          >
+            Open the SLA monitor
+          </Link>
+        </div>
+      </CardBody>
+    </Card>
+  );
+}
+
+/**
+ * Server Component with URL-driven tabs, so a specific settings pane can be
+ * linked to and survives a refresh. Nothing here needs client state, which
+ * removes the loading and error states the tabbed version had to manage.
+ */
+export default async function SettingsPage({
+  searchParams,
+}: {
+  searchParams: { tab?: string };
+}) {
+  const requested = searchParams.tab;
+  const activeTab: TabId = TABS.some((tab) => tab.id === requested)
+    ? (requested as TabId)
+    : 'team';
+
+  const agents = activeTab === 'team' ? await fetchAgents().catch(() => null) : null;
 
   return (
     <>
-      <div className="flex-1 flex flex-col overflow-y-auto">
-        <div className="p-6 bg-white border-b border-slate-200 flex items-center justify-between shrink-0">
-          <div>
-            <h1 className="text-xl font-bold text-[#142340]">Settings &amp; User Management</h1>
-            <p className="text-xs text-slate-500 mt-0.5">
-              Team roles from the profiles table, WhatsApp credential status, and SLA policy notes
-            </p>
-          </div>
-        </div>
+      <PageHeader
+        title="Settings and user management"
+        description="Team roles, WhatsApp credential status and SLA policy"
+      />
 
-        <div className="p-6 max-w-5xl w-full">
-          <div className="flex gap-2 mb-6">
-            {tabButton('team', 'Team & Roles')}
-            {tabButton('whatsapp', 'WhatsApp API')}
-            {tabButton('sla', 'SLA Rules')}
-          </div>
+      <PageBody className="max-w-4xl">
+        <nav aria-label="Settings sections" className="mb-6 flex flex-wrap gap-2">
+          {TABS.map((tab) => (
+            <Link
+              key={tab.id}
+              href={tab.id === 'team' ? '/settings' : `/settings?tab=${tab.id}`}
+              aria-current={activeTab === tab.id ? 'page' : undefined}
+              className={
+                activeTab === tab.id
+                  ? 'rounded-control bg-ink px-4 py-2 text-xs font-semibold text-white transition'
+                  : 'rounded-control border border-line bg-surface px-4 py-2 text-xs font-semibold text-ink-muted transition hover:bg-surface-sunken hover:text-ink'
+              }
+            >
+              {tab.label}
+            </Link>
+          ))}
+        </nav>
 
-          {activeTab === 'team' && (
-            <div className="bg-white rounded-2xl p-6 border border-slate-200 shadow-sm space-y-4">
-              <div className="flex items-center justify-between">
-                <h3 className="text-sm font-bold text-[#142340]">Team Members</h3>
-                <button
-                  type="button"
-                  onClick={() => void loadAgents()}
-                  className="flex items-center gap-1.5 rounded-xl border border-slate-200 px-3 py-1.5 text-xs font-semibold text-slate-700 transition hover:bg-slate-50"
-                >
-                  <span className="material-symbols-outlined text-[16px]">refresh</span>
-                  <span>Refresh</span>
-                </button>
-              </div>
-
-              {agentsError && (
-                <div className="rounded-lg border border-red-200 bg-red-50 px-3 py-2 text-[11px] font-semibold text-red-700">
-                  {agentsError}
-                </div>
-              )}
-
-              <div className="overflow-x-auto">
-                <table className="w-full text-left text-xs">
-                  <thead>
-                    <tr className="border-b border-slate-100 text-slate-400 uppercase font-semibold">
-                      <th className="pb-3">Name</th>
-                      <th className="pb-3">Role</th>
-                      <th className="pb-3">Status</th>
-                      <th className="pb-3">Last Seen</th>
-                    </tr>
-                  </thead>
-                  <tbody className="divide-y divide-slate-100">
-                    {agentsLoading && agents.length === 0 && (
-                      <tr>
-                        <td colSpan={4} className="py-8 text-center text-slate-400">
-                          Loading team members...
-                        </td>
-                      </tr>
-                    )}
-
-                    {!agentsLoading && !agentsError && agents.length === 0 && (
-                      <tr>
-                        <td colSpan={4} className="py-8 text-center text-slate-400">
-                          No profiles exist yet. Rows appear as users are registered in Supabase
-                          Auth.
-                        </td>
-                      </tr>
-                    )}
-
-                    {agents.map((agent) => (
-                      <tr key={agent.id} className="hover:bg-slate-50">
-                        <td className="py-3 font-bold text-[#142340]">{agent.full_name}</td>
-                        <td className="py-3">
-                          <span className="px-2 py-0.5 bg-slate-100 text-slate-700 rounded font-semibold text-[10px] capitalize">
-                            {agent.role}
-                          </span>
-                        </td>
-                        <td className="py-3">
-                          <span
-                            className={`px-2 py-0.5 rounded-full font-bold text-[10px] ${
-                              agent.is_online
-                                ? 'bg-emerald-50 text-emerald-700'
-                                : 'bg-slate-100 text-slate-500'
-                            }`}
-                          >
-                            {agent.is_online ? 'Online' : 'Offline'}
-                          </span>
-                        </td>
-                        <td className="py-3 text-slate-500">
-                          {agent.last_seen_at
-                            ? new Date(agent.last_seen_at).toLocaleString()
-                            : 'Never recorded'}
-                        </td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-              </div>
-            </div>
-          )}
-
-          {activeTab === 'whatsapp' && (
-            <div className="bg-white rounded-2xl p-6 border border-slate-200 shadow-sm space-y-4 text-xs">
-              <h3 className="text-sm font-bold text-[#142340]">Meta Cloud API Configuration</h3>
-
-              {whatsappError && (
-                <div className="rounded-lg border border-red-200 bg-red-50 px-3 py-2 text-[11px] font-semibold text-red-700">
-                  {whatsappError}
-                </div>
-              )}
-
-              <div className="space-y-3">
-                <div className="flex items-center justify-between gap-3 rounded-xl border border-slate-200 bg-slate-50 px-3 py-2.5">
-                  <div>
-                    <div className="font-bold text-slate-800">WHATSAPP_TOKEN</div>
-                    <div className="text-[11px] text-slate-500">
-                      Cloud API access token, read server-side only
-                    </div>
-                  </div>
-                  {whatsapp ? (
-                    <StatusPill
-                      configured={whatsapp.whatsapp_token_configured}
-                      label={whatsapp.whatsapp_token_configured ? 'Configured' : 'Missing'}
-                    />
-                  ) : (
-                    <span className="text-[11px] text-slate-400">Checking...</span>
-                  )}
-                </div>
-
-                <div className="flex items-center justify-between gap-3 rounded-xl border border-slate-200 bg-slate-50 px-3 py-2.5">
-                  <div>
-                    <div className="font-bold text-slate-800">WHATSAPP_PHONE_NUMBER_ID</div>
-                    <div className="text-[11px] text-slate-500">
-                      Sender number used for outbound messages
-                    </div>
-                  </div>
-                  {whatsapp ? (
-                    <StatusPill
-                      configured={whatsapp.whatsapp_phone_number_id_configured}
-                      label={
-                        whatsapp.whatsapp_phone_number_id_configured ? 'Configured' : 'Missing'
-                      }
-                    />
-                  ) : (
-                    <span className="text-[11px] text-slate-400">Checking...</span>
-                  )}
-                </div>
-
-                <div className="flex items-center justify-between gap-3 rounded-xl border border-slate-200 bg-slate-50 px-3 py-2.5">
-                  <div>
-                    <div className="font-bold text-slate-800">WHATSAPP_WEBHOOK_VERIFY_TOKEN</div>
-                    <div className="text-[11px] text-slate-500">
-                      Shared secret for inbound webhook verification
-                    </div>
-                  </div>
-                  {whatsapp ? (
-                    <StatusPill
-                      configured={whatsapp.webhook_verify_token_configured}
-                      label={whatsapp.webhook_verify_token_configured ? 'Configured' : 'Missing'}
-                    />
-                  ) : (
-                    <span className="text-[11px] text-slate-400">Checking...</span>
-                  )}
-                </div>
-              </div>
-
-              <p className="rounded-xl border border-dashed border-slate-300 p-4 text-[11px] leading-relaxed text-slate-500">
-                Credential values are never sent to the browser. Outbound dispatch is performed by
-                the server route and a missing token is reported as a failed send rather than a
-                success. Set these values in the deployment environment, not in the repository.
-              </p>
-            </div>
-          )}
-
-          {activeTab === 'sla' && (
-            <div className="bg-white rounded-2xl p-6 border border-slate-200 shadow-sm space-y-4 text-xs">
-              <h3 className="text-sm font-bold text-[#142340]">SLA Handling</h3>
-
-              <div className="p-4 bg-slate-50 rounded-xl border border-slate-200 space-y-2">
-                <div className="font-bold text-slate-900">Deadlines are stored per record</div>
-                <p className="text-[11px] leading-relaxed text-slate-600">
-                  Orders, tickets, and conversations each carry their own{' '}
-                  <span className="font-mono">sla_deadline</span> column. There is no global
-                  warning-window table, so the dashboard and inbox compare the current time against
-                  each record&apos;s own deadline instead of applying fixed thresholds.
-                </p>
-                <Link
-                  href="/dashboard"
-                  className="inline-block rounded-lg bg-slate-100 px-3 py-1.5 text-[11px] font-semibold text-slate-700 transition hover:bg-slate-200"
-                >
-                  Open the SLA monitor
-                </Link>
-              </div>
-            </div>
-          )}
-        </div>
-      </div>
+        {activeTab === 'team' ? <TeamTab agents={agents} /> : null}
+        {activeTab === 'whatsapp' ? <WhatsAppTab /> : null}
+        {activeTab === 'sla' ? <SlaTab /> : null}
+      </PageBody>
     </>
   );
 }
