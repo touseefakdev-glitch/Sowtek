@@ -7,8 +7,26 @@ import { InboxView } from './InboxView';
 
 export const metadata: Metadata = { title: 'Inbox' };
 
+/**
+ * Must reject anything that is not literally a member of the list.
+ *
+ * An earlier version defaulted the value before checking it:
+ *
+ *   CONVERSATION_STATUSES.includes((value ?? 'active') as ConversationStatus)
+ *
+ * which returns true for `undefined` while the `value is ConversationStatus`
+ * predicate then told TypeScript the value was a valid non-nullable status. The
+ * caller reads `isConversationStatus(sp.status) ? sp.status : 'active'`, so on
+ * `/inbox` with no `?status=` the true branch handed back the original
+ * `undefined` and every downstream `status` was undefined. The empty-list copy
+ * calls `status.replace(...)` and threw
+ * "Cannot read properties of undefined", and `fetchConversations` skipped its
+ * `.eq('status', ...)` filter, so the Active tab quietly returned every
+ * conversation regardless of status. `tsc` could not catch it because the
+ * predicate overclaimed.
+ */
 function isConversationStatus(value: string | undefined): value is ConversationStatus {
-  return CONVERSATION_STATUSES.includes((value ?? 'active') as ConversationStatus);
+  return typeof value === 'string' && (CONVERSATION_STATUSES as readonly string[]).includes(value);
 }
 
 /**
