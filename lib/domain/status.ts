@@ -131,18 +131,86 @@ export const TICKET_STATUS_META: Record<TicketStatus, StatusMeta> = {
 
 export const TICKET_TERMINAL_STATUSES: readonly TicketStatus[] = ['resolved'];
 
-export const TICKET_PRIORITIES = ['low', 'medium', 'high', 'urgent'] as const;
+/**
+ * Allowed ticket transitions, keyed by current status.
+ *
+ * The ticket console previously offered exactly two buttons, "resolved" and
+ * "escalated", from every state. That made three of the six statuses
+ * (investigating, waiting_for_information, resolution_offered) unreachable from
+ * the UI even though the schema and API accept them, and let an agent resolve
+ * an already-resolved ticket. Mirrors the order graph so both consoles behave
+ * the same way.
+ */
+export const TICKET_STATUS_FLOW: Record<TicketStatus, readonly TicketStatus[]> = {
+  new: ['investigating', 'escalated', 'resolved'],
+  investigating: ['waiting_for_information', 'resolution_offered', 'escalated', 'resolved'],
+  waiting_for_information: ['investigating', 'escalated', 'resolved'],
+  resolution_offered: ['resolved', 'investigating', 'escalated'],
+  escalated: ['investigating', 'resolved'],
+  resolved: [],
+};
+
+export function isTicketStatus(value: string): value is TicketStatus {
+  return (TICKET_STATUSES as readonly string[]).includes(value);
+}
+
+/** Statuses reachable from the current one, empty when terminal. */
+export function ticketTransitions(from: string): readonly TicketStatus[] {
+  if (!isTicketStatus(from)) return [];
+  return TICKET_STATUS_FLOW[from];
+}
+
+/**
+ * Ticket type and priority vocabularies are fixed by the CHECK constraints on
+ * public.tickets in supabase/migrations/001_initial_schema.sql and mirrored in
+ * the zod schemas in app/api/tickets. They must match those exactly:
+ *
+ *   type     IN ('missing_item','wrong_item','quality','delivery','payment','other')
+ *   priority IN ('low','normal','high','urgent')
+ *
+ * These lists previously said `billing` and `medium`, neither of which the
+ * database accepts, so every priority of "normal" fell through the lookup and
+ * rendered as an unstyled grey chip instead of the intended info tone.
+ */
+export const TICKET_PRIORITIES = ['low', 'normal', 'high', 'urgent'] as const;
 export type TicketPriority = (typeof TICKET_PRIORITIES)[number];
 
 export const TICKET_PRIORITY_META: Record<TicketPriority, StatusMeta> = {
   low: { label: 'Low', tone: 'neutral' },
-  medium: { label: 'Medium', tone: 'info' },
+  normal: { label: 'Normal', tone: 'info' },
   high: { label: 'High', tone: 'warning' },
   urgent: { label: 'Urgent', tone: 'danger' },
 };
 
-export const TICKET_TYPES = ['delivery', 'quality', 'billing', 'other'] as const;
+export const TICKET_TYPES = [
+  'missing_item',
+  'wrong_item',
+  'quality',
+  'delivery',
+  'payment',
+  'other',
+] as const;
 export type TicketType = (typeof TICKET_TYPES)[number];
+
+export const TICKET_TYPE_META: Record<TicketType, StatusMeta> = {
+  missing_item: { label: 'Missing item', tone: 'warning' },
+  wrong_item: { label: 'Wrong item', tone: 'warning' },
+  quality: { label: 'Quality', tone: 'warning' },
+  delivery: { label: 'Delivery', tone: 'info' },
+  payment: { label: 'Payment', tone: 'info' },
+  other: { label: 'Other', tone: 'neutral' },
+};
+
+export function ticketTypeMeta(type: string): StatusMeta {
+  return TICKET_TYPE_META[type as TicketType] ?? { label: type, tone: 'neutral' };
+}
+
+/** The statuses worth a queue tab. The rest are reachable from the detail. */
+export const TICKET_QUEUE_STATUSES: readonly TicketStatus[] = [
+  'new',
+  'investigating',
+  'escalated',
+];
 
 /* ------------------------------------------------------------------ */
 /* Conversations & products (shared lifecycle)                        */
