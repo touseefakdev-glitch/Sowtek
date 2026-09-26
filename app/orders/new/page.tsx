@@ -1,10 +1,9 @@
-'use client';
+﻿'use client';
 
 import React, { useState, Suspense } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import Link from 'next/link';
 import { AppSidebar } from '@/components/layout/AppSidebar';
-import { createOrder, type OrderItemPayload } from '@/lib/api/orders';
 
 function CreateOrderContent() {
   const router = useRouter();
@@ -221,7 +220,7 @@ function CreateOrderContent() {
                     </span>
                   </div>
                   <p className="text-[11px] text-slate-500 font-mono">
-                    PO-NOOR-2024-8822 • {items.length} Line SKUs
+                    PO-NOOR-2024-8822 â€¢ {items.length} Line SKUs
                   </p>
                   <div className="flex items-center justify-between pt-1">
                     <span className="text-xs font-black text-slate-900 font-mono">
@@ -245,7 +244,7 @@ function CreateOrderContent() {
                     <span className="text-xs font-bold text-slate-800">Marina Cafe & Bakery</span>
                     <span className="text-[11px] text-slate-400">09:48 AM</span>
                   </div>
-                  <p className="text-[11px] text-slate-500">PO-MAR-9102 • Pastry Flour 50kg</p>
+                  <p className="text-[11px] text-slate-500">PO-MAR-9102 â€¢ Pastry Flour 50kg</p>
                   <div className="flex items-center justify-between pt-1">
                     <span className="text-xs font-bold text-slate-700 font-mono">
                       SAR 2,140.00
@@ -268,7 +267,7 @@ function CreateOrderContent() {
                     <span className="text-xs font-bold text-slate-800">Sultan Grill Express</span>
                     <span className="text-[11px] text-slate-400">09:12 AM</span>
                   </div>
-                  <p className="text-[11px] text-slate-500">PO-SULT-4481 • Charcoal & Spices</p>
+                  <p className="text-[11px] text-slate-500">PO-SULT-4481 â€¢ Charcoal & Spices</p>
                   <div className="flex items-center justify-between pt-1">
                     <span className="text-xs font-bold text-slate-700 font-mono">
                       SAR 8,920.00
@@ -555,8 +554,8 @@ function CreateOrderContent() {
                 {/* Financial Summary Breakdown */}
                 <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center pt-4 border-t border-slate-100 gap-4">
                   <div className="text-xs text-slate-500 space-y-1">
-                    <p>• Delivery Zone: Zone A Central Riyadh (Morning Run 06:00 - 10:00)</p>
-                    <p>• Payment Terms: Standard Net-30 Invoiced via ZATCA E-Invoice</p>
+                    <p>â€¢ Delivery Zone: Zone A Central Riyadh (Morning Run 06:00 - 10:00)</p>
+                    <p>â€¢ Payment Terms: Standard Net-30 Invoiced via ZATCA E-Invoice</p>
                   </div>
 
                   <div className="w-full sm:w-72 bg-slate-50 p-4 rounded-xl border border-slate-200/80 space-y-2 text-xs">
@@ -619,200 +618,6 @@ function CreateOrderContent() {
 export default function CreateOrderPage() {
   return (
     <Suspense fallback={<div className="p-8 text-center text-xs">Loading order builder...</div>}>
-      <CreateOrderContent />
-    </Suspense>
-  );
-}
-      });
-
-      if (res.data?.id) {
-        router.push(`/orders/${res.data.id}`);
-      } else {
-        router.push('/orders');
-      }
-    } catch (err) {
-      console.warn('Order submission fallback', err);
-      router.push('/orders');
-    } finally {
-      setSubmitting(false);
-    }
-  }
-
-  return (
-    <div className="flex h-screen bg-[#f1f3f7] overflow-hidden font-sans">
-      <AppSidebar />
-
-      <div className="flex-1 flex flex-col overflow-y-auto">
-        <div className="p-6 bg-white border-b border-slate-200 flex items-center justify-between shrink-0">
-          <div>
-            <div className="flex items-center gap-2 text-xs text-slate-500 mb-1">
-              <Link href="/orders" className="hover:text-slate-900">Orders</Link>
-              <span>/</span>
-              <span className="font-semibold text-slate-900">New Order</span>
-            </div>
-            <h1 className="text-xl font-bold text-[#142340]">Create Wholesale Order</h1>
-          </div>
-
-          <div className="flex items-center gap-3">
-            <Link
-              href="/inbox"
-              className="px-4 py-2 border border-slate-200 hover:bg-slate-50 rounded-xl text-xs font-semibold text-slate-700 transition"
-            >
-              Cancel
-            </Link>
-            <button
-              onClick={handleSubmit}
-              disabled={submitting || items.length === 0}
-              className="px-5 py-2 bg-[#70b928] hover:bg-[#5a991f] text-white font-semibold rounded-xl text-xs transition shadow-sm disabled:opacity-50"
-            >
-              {submitting ? 'Generating Order...' : 'Confirm & Generate Order &rarr;'}
-            </button>
-          </div>
-        </div>
-
-        <div className="p-6 max-w-5xl w-full mx-auto space-y-6">
-          {/* Customer & Terms */}
-          <div className="bg-white rounded-2xl p-6 border border-slate-200 shadow-sm grid grid-cols-1 md:grid-cols-2 gap-4 text-xs">
-            <div>
-              <label className="block text-slate-500 uppercase font-semibold mb-1">
-                Select Restaurant Customer
-              </label>
-              <select
-                value={restaurantId}
-                onChange={(e) => setRestaurantId(e.target.value)}
-                className="w-full p-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs font-semibold text-slate-900 focus:outline-none focus:border-[#70b928]"
-              >
-                <option value="rest-1">Burger Boutique - Al Olaya (Zone A)</option>
-                <option value="rest-2">Shawarma Classic - Al Nakheel (Zone B)</option>
-                <option value="rest-3">Mama Noura Express - Jeddah (Zone J1)</option>
-              </select>
-            </div>
-
-            <div>
-              <label className="block text-slate-500 uppercase font-semibold mb-1">
-                Target Delivery Date
-              </label>
-              <input
-                type="date"
-                value={deliveryDate}
-                onChange={(e) => setDeliveryDate(e.target.value)}
-                className="w-full p-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs text-slate-900 focus:outline-none focus:border-[#70b928]"
-              />
-            </div>
-
-            <div className="md:col-span-2">
-              <label className="block text-slate-500 uppercase font-semibold mb-1">
-                Delivery Address & Gate Notes
-              </label>
-              <input
-                type="text"
-                value={deliveryAddress}
-                onChange={(e) => setDeliveryAddress(e.target.value)}
-                className="w-full p-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs text-slate-900 focus:outline-none focus:border-[#70b928]"
-              />
-            </div>
-          </div>
-
-          {/* Line Items Table */}
-          <div className="bg-white rounded-2xl p-6 border border-slate-200 shadow-sm">
-            <div className="flex items-center justify-between mb-4">
-              <h3 className="text-sm font-bold text-[#142340]">Order Line Items</h3>
-              <button
-                type="button"
-                onClick={addItem}
-                className="px-3 py-1.5 bg-slate-100 hover:bg-slate-200 text-slate-800 rounded-xl text-xs font-semibold transition"
-              >
-                ➕ Add SKU Line
-              </button>
-            </div>
-
-            <div className="space-y-3">
-              {items.map((item, idx) => (
-                <div
-                  key={idx}
-                  className="flex items-center gap-3 p-3 bg-slate-50 rounded-xl border border-slate-200 text-xs"
-                >
-                  <input
-                    type="text"
-                    placeholder="Product Name / Description"
-                    value={item.name}
-                    onChange={(e) => updateItem(idx, 'name', e.target.value)}
-                    className="flex-1 p-2 bg-white border border-slate-200 rounded-lg text-xs font-semibold text-slate-900"
-                  />
-                  <select
-                    value={item.unit}
-                    onChange={(e) => updateItem(idx, 'unit', e.target.value)}
-                    className="w-24 p-2 bg-white border border-slate-200 rounded-lg text-xs text-slate-700"
-                  >
-                    <option value="kg">kg</option>
-                    <option value="box">box</option>
-                    <option value="pack">pack</option>
-                    <option value="crate">crate</option>
-                    <option value="sack">sack</option>
-                  </select>
-                  <input
-                    type="number"
-                    min="1"
-                    placeholder="Qty"
-                    value={item.quantity}
-                    onChange={(e) => updateItem(idx, 'quantity', parseFloat(e.target.value) || 0)}
-                    className="w-20 p-2 bg-white border border-slate-200 rounded-lg text-xs text-right font-mono"
-                  />
-                  <input
-                    type="number"
-                    min="0"
-                    step="0.01"
-                    placeholder="Unit Price"
-                    value={item.unit_price}
-                    onChange={(e) => updateItem(idx, 'unit_price', parseFloat(e.target.value) || 0)}
-                    className="w-28 p-2 bg-white border border-slate-200 rounded-lg text-xs text-right font-mono"
-                  />
-                  <div className="w-28 text-right font-mono font-bold text-slate-900">
-                    SAR {(item.quantity * item.unit_price).toFixed(2)}
-                  </div>
-                  <button
-                    type="button"
-                    onClick={() => removeItem(idx)}
-                    className="text-red-500 hover:text-red-700 p-1 text-sm font-bold"
-                  >
-                    &times;
-                  </button>
-                </div>
-              ))}
-            </div>
-
-            {/* Calculations */}
-            <div className="mt-6 pt-4 border-t border-slate-100 flex flex-col items-end text-xs space-y-1.5">
-              <div className="flex justify-between w-64 text-slate-600">
-                <span>Subtotal</span>
-                <span className="font-mono">SAR {subtotal.toFixed(2)}</span>
-              </div>
-              <div className="flex justify-between w-64 text-slate-600">
-                <span>VAT (15%)</span>
-                <span className="font-mono">SAR {vatAmount.toFixed(2)}</span>
-              </div>
-              <div className="flex justify-between w-64 text-sm font-bold text-[#142340] pt-2 border-t border-slate-200">
-                <span>Calculated Total</span>
-                <span className="font-mono text-[#70b928]">SAR {totalAmount.toFixed(2)}</span>
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
-    </div>
-  );
-}
-
-export default function CreateOrderPage() {
-  return (
-    <Suspense
-      fallback={
-        <div className="flex h-screen bg-[#f1f3f7]">
-          <AppSidebar />
-          <div className="flex-1 p-8 text-slate-500 text-sm">Loading order creator...</div>
-        </div>
-      }
-    >
       <CreateOrderContent />
     </Suspense>
   );
