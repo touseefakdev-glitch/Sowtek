@@ -1,25 +1,7 @@
 import { createClient } from '@/lib/supabase/server';
-import type { Tone } from '@/lib/domain/status';
+import type { NotificationRow } from '@/lib/domain/notifications';
 
-/**
- * Server-side data access for the notification feed.
- *
- * Notifications are always scoped to the signed-in agent: the server client
- * reads the session cookie, and RLS on `notifications` scopes rows to the
- * current user as a second line of defence.
- */
-
-export interface NotificationRow {
-  id: string;
-  type: string | null;
-  title: string;
-  body: string | null;
-  link: string | null;
-  is_read: boolean;
-  created_at: string;
-}
-
-export type NotificationCategory = 'orders' | 'escalations' | 'billing' | 'inventory' | 'system';
+export type { NotificationRow } from '@/lib/domain/notifications';
 
 export interface NotificationFeed {
   notifications: NotificationRow[];
@@ -27,6 +9,17 @@ export interface NotificationFeed {
   total: number;
 }
 
+/**
+ * Server-side data access for the notification feed.
+ *
+ * Notifications are scoped to the signed-in agent: the server client reads the
+ * session cookie, and RLS on `notifications` scopes rows to the current user
+ * as a second line of defence.
+ *
+ * This module is server-only. Import the classification helpers from
+ * lib/domain/notifications instead; importing them from here pulls next/headers
+ * into the client bundle.
+ */
 export async function fetchNotifications(limit = 50): Promise<NotificationFeed> {
   const supabase = createClient();
 
@@ -47,39 +40,3 @@ export async function fetchNotifications(limit = 50): Promise<NotificationFeed> 
     total: count ?? notifications.length,
   };
 }
-
-/**
- * Maps a notification type onto a category and a tone. Previously each page
- * re-derived its own colours from the type string, which is why the same
- * event rendered green in one place and amber in another.
- */
-export function notificationPresentation(type: string | null): {
-  category: NotificationCategory;
-  icon: string;
-  tone: Tone;
-} {
-  const value = (type ?? '').toLowerCase();
-
-  if (value.includes('ticket') || value.includes('escalation') || value.includes('complaint')) {
-    return { category: 'escalations', icon: 'support_agent', tone: 'danger' };
-  }
-  if (value.includes('credit') || value.includes('invoice') || value.includes('payment')) {
-    return { category: 'billing', icon: 'account_balance_wallet', tone: 'warning' };
-  }
-  if (value.includes('stock') || value.includes('inventory') || value.includes('product')) {
-    return { category: 'inventory', icon: 'inventory_2', tone: 'neutral' };
-  }
-  if (value.includes('order') || value.includes('conversation')) {
-    return { category: 'orders', icon: 'receipt_long', tone: 'info' };
-  }
-  return { category: 'system', icon: 'notifications', tone: 'neutral' };
-}
-
-export const NOTIFICATION_FILTERS = [
-  { id: 'all', label: 'All' },
-  { id: 'orders', label: 'Orders' },
-  { id: 'escalations', label: 'Escalations' },
-  { id: 'billing', label: 'Billing' },
-  { id: 'inventory', label: 'Inventory' },
-  { id: 'system', label: 'System' },
-] as const;

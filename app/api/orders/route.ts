@@ -2,6 +2,7 @@ import { NextRequest } from 'next/server';
 import { z } from 'zod';
 import { createClient } from '@/lib/supabase/server';
 import { apiSuccess, apiError, handleApiError } from '@/lib/api/response';
+import { calculateTotals } from '@/lib/domain/pricing';
 import { addHours } from 'date-fns';
 
 const orderItemSchema = z.object({
@@ -132,13 +133,9 @@ export async function POST(request: NextRequest) {
       return apiError('Unauthorized', 401, null, 'AUTH_REQUIRED');
     }
 
-    // 1. Calculate pricing: subtotal, 15% VAT, total
-    const subtotal = parsed.items.reduce(
-      (sum, item) => sum + item.quantity * item.unit_price,
-      0
-    );
-    const vatAmount = Number((subtotal * 0.15).toFixed(2));
-    const totalAmount = Number((subtotal + vatAmount).toFixed(2));
+    // 1. Pricing comes from the shared rules so the builder preview and the
+    // stored totals can never disagree.
+    const { subtotal, vatAmount, totalAmount } = calculateTotals(parsed.items);
 
     // Default SLA deadline: 4 hours from now
     const slaDeadline = addHours(new Date(), 4).toISOString();

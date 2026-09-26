@@ -2,6 +2,7 @@ import { NextRequest } from 'next/server';
 import { z } from 'zod';
 import { createClient } from '@/lib/supabase/server';
 import { apiSuccess, apiError, handleApiError } from '@/lib/api/response';
+import { calculateTotals } from '@/lib/domain/pricing';
 
 const addItemSchema = z.object({
   product_id: z.string().uuid().optional().nullable(),
@@ -23,12 +24,7 @@ async function recalculateOrderTotals(supabase: ReturnType<typeof createClient>,
     .select('quantity, unit_price')
     .eq('order_id', orderId);
 
-  const subtotal = (items || []).reduce(
-    (sum, item) => sum + Number(item.quantity) * Number(item.unit_price),
-    0
-  );
-  const vatAmount = Number((subtotal * 0.15).toFixed(2));
-  const totalAmount = Number((subtotal + vatAmount).toFixed(2));
+  const { subtotal, vatAmount, totalAmount } = calculateTotals(items || []);
 
   await supabase
     .from('orders')

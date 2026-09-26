@@ -1,6 +1,7 @@
 import { NextRequest } from 'next/server';
 import { createClient } from '@/lib/supabase/server';
 import { apiSuccess, apiError, handleApiError } from '@/lib/api/response';
+import { calculateTotals } from '@/lib/domain/pricing';
 
 interface RouteParams {
   params: {
@@ -30,12 +31,7 @@ export async function DELETE(request: NextRequest, { params }: RouteParams) {
       .select('quantity, unit_price')
       .eq('order_id', orderId);
 
-    const subtotal = (remainingItems || []).reduce(
-      (sum, item) => sum + Number(item.quantity) * Number(item.unit_price),
-      0
-    );
-    const vatAmount = Number((subtotal * 0.15).toFixed(2));
-    const totalAmount = Number((subtotal + vatAmount).toFixed(2));
+    const { subtotal, vatAmount, totalAmount } = calculateTotals(remainingItems || []);
 
     await supabase
       .from('orders')

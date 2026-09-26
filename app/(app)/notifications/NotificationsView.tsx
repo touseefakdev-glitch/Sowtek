@@ -6,8 +6,9 @@ import { markAllRead, markRead } from '@/lib/api/notifications';
 import {
   NOTIFICATION_FILTERS,
   notificationPresentation,
+  type NotificationFilterId,
   type NotificationRow,
-} from '@/lib/data/notifications';
+} from '@/lib/domain/notifications';
 import { toneClasses, toneDot } from '@/lib/domain/status';
 import {
   Badge,
@@ -19,8 +20,6 @@ import {
 } from '@/components/ui';
 import { formatRelative } from '@/lib/format';
 
-type FilterId = (typeof NOTIFICATION_FILTERS)[number]['id'];
-
 export function NotificationsView({
   initialNotifications,
   initialUnread,
@@ -29,7 +28,7 @@ export function NotificationsView({
   initialUnread: number;
 }) {
   const [notifications, setNotifications] = useState<NotificationRow[]>(initialNotifications);
-  const [filter, setFilter] = useState<FilterId>('all');
+  const [filter, setFilter] = useState<NotificationFilterId>('all');
   const [unreadOnly, setUnreadOnly] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
