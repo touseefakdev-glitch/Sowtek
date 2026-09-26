@@ -175,6 +175,26 @@ const isGenerated = (cls) => css.includes(`.${tailwindEscape(cls)}`);
 
 const missing = new Map();
 const bypasses = new Map();
+const corrupt = new Map();
+
+/**
+ * Mojibake: UTF-8 bytes that were decoded as cp1252. The Arabic login copy and
+ * a few separators had this, so it is checked rather than eyeballed.
+ */
+const MOJIBAKE = /[\u00C2-\u00C3][\u0080-\u00BF]|[\u00E2][\u0080-\u00BF]|[\u00F0][\u0090-\u00BF]/;
+
+/**
+ * Legitimate non-ASCII: Arabic script, bidi controls, typographic punctuation
+ * and emoji. Anything else outside ASCII is a sign of an encoding accident.
+ */
+const NON_ASCII_ALLOWED = new RegExp(
+  '[\\u0600-\\u06FF\\u0750-\\u077F\\u08A0-\\u08FF\\uFB50-\\uFDFF\\uFE70-\\uFEFF' +
+    '\\u200B-\\u200F\\u202A-\\u202E\\u2066-\\u2069' +
+    '\\u00A0\\u00B0\\u00B7\\u2013\\u2014\\u2018\\u2019\\u201C\\u201D\\u2022\\u2026\\u00D7' +
+    '\\u2190-\\u21FF\\u2300-\\u23FF\\u25A0-\u27BF\\u2B00-\\u2BFF' +
+    '\\u{1F300}-\\u{1FAFF}\\u{FE0F}\\u{1F1E6}-\\u{1F1FF}]',
+  'gu'
+);
 
 const note = (map, key, file) => {
   if (!map.has(key)) map.set(key, new Set());
@@ -200,6 +220,17 @@ for (const file of sourceFiles) {
   for (const match of source.matchAll(RAW_HEX)) {
     note(bypasses, match[0], rel);
   }
+
+  if (MOJIBAKE.test(source)) {
+    const line = source.split(/\r?\n/).findIndex((value) => MOJIBAKE.test(value)) + 1;
+    note(corrupt, `line ${line}`, rel);
+  } else if (/[^\x00-\x7F]/.test(source)) {
+    // Non-ASCII is fine, but only in scripts and typographic punctuation.
+    const stripped = source.replace(NON_ASCII_ALLOWED, '');
+    if (/[^\x00-\x7F]/.test(stripped)) {
+      note(corrupt, 'unexpected non-ASCII characters', rel);
+    }
+  }
 }
 
 let failed = false;
@@ -222,11 +253,20 @@ if (bypasses.size > 0) {
   }
 }
 
+if (corrupt.size > 0) {
+  failed = true;
+  console.log(`\nTEXT ENCODING (${corrupt.size}) - mojibake or unexpected non-ASCII:\n`);
+  for (const [what, files] of [...corrupt].sort()) {
+    console.log(`  ${what}`);
+    for (const file of files) console.log(`      ${file}`);
+  }
+}
+
 if (failed) {
   console.log('\n');
   process.exit(1);
 }
 
 console.log(
-  `OK - ${sourceFiles.length} files scanned. No unknown utilities, no raw hex or palette colours.`
+  `OK - ${sourceFiles.length} files scanned. No unknown utilities, no raw hex or palette colours, no mojibake.`
 );

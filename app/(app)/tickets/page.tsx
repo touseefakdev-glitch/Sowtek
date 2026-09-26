@@ -1,4 +1,4 @@
-﻿'use client';
+'use client';
 
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import Link from 'next/link';
@@ -538,7 +538,7 @@ export default function TicketsPage() {
                   href={`/contacts/${selected.restaurant.id}`}
                   className="mt-1 inline-block rounded-lg bg-slate-100 px-3 py-1.5 text-[11px] font-semibold text-slate-700 transition hover:bg-slate-200"
                 >
-                  View 360Â° profile
+                  View 360° profile
                 </Link>
               </div>
             ) : (

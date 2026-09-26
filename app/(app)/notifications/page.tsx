@@ -1,4 +1,4 @@
-﻿'use client';
+'use client';
 
 import React, { useEffect, useState } from 'react';
 import Link from 'next/link';
@@ -181,7 +181,7 @@ export default function NotificationsPage() {
               <div className="flex flex-col">
                 <div className="flex items-center gap-1.5 text-slate-500 text-[11px] uppercase tracking-wider font-bold mb-1">
                   <span>Sowtek Operations</span>
-                  <span>â€¢</span>
+                  <span>•</span>
                   <span className="text-[#70b928]">Dispatch Hub</span>
                 </div>
                 <h1 className="text-2xl font-bold text-[#142340] tracking-tight">Activity & Notifications</h1>
