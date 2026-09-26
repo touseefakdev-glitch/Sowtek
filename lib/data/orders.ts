@@ -6,8 +6,11 @@ import type { OrderStatus } from '@/lib/domain/status';
  *
  * Server Components read through here instead of fetching the app's own
  * /api routes, which avoids a pointless HTTP round trip to itself and lets the
- * first paint include real data. The API routes import the same column
- * selection so the HTTP and RSC paths cannot drift apart.
+ * first paint include real data.
+ *
+ * Note: the /api/orders route keeps its own wider projection because it also
+ * serves clients that need notes and line items. This module owns the list
+ * projection only, so the two cannot drift on the fields the list renders.
  */
 
 export const ORDER_LIST_SELECT = `

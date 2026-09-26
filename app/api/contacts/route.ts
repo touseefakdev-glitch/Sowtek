@@ -1,6 +1,7 @@
 import { NextRequest } from 'next/server';
 import { z } from 'zod';
 import { createClient } from '@/lib/supabase/server';
+import { isTerminalOrderStatus, isTerminalTicketStatus } from '@/lib/domain/status';
 import { apiSuccess, apiError, handleApiError } from '@/lib/api/response';
 
 const createRestaurantSchema = z.object({
@@ -61,19 +62,22 @@ export async function GET(request: NextRequest) {
       return apiError(error.message, 400, error, 'RESTAURANTS_QUERY_ERROR');
     }
 
-    // Format results with computed aggregates: open_orders_count, total_spend, open_tickets_count
+    // Format results with computed aggregates. Terminal states come from the
+    // domain module so this route and the Server Component agree: previously
+    // this excluded only delivered/cancelled/paid while counting invoiced
+    // orders as open, and treated resolution_offered as closed.
     const formatted = (restaurants || []).map((r) => {
       const orders = r.orders || [];
       const tickets = r.tickets || [];
 
       const openOrders = orders.filter(
-        (o: { status: string }) => !['delivered', 'cancelled', 'paid'].includes(o.status)
+        (o: { status: string }) => !isTerminalOrderStatus(o.status)
       );
       const totalSpend = orders
         .filter((o: { status: string }) => o.status !== 'cancelled')
         .reduce((sum: number, o: { total_amount: number }) => sum + Number(o.total_amount || 0), 0);
       const openTickets = tickets.filter(
-        (t: { status: string }) => !['resolved', 'resolution_offered'].includes(t.status)
+        (t: { status: string }) => !isTerminalTicketStatus(t.status)
       );
 
       return {

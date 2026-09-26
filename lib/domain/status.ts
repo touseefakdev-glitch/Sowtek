@@ -216,6 +216,10 @@ export function isWarehouseStatus(status: string): boolean {
   return (ORDER_WAREHOUSE_STATUSES as readonly string[]).includes(status);
 }
 
+export function isTerminalTicketStatus(status: string): boolean {
+  return (TICKET_TERMINAL_STATUSES as readonly string[]).includes(status);
+}
+
 export function isActionableOrderStatus(status: string): boolean {
   return (ORDER_ACTIONABLE_STATUSES as readonly string[]).includes(status);
 }
