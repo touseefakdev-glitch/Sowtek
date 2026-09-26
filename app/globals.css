@@ -18,8 +18,17 @@ body {
   -webkit-font-smoothing: antialiased;
 }
 
+/*
+ * Material Symbols. The family name comes from the CSS variable that
+ * next/font/local generates, because the font is self-hosted and hashed. The
+ * literal name is kept only as a fallback.
+ *
+ * `liga` must be on or the ligature names never collapse into glyphs and the
+ * icons render as words. `clig` is the contextual alternates table, which
+ * Material Symbols uses to pick between similar shapes at small sizes.
+ */
 .material-symbols-outlined {
-  font-family: 'Material Symbols Outlined' !important;
+  font-family: var(--font-material-symbols), 'Material Symbols Outlined' !important;
   font-weight: normal;
   font-style: normal;
   font-size: 20px;
@@ -30,7 +39,9 @@ body {
   white-space: nowrap;
   word-wrap: normal;
   direction: ltr;
-  -webkit-font-feature-settings: 'liga';
+  font-variant-ligatures: common-ligatures discretionary-ligatures;
+  -webkit-font-feature-settings: 'liga' 1, 'clig' 1;
+  font-feature-settings: 'liga' 1, 'clig' 1;
   -webkit-font-smoothing: antialiased;
   font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 20;
 }

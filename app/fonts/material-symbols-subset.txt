@@ -1,0 +1,76 @@
+# Material Symbols Outlined - ligature subset shipped in
+# MaterialSymbolsOutlined-Subset.woff2 (variable, FILL axis 0..1).
+#
+# The full family is ~3.5 MB, which would make the icon font the heaviest
+# asset in the product. Only the names below are shipped.
+#
+# This file is the single source of truth. scripts/check-icons.mjs fails the
+# build if source uses a name that is not listed here, because a missing name
+# renders as that literal word in the body font with no other symptom.
+#
+# To regenerate after adding an icon:
+#
+#   1. node scripts/check-icons.mjs --emit > app/fonts/material-symbols-subset.txt
+#      (keep the header above the list, or re-add it after running)
+#
+#   2. Re-download the subset from Google Fonts. The `icon_names` parameter is
+#      what produces the small file, so it must list every name in this file:
+#
+#      $names = (Get-Content app/fonts/material-symbols-subset.txt |
+#                Where-Object { $_ -and -not $_.StartsWith('#') }) -join ','
+#      $ua = 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36'
+#      $url = "https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200&icon_names=$names"
+#      $font = ([regex]::Match((Invoke-WebRequest $url -UseBasicParsing -Headers @{ 'User-Agent' = $ua }).Content, 'url\((https://[^)]+)\)')).Groups[1].Value
+#      Invoke-WebRequest $font -OutFile app/fonts/MaterialSymbolsOutlined-Subset.woff2 -UseBasicParsing -Headers @{ 'User-Agent' = $ua }
+#
+#   3. node scripts/check-icons.mjs && npm run build
+#
+# The font file is committed deliberately: next/font/local must never depend on
+# a network fetch, or a build with no connectivity produces a broken app.
+#
+account_balance_wallet
+add
+add_shopping_cart
+arrow_back
+arrow_forward
+cancel
+chat
+chat_bubble
+check_circle
+close
+contacts
+done
+error
+file_download
+filter_alt_off
+forum
+group
+history
+home
+inbox
+info
+inventory_2
+lock
+logout
+mail
+mark_email_read
+menu
+monitoring
+notifications
+pending
+photo_camera
+progress_activity
+public
+receipt_long
+refresh
+schedule
+search
+search_off
+send
+settings
+sms
+storefront
+support_agent
+trending_up
+visibility
+visibility_off
