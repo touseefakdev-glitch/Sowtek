@@ -19,6 +19,7 @@ import {
   PageHeader,
 } from '@/components/ui';
 import { formatRelative } from '@/lib/format';
+import { useRealtime } from '@/components/providers/RealtimeProvider';
 
 export function NotificationsView({
   initialNotifications,
@@ -27,6 +28,7 @@ export function NotificationsView({
   initialNotifications: NotificationRow[];
   initialUnread: number;
 }) {
+  const { addToast } = useRealtime();
   const [notifications, setNotifications] = useState<NotificationRow[]>(initialNotifications);
   const [filter, setFilter] = useState<NotificationFilterId>('all');
   const [unreadOnly, setUnreadOnly] = useState(false);
@@ -60,6 +62,7 @@ export function NotificationsView({
     try {
       await markAllRead();
       setNotifications((prev) => prev.map((n) => ({ ...n, is_read: true })));
+      addToast({ title: 'All notifications marked as read' });
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Unable to mark notifications as read.');
     } finally {

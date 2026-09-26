@@ -46,9 +46,23 @@ module.exports = {
         'line-strong': '#cbd5e1',
         ink: '#142340',
         'ink-secondary': '#475569',
-        'ink-muted': '#64748b',
-        'ink-subtle': '#94a3b8',
+        /*
+         * The three light-background text tiers are spaced so that each one
+         * still clears WCAG AA (4.5:1) against `canvas` (#f1f3f7), not just
+         * against white. Measured: muted 5.50:1, subtle 4.72:1 on canvas.
+         * The previous values (4.28 and 2.56) failed there, and `ink-subtle` was
+         * used for real 12px text in table headers, stat labels and the error
+         * digest, not just for decoration.
+         */
+        'ink-muted': '#556377',
+        'ink-subtle': '#5f6d84',
         'ink-inverse': '#ffffff',
+        /*
+         * Secondary text on a dark surface. Needed because darkening
+         * `ink-subtle` for light backgrounds pushed the toast dismiss button
+         * to 2.98:1 on `bg-ink`; this reads 7.43:1 there.
+         */
+        'ink-inverse-muted': '#a5b4cb',
 
         // Brand
         navy: {

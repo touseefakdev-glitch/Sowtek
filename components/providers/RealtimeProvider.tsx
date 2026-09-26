@@ -19,6 +19,12 @@ export interface ToastNotification {
 
 interface RealtimeContextValue {
   toasts: ToastNotification[];
+  /**
+   * Raises a toast. Exposed because this is the app's only polite live region,
+   * so any mutation that would otherwise complete silently needs to route its
+   * confirmation through here to be announced to a screen reader.
+   */
+  addToast: (toast: Omit<ToastNotification, 'id'>) => void;
   dismissToast: (id: string) => void;
   currentUserId: string | null;
   userRole: string | null;
@@ -27,6 +33,7 @@ interface RealtimeContextValue {
 
 const RealtimeContext = createContext<RealtimeContextValue>({
   toasts: [],
+  addToast: () => {},
   dismissToast: () => {},
   currentUserId: null,
   userRole: null,
@@ -135,6 +142,7 @@ export function RealtimeProvider({ children }: { children: React.ReactNode }) {
     <RealtimeContext.Provider
       value={{
         toasts,
+        addToast,
         dismissToast,
         currentUserId,
         userRole,
@@ -154,7 +162,7 @@ export function RealtimeProvider({ children }: { children: React.ReactNode }) {
         {toasts.map((toast) => (
           <div
             key={toast.id}
-            className="pointer-events-auto flex flex-col gap-1 rounded-card border-l-4 border-l-lime bg-ink p-4 text-white shadow-card-lg"
+            className="pointer-events-auto flex flex-col gap-1 rounded-card border-l-4 border-l-lime bg-ink p-4 text-ink-inverse shadow-card-lg"
           >
             <div className="flex items-start justify-between gap-2">
               <strong className="text-sm font-semibold">{toast.title}</strong>
@@ -162,7 +170,7 @@ export function RealtimeProvider({ children }: { children: React.ReactNode }) {
                 type="button"
                 onClick={() => dismissToast(toast.id)}
                 aria-label={`Dismiss notification: ${toast.title}`}
-                className="-mr-1 -mt-1 rounded-control p-1 text-ink-subtle transition hover:text-white"
+                className="-mr-1 -mt-1 rounded-control p-1 text-ink-inverse-muted transition hover:text-ink-inverse"
               >
                 <span aria-hidden className="material-symbols-outlined text-[16px]">
                   close

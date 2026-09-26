@@ -16,7 +16,7 @@ export function Logo({
     <span className={cn('inline-flex items-center gap-3', className)}>
       <span
         aria-hidden
-        className="flex h-10 w-10 items-center justify-center rounded-control bg-ink text-white shadow-card"
+        className="flex h-10 w-10 items-center justify-center rounded-control bg-ink text-ink-inverse shadow-card"
       >
         <svg width="22" height="22" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
           <path

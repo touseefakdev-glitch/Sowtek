@@ -2,9 +2,13 @@
 @tailwind components;
 @tailwind utilities;
 
+/*
+ * Sourced from the Tailwind palette via theme() rather than repeated as hex,
+ * so these cannot drift from the tokens every component actually uses.
+ */
 :root {
-  --background: #f1f3f7;
-  --foreground: #142340;
+  --background: theme('colors.canvas');
+  --foreground: theme('colors.ink');
 }
 
 body {
@@ -44,10 +48,28 @@ body {
   background: transparent;
 }
 ::-webkit-scrollbar-thumb {
-  background: #cbd5e1;
+  background: theme('colors.line-strong');
   border-radius: 9999px;
 }
 ::-webkit-scrollbar-thumb:hover {
-  background: #94a3b8;
+  background: theme('colors.ink-subtle');
+}
+
+/*
+ * Respect the OS reduced-motion setting. Spinner and skeleton animations are
+ * the only motion in the app, and both are purely decorative: a spinner that
+ * stops still reads as a spinner once you can see the "Loading..." text beside
+ * it. Turning them off removes the risk of vestibular triggers without
+ * hiding any state.
+ */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
 }
 

@@ -13,6 +13,7 @@ import { assessSla } from '@/lib/domain/sla';
 import { CONVERSATION_STATUSES, lifecycleMeta, toneClasses } from '@/lib/domain/status';
 import { formatClock, formatDayLabel } from '@/lib/format';
 import { Button, EmptyState, ErrorState, LoadingState, Textarea } from '@/components/ui';
+import { useRealtime } from '@/components/providers/RealtimeProvider';
 import type { ConversationStatus } from '@/lib/domain/status';
 
 const CHANNEL_ICON: Record<string, string> = {
@@ -56,6 +57,7 @@ export function InboxView({
   status: ConversationStatus;
 }) {
   const router = useRouter();
+  const { addToast } = useRealtime();
 
   const [conversations, setConversations] = useState<ConversationRow[]>(initialConversations);
   const [selectedId, setSelectedId] = useState<string | null>(initialSelectedId);
@@ -140,6 +142,9 @@ export function InboxView({
       if (created) setMessages((prev) => [...prev, created]);
       setDraft('');
       router.refresh();
+      // The composer clearing is the only confirmation of a sent message, and
+      // it is invisible to a screen reader user. Announce the send itself.
+      addToast({ title: 'Message sent', body: 'Your reply was added to the thread.' });
     } catch (err) {
       setActionError(err instanceof Error ? err.message : 'The message could not be dispatched.');
     } finally {
@@ -155,6 +160,10 @@ export function InboxView({
       setConversations((prev) =>
         prev.map((item) => (item.id === selectedId ? { ...item, status: next } : item))
       );
+      addToast({
+        title: 'Thread status updated',
+        body: `This conversation is now ${lifecycleMeta(next).label}.`,
+      });
     } catch (err) {
       setActionError(err instanceof Error ? err.message : 'Could not update the thread status.');
     }

@@ -11,6 +11,7 @@ import {
   type OrderStatus,
 } from '@/lib/domain/status';
 import { Button, Card, CardBody, CardHeader, ErrorState, OrderStatusBadge } from '@/components/ui';
+import { useRealtime } from '@/components/providers/RealtimeProvider';
 
 /**
  * The happy path, in order. `cancelled` is excluded on purpose: it is an
@@ -40,6 +41,7 @@ function allowedTransitions(current: string): readonly OrderStatus[] {
 export function OrderStatusControl({ order }: { order: OrderDetail }) {
   const [error, setError] = useState<string | null>(null);
   const [pending, startTransition] = useTransition();
+  const { addToast } = useRealtime();
 
   const currentStatus = order.status;
   const transitions = allowedTransitions(currentStatus);
@@ -54,6 +56,13 @@ export function OrderStatusControl({ order }: { order: OrderDetail }) {
     startTransition(async () => {
       try {
         await updateOrderStatus(order.id, next);
+        // The badge changing is a purely visual confirmation, which a screen
+        // reader user would never perceive. Route it through the app's polite
+        // live region so the transition is actually announced.
+        addToast({
+          title: 'Order status updated',
+          body: `This order is now ${orderStatusMeta(next).label}.`,
+        });
       } catch (err) {
         setError(
           err instanceof Error ? err.message : 'The status update was rejected by the API.'

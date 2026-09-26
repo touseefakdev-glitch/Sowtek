@@ -15,7 +15,17 @@ import { join, extname, relative } from 'node:path';
 const ROOT = process.cwd();
 const CONTENT_DIRS = ['app', 'components', 'lib'];
 const CSS_DIR = '.next/static/css';
-const EXTENSIONS = new Set(['.ts', '.tsx', '.js', '.jsx']);
+/**
+ * `.css` is included deliberately. The scrollbar colours in `app/globals.css`
+ * were raw hex and survived several green builds because this gate only ever
+ * looked at JS/TS, which is exactly the sort of hole a build gate exists to
+ * close. `tailwind.config.js` is the one file allowed to define hex, since that
+ * is where tokens originate.
+ */
+const EXTENSIONS = new Set(['.ts', '.tsx', '.js', '.jsx', '.css']);
+
+/** Files where raw hex is the token source of truth and cannot be avoided. */
+const HEX_SOURCE_FILES = new Set(['tailwind.config.js', 'scripts/check-classes.mjs']);
 
 /** Classes that are never Tailwind utilities and must not be reported. */
 const IGNORED = new Set(['material-symbols-outlined']);
@@ -224,13 +234,16 @@ for (const file of sourceFiles) {
     note(bypasses, token.replace(/^[\s"'`]+/, ''), rel);
   }
   // Report hex values, ignoring lines where a raw colour is legitimate.
-  const hexLines = source.split(/\r?\n/);
-  hexLines.forEach((lineText, index) => {
-    if (HEX_ALLOWED.test(lineText)) return;
-    for (const match of lineText.matchAll(RAW_HEX_GLOBAL)) {
-      note(bypasses, match[0], `${rel}:${index + 1}`);
-    }
-  });
+  const hexAllowedForFile = !HEX_SOURCE_FILES.has(rel.split(/[\\/]/).pop());
+  if (hexAllowedForFile) {
+    const hexLines = source.split(/\r?\n/);
+    hexLines.forEach((lineText, index) => {
+      if (HEX_ALLOWED.test(lineText)) return;
+      for (const match of lineText.matchAll(RAW_HEX_GLOBAL)) {
+        note(bypasses, match[0], `${rel}:${index + 1}`);
+      }
+    });
+  }
 
   if (MOJIBAKE.test(source)) {
     const line = source.split(/\r?\n/).findIndex((value) => MOJIBAKE.test(value)) + 1;
