@@ -83,6 +83,34 @@ export function formatDuration(from: string, to: string = new Date().toISOString
   return `${minutes}m`;
 }
 
+/** Clock time only, for message timestamps inside a thread. */
+export function formatClock(value: string | null | undefined): string {
+  if (!value) return '';
+  const date = new Date(value);
+  if (Number.isNaN(date.getTime())) return '';
+  return date.toLocaleTimeString(LOCALE, { hour: '2-digit', minute: '2-digit' });
+}
+
+/**
+ * List-row timestamp: the clock time for today, "Yesterday" for the day before,
+ * otherwise a short date. Collapsed for the inbox, which previously had two
+ * near-identical local formatters doing this.
+ */
+export function formatDayLabel(value: string | null | undefined): string {
+  if (!value) return '';
+  const date = new Date(value);
+  if (Number.isNaN(date.getTime())) return '';
+
+  const now = new Date();
+  if (date.toDateString() === now.toDateString()) return formatClock(value);
+
+  const yesterday = new Date(now);
+  yesterday.setDate(now.getDate() - 1);
+  if (date.toDateString() === yesterday.toDateString()) return 'Yesterday';
+
+  return date.toLocaleDateString(LOCALE, { day: '2-digit', month: 'short' });
+}
+
 export function initials(name: string | null | undefined): string {
   if (!name) return '—';
   return name
