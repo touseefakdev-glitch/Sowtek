@@ -5,200 +5,118 @@ import Link from 'next/link';
 import { AppSidebar } from '@/components/layout/AppSidebar';
 import { getNotifications, markAllRead, markRead } from '@/lib/api/notifications';
 
+interface NotificationRow {
+  id: string;
+  type: string;
+  title: string;
+  body: string | null;
+  link: string | null;
+  is_read: boolean;
+  created_at: string;
+}
+
+type Category = 'orders' | 'escalations' | 'system';
+
+function categoryFor(type: string): Category {
+  if (type.includes('ticket')) return 'escalations';
+  if (type.includes('order') || type.includes('conversation')) return 'orders';
+  return 'system';
+}
+
+function presentationFor(type: string): {
+  icon: string;
+  iconBg: string;
+  accent: string;
+  badgeClass: string;
+} {
+  if (type.includes('ticket')) {
+    return {
+      icon: 'support_agent',
+      iconBg: 'bg-rose-100 text-rose-700',
+      accent: 'bg-rose-500',
+      badgeClass: 'bg-rose-100 text-rose-800',
+    };
+  }
+  if (type.includes('credit') || type.includes('invoice') || type.includes('payment')) {
+    return {
+      icon: 'account_balance_wallet',
+      iconBg: 'bg-amber-100 text-amber-700',
+      accent: 'bg-amber-500',
+      badgeClass: 'bg-amber-100 text-amber-800',
+    };
+  }
+  if (type.includes('stock') || type.includes('inventory') || type.includes('product')) {
+    return {
+      icon: 'inventory_2',
+      iconBg: 'bg-slate-100 text-slate-600',
+      accent: 'bg-transparent',
+      badgeClass: 'bg-slate-100 text-slate-700',
+    };
+  }
+  if (type.includes('order')) {
+    return {
+      icon: 'receipt_long',
+      iconBg: 'bg-[#d6eed0] text-[#142340]',
+      accent: 'bg-[#70b928]',
+      badgeClass: 'bg-[#d6eed0] text-[#142340]',
+    };
+  }
+  return {
+    icon: 'notifications',
+    iconBg: 'bg-slate-200 text-slate-800',
+    accent: 'bg-slate-400',
+    badgeClass: 'bg-slate-200 text-slate-800',
+  };
+}
+
+function formatAge(iso: string): string {
+  const minutes = Math.max(0, Math.floor((Date.now() - new Date(iso).getTime()) / 60000));
+  if (minutes < 1) return 'Just now';
+  if (minutes < 60) return `${minutes}m ago`;
+  const hours = Math.floor(minutes / 60);
+  if (hours < 24) return `${hours}h ago`;
+  const days = Math.floor(hours / 24);
+  return `${days}d ago`;
+}
+
 export default function NotificationsPage() {
-  const [notifications, setNotifications] = useState<any[]>([]);
+  const [notifications, setNotifications] = useState<NotificationRow[]>([]);
   const [activeFilter, setActiveFilter] = useState<'all' | 'orders' | 'escalations' | 'system'>('all');
   const [unreadOnly, setUnreadOnly] = useState(false);
   const [loading, setLoading] = useState(true);
-
-  const fallbackNotifications = [
-    {
-      id: 'n-1',
-      category: 'escalations',
-      title: 'Damaged Goods Reported Bay 3',
-      badge_type: 'CRITICAL SLA',
-      badge_color: 'bg-rose-500 text-white',
-      tag: '#TCK-1042',
-      subtag: 'Bay 3',
-      description:
-        'Ticket #TCK-1042 escalated: 4 crushed tomato cases reported by Chef Faisal Al-Qaisi. WhatsApp triage response pending - 14m SLA remaining before breach.',
-      meta_highlight: '14m remaining',
-      meta_author: 'Chef Faisal Al-Qaisi',
-      meta_time: 'Just now',
-      action_label: 'Open Ticket',
-      action_link: '/tickets',
-      icon: 'emergency_home',
-      icon_bg: 'bg-rose-100 text-rose-700',
-      border_accent: 'bg-rose-500',
-      is_read: false,
-    },
-    {
-      id: 'n-2',
-      category: 'orders',
-      title: 'Revised Order Confirmed',
-      badge_type: 'WHATSAPP ORDER',
-      badge_color: 'bg-[#70b928] text-white',
-      tag: '#ORD-8821',
-      subtag: 'SAR 4,820.00',
-      description:
-        'Al Noor Restaurant confirmed revised 10 bags of Basmati Rice for morning Bay 3 delivery. Dispatch pack generated automatically via conversational agent.',
-      meta_highlight: 'Dispatched Bay 3',
-      meta_author: 'Al Noor Restaurant',
-      meta_time: '8m ago',
-      action_label: 'View Order',
-      action_link: '/orders/ORD-8821',
-      icon: 'check_circle',
-      icon_bg: 'bg-[#d6eed0] text-[#142340]',
-      border_accent: 'bg-[#70b928]',
-      is_read: false,
-    },
-    {
-      id: 'n-3',
-      category: 'system',
-      title: 'WhatsApp Gateway Sync Surge',
-      badge_type: 'SYSTEM TRAFFIC',
-      badge_color: 'bg-[#142340] text-white',
-      tag: 'Riyadh Gateway',
-      subtag: '82ms Latency',
-      description:
-        'High incoming message volume detected: 340 chats/min. Operational throttle active. Webhook response latency currently normal at 82ms.',
-      meta_highlight: 'Latency 82ms OK',
-      meta_author: 'WhatsApp API Gateway',
-      meta_time: '24m ago',
-      action_label: 'Check Logs',
-      action_link: '/settings',
-      icon: 'sync_alt',
-      icon_bg: 'bg-slate-200 text-slate-800',
-      border_accent: 'bg-slate-400',
-      is_read: false,
-    },
-    {
-      id: 'n-4',
-      category: 'escalations',
-      title: 'Credit Limit Threshold 85% Exceeded',
-      badge_type: 'FINANCIAL HOLD',
-      badge_color: 'bg-rose-100 text-rose-800',
-      tag: 'VIP Net-30',
-      subtag: 'Sultan Grill',
-      description:
-        'Sultan Grill Express reached 85% of VIP Net-30 limit (SAR 42,500 / 50,000). Automatic order authorization paused for pending order PO_Sultan_8819.',
-      meta_highlight: 'Finance Desk Review',
-      meta_author: 'Sultan Grill Express',
-      meta_time: '45m ago',
-      action_label: 'Review Terms',
-      action_link: '/contacts/sultan-grill',
-      icon: 'credit_card_off',
-      icon_bg: 'bg-rose-100 text-rose-700',
-      border_accent: 'bg-rose-500',
-      is_read: false,
-    },
-    {
-      id: 'n-5',
-      category: 'orders',
-      title: 'Order #ORD-8809 Delivered',
-      badge_type: 'DELIVERED',
-      badge_color: 'bg-slate-100 text-slate-700',
-      tag: '#ORD-8809',
-      subtag: 'Le Gourmet Bakery',
-      description:
-        'Driver Tariq verified signed proof of delivery at Le Gourmet Bakery Hub. 40kg Premium Unsalted Butter transferred without discrepancy.',
-      meta_highlight: 'POD Verified',
-      meta_author: 'Driver Tariq #DR-04',
-      meta_time: '2h ago',
-      action_label: 'View POD',
-      action_link: '/orders/ORD-8809',
-      icon: 'local_shipping',
-      icon_bg: 'bg-slate-100 text-slate-600',
-      border_accent: 'bg-transparent',
-      is_read: true,
-    },
-    {
-      id: 'n-6',
-      category: 'orders',
-      title: 'Stock Reorder Required',
-      badge_type: 'LOW STOCK',
-      badge_color: 'bg-amber-100 text-amber-800',
-      tag: 'SKU CAN-204',
-      subtag: 'Warehouse B',
-      description:
-        'Whole Peeled Plum Tomatoes (CAN-204) dropped below safety margin to 8 cases. Restock purchase requisition triggered with AgroItalia Importers.',
-      meta_highlight: 'Shelf 14 Flag',
-      meta_author: 'Warehouse B - Shelf 14',
-      meta_time: '5h ago',
-      action_label: 'Manage SKU',
-      action_link: '/products',
-      icon: 'inventory_2',
-      icon_bg: 'bg-slate-100 text-slate-600',
-      border_accent: 'bg-transparent',
-      is_read: true,
-    },
-    {
-      id: 'n-7',
-      category: 'system',
-      title: 'PostgreSQL Hourly Snapshot Finished',
-      badge_type: 'BACKUP',
-      badge_color: 'bg-slate-100 text-slate-700',
-      tag: '2.4 GB',
-      subtag: 'DB Cluster A',
-      description:
-        'Automated database state replication and cold storage integrity check succeeded. Zero replication lag reported across replica nodes.',
-      meta_highlight: 'Zero Lag',
-      meta_author: 'Database Cluster A',
-      meta_time: 'Yesterday at 23:00',
-      action_label: 'Archived',
-      action_link: '#',
-      icon: 'cloud_done',
-      icon_bg: 'bg-slate-100 text-slate-600',
-      border_accent: 'bg-transparent',
-      is_read: true,
-    },
-  ];
+  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
+    let cancelled = false;
+
     async function load() {
       setLoading(true);
+      setError(null);
       try {
         const res = await getNotifications(unreadOnly);
-        if (res.data && res.data.length > 0) {
-          const merged = res.data.map((item: any, idx: number) => {
-            const fb = fallbackNotifications[idx % fallbackNotifications.length];
-            return {
-              id: item.id,
-              category: fb.category,
-              title: item.title || fb.title,
-              badge_type: fb.badge_type,
-              badge_color: fb.badge_color,
-              tag: fb.tag,
-              subtag: fb.subtag,
-              description: item.body || fb.description,
-              meta_highlight: fb.meta_highlight,
-              meta_author: fb.meta_author,
-              meta_time: 'Recently',
-              action_label: fb.action_label,
-              action_link: item.link || fb.action_link,
-              icon: fb.icon,
-              icon_bg: fb.icon_bg,
-              border_accent: fb.border_accent,
-              is_read: item.is_read ?? false,
-            };
-          });
-          setNotifications(merged);
-        } else {
-          setNotifications(fallbackNotifications);
-        }
-      } catch {
-        setNotifications(fallbackNotifications);
+        if (cancelled) return;
+        setNotifications((res.data ?? []) as NotificationRow[]);
+      } catch (err) {
+        if (cancelled) return;
+        setNotifications([]);
+        setError(err instanceof Error ? err.message : 'Unable to load notifications.');
       } finally {
-        setLoading(false);
+        if (!cancelled) setLoading(false);
       }
     }
     load();
+
+    return () => {
+      cancelled = true;
+    };
   }, [unreadOnly]);
 
   const handleMarkAllRead = async () => {
     try {
       await markAllRead();
-    } catch {}
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Unable to mark notifications as read.');
+    }
     setNotifications((prev) => prev.map((n) => ({ ...n, is_read: true })));
   };
 
@@ -206,20 +124,24 @@ export default function NotificationsPage() {
     e.stopPropagation();
     try {
       await markRead(id);
-    } catch {}
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Unable to mark the notification as read.');
+    }
     setNotifications((prev) => prev.map((n) => (n.id === id ? { ...n, is_read: true } : n)));
   };
 
   const filteredNotifications = notifications.filter((n) => {
-    if (activeFilter !== 'all' && n.category !== activeFilter) return false;
+    if (activeFilter !== 'all' && categoryFor(n.type) !== activeFilter) return false;
     if (unreadOnly && n.is_read) return false;
     return true;
   });
 
   const unreadCount = notifications.filter((n) => !n.is_read).length;
-  const ordersCount = notifications.filter((n) => n.category === 'orders').length;
-  const escalationsCount = notifications.filter((n) => n.category === 'escalations').length;
-  const systemCount = notifications.filter((n) => n.category === 'system').length;
+  const ordersCount = notifications.filter((n) => categoryFor(n.type) === 'orders').length;
+  const escalationsCount = notifications.filter(
+    (n) => categoryFor(n.type) === 'escalations'
+  ).length;
+  const systemCount = notifications.filter((n) => categoryFor(n.type) === 'system').length;
 
   return (
     <div className="flex h-screen bg-[#f1f3f7] overflow-hidden font-sans">
@@ -240,10 +162,6 @@ export default function NotificationsPage() {
             </div>
           </div>
           <div className="flex items-center gap-4">
-            <div className="hidden md:flex items-center gap-1.5 px-3 py-1 rounded-full bg-[#d6eed0] text-[#142340] text-xs font-bold">
-              <span className="w-1.5 h-1.5 rounded-full bg-[#70b928]"></span>
-              WhatsApp Gateway Online
-            </div>
             <div className="flex items-center gap-2 text-slate-500">
               <button className="w-9 h-9 rounded-lg hover:bg-slate-100 hover:text-slate-800 flex items-center justify-center transition-colors">
                 <span className="material-symbols-outlined text-[20px]">tune</span>
@@ -254,9 +172,6 @@ export default function NotificationsPage() {
                   <span className="w-2 h-2 rounded-full bg-[#70b928] absolute top-2 right-2"></span>
                 )}
               </div>
-            </div>
-            <div className="w-8 h-8 rounded-full bg-[#142340] text-white flex items-center justify-center font-bold text-xs">
-              <span>KO</span>
             </div>
           </div>
         </header>
@@ -374,7 +289,29 @@ export default function NotificationsPage() {
 
               {/* Notifications Feed Rows */}
               <div className="flex flex-col divide-y divide-slate-100">
+                {error && (
+                  <div className="m-5 rounded-lg border border-red-200 bg-red-50 px-3 py-2 text-[11px] font-semibold text-red-700">
+                    {error}
+                  </div>
+                )}
+
+                {loading && notifications.length === 0 && (
+                  <p className="py-12 text-center text-[11px] text-slate-400">
+                    Loading notifications...
+                  </p>
+                )}
+
+                {!loading && !error && filteredNotifications.length === 0 && (
+                  <p className="px-5 py-12 text-center text-[11px] leading-relaxed text-slate-400">
+                    {notifications.length === 0
+                      ? 'No notifications yet. Order, ticket, and system events appear here as they happen.'
+                      : 'No notifications match the selected filters.'}
+                  </p>
+                )}
+
                 {filteredNotifications.map((n) => {
+                  const view = presentationFor(n.type);
+                  const category = categoryFor(n.type);
                   return (
                     <div
                       key={n.id}
@@ -382,80 +319,59 @@ export default function NotificationsPage() {
                         !n.is_read ? 'bg-[#eef4fd] hover:bg-slate-50' : 'bg-white hover:bg-slate-50'
                       }`}
                     >
-                      {!n.is_read && n.border_accent && (
-                        <div className={`absolute left-0 top-0 bottom-0 w-1 ${n.border_accent}`}></div>
+                      {!n.is_read && (
+                        <div className={`absolute left-0 top-0 bottom-0 w-1 ${view.accent}`} />
                       )}
 
                       <div className="flex items-start gap-4 min-w-0 flex-1">
                         <div
-                          className={`w-10 h-10 rounded-full flex items-center justify-center shrink-0 mt-0.5 shadow-xs ${
-                            n.icon_bg || 'bg-slate-100 text-slate-600'
-                          }`}
+                          className={`w-10 h-10 rounded-full flex items-center justify-center shrink-0 mt-0.5 shadow-xs ${view.iconBg}`}
                         >
-                          <span className="material-symbols-outlined text-[20px]">{n.icon || 'notifications'}</span>
+                          <span className="material-symbols-outlined text-[20px]">{view.icon}</span>
                         </div>
 
                         <div className="flex flex-col min-w-0 flex-1">
                           <div className="flex flex-wrap items-center gap-1.5 mb-1">
-                            <span className="text-sm font-bold text-[#142340] tracking-tight">{n.title}</span>
+                            <span className="text-sm font-bold text-[#142340] tracking-tight">
+                              {n.title}
+                            </span>
                             <span
-                              className={`px-2 py-0.5 rounded text-[10px] font-bold flex items-center gap-1 ${
-                                n.badge_color || 'bg-slate-100 text-slate-700'
-                              }`}
+                              className={`px-2 py-0.5 rounded text-[10px] font-bold uppercase tracking-wide flex items-center gap-1 ${view.badgeClass}`}
                             >
-                              {!n.is_read && n.category === 'escalations' && (
-                                <span className="w-1.5 h-1.5 rounded-full bg-white animate-pulse"></span>
+                              {!n.is_read && category === 'escalations' && (
+                                <span className="w-1.5 h-1.5 rounded-full bg-rose-500 animate-pulse" />
                               )}
-                              {n.badge_type}
-                            </span>
-                            <span className="px-2 py-0.5 rounded bg-slate-200/80 text-slate-800 text-[10px] font-semibold">
-                              {n.tag}
-                            </span>
-                            <span className="px-2 py-0.5 rounded bg-slate-100 text-slate-500 text-[10px]">
-                              {n.subtag}
+                              {n.type.replace(/_/g, ' ')}
                             </span>
                           </div>
 
-                          <p className="text-xs text-slate-600 line-clamp-2 leading-relaxed font-medium">
-                            {n.description}
-                          </p>
+                          {n.body && (
+                            <p className="text-xs text-slate-600 line-clamp-2 leading-relaxed font-medium">
+                              {n.body}
+                            </p>
+                          )}
 
                           <div className="flex items-center gap-2 mt-2 text-slate-400 text-[11px]">
-                            {n.meta_highlight && (
-                              <span
-                                className={`flex items-center gap-1 font-bold px-2 py-0.5 rounded ${
-                                  n.category === 'escalations'
-                                    ? 'text-rose-700 bg-rose-100'
-                                    : 'text-[#142340] bg-[#d6eed0]'
-                                }`}
-                              >
-                                {n.meta_highlight}
-                              </span>
-                            )}
-                            <span>•</span>
-                            <span className="font-semibold text-slate-700">{n.meta_author}</span>
-                            <span>•</span>
-                            <span>{n.meta_time}</span>
+                            <span>{formatAge(n.created_at)}</span>
+                            <span>&bull;</span>
+                            <span className="capitalize">{category}</span>
                           </div>
                         </div>
                       </div>
 
-                      {/* Right Action Trigger */}
                       <div className="flex items-center gap-2 shrink-0 self-start mt-1">
-                        {!n.is_read && <span className="w-2 h-2 rounded-full bg-[#70b928]"></span>}
-                        {n.action_link && n.action_link !== '#' ? (
+                        {!n.is_read && <span className="w-2 h-2 rounded-full bg-[#70b928]" />}
+                        {n.link ? (
                           <Link
-                            href={n.action_link}
+                            href={n.link}
                             className="hidden sm:inline-flex items-center gap-1 px-3 py-1.5 rounded-lg bg-white border border-slate-200 text-slate-800 hover:bg-[#142340] hover:text-white text-xs font-bold transition-all shadow-xs"
                           >
-                            <span>{n.action_label}</span>
-                            <span className="material-symbols-outlined text-[15px]">arrow_forward</span>
+                            <span>Open</span>
+                            <span className="material-symbols-outlined text-[15px]">
+                              arrow_forward
+                            </span>
                           </Link>
-                        ) : (
-                          <span className="text-[11px] text-slate-400 px-2 py-1 rounded bg-slate-100 font-semibold">
-                            Archived
-                          </span>
-                        )}
+                        ) : null}
                         {!n.is_read && (
                           <button
                             onClick={(e) => handleMarkSingleRead(n.id, e)}
@@ -472,18 +388,11 @@ export default function NotificationsPage() {
               </div>
 
               {/* Bottom Footer */}
-              <div className="px-6 py-3.5 bg-slate-50 border-t border-slate-200 flex flex-col sm:flex-row items-center justify-between gap-3">
-                <div className="flex items-center gap-2 text-slate-500 text-xs">
-                  <span className="material-symbols-outlined text-[16px]">info</span>
-                  <span>Showing latest activity from your connected warehouse regions</span>
-                </div>
-                <button
-                  onClick={() => alert('All 18 records loaded.')}
-                  className="flex items-center gap-1.5 px-4 py-2 rounded-xl bg-white hover:bg-slate-100 text-slate-800 text-xs font-bold transition-all shadow-xs border border-slate-200"
-                >
-                  <span>Load earlier notifications</span>
-                  <span className="material-symbols-outlined text-[16px]">expand_more</span>
-                </button>
+              <div className="px-6 py-3.5 bg-slate-50 border-t border-slate-200 flex items-center gap-2 text-slate-500 text-xs">
+                <span className="material-symbols-outlined text-[16px]">info</span>
+                <span>
+                  Showing {filteredNotifications.length} of {notifications.length} notifications
+                </span>
               </div>
             </div>
 
@@ -491,25 +400,25 @@ export default function NotificationsPage() {
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
               <div className="p-4 rounded-2xl bg-white border border-slate-200 shadow-card flex items-center gap-4">
                 <div className="w-11 h-11 rounded-xl bg-[#d6eed0] text-[#142340] flex items-center justify-center shrink-0">
-                  <span className="material-symbols-outlined text-[22px]">speed</span>
+                  <span className="material-symbols-outlined text-[22px]">notifications</span>
                 </div>
                 <div className="flex flex-col">
                   <span className="text-[10px] text-slate-500 uppercase font-bold tracking-wider">
-                    Avg SLA Triage
+                    Total Loaded
                   </span>
-                  <span className="text-lg font-bold text-[#142340]">4.2 min</span>
+                  <span className="text-lg font-bold text-[#142340]">{notifications.length}</span>
                 </div>
               </div>
 
               <div className="p-4 rounded-2xl bg-white border border-slate-200 shadow-card flex items-center gap-4">
                 <div className="w-11 h-11 rounded-xl bg-slate-100 text-slate-700 flex items-center justify-center shrink-0">
-                  <span className="material-symbols-outlined text-[22px]">chat</span>
+                  <span className="material-symbols-outlined text-[22px]">mark_email_unread</span>
                 </div>
                 <div className="flex flex-col">
                   <span className="text-[10px] text-slate-500 uppercase font-bold tracking-wider">
-                    WhatsApp Sync
+                    Unread
                   </span>
-                  <span className="text-lg font-bold text-[#70b928]">99.98%</span>
+                  <span className="text-lg font-bold text-[#142340]">{unreadCount}</span>
                 </div>
               </div>
 
@@ -518,8 +427,10 @@ export default function NotificationsPage() {
                   <span className="material-symbols-outlined text-[22px]">warning</span>
                 </div>
                 <div className="flex flex-col">
-                  <span className="text-[10px] text-slate-500 uppercase font-bold tracking-wider">Open Tickets</span>
-                  <span className="text-lg font-bold text-rose-600">3 Active</span>
+                  <span className="text-[10px] text-slate-500 uppercase font-bold tracking-wider">
+                    Escalations
+                  </span>
+                  <span className="text-lg font-bold text-rose-600">{escalationsCount}</span>
                 </div>
               </div>
             </div>

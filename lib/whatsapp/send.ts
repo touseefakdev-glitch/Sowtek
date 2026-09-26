@@ -29,14 +29,9 @@ export async function sendWhatsAppMessage({
   const cleanedTo = to.replace(/\D/g, '');
 
   if (!token || !phoneNumberId) {
-    console.warn(
-      '[WHATSAPP_MOCK] WHATSAPP_TOKEN or WHATSAPP_PHONE_NUMBER_ID missing in env. Simulating dispatch to:',
-      cleanedTo
-    );
-    return {
-      success: true,
-      waMessageId: `wamid.MOCK_${Date.now()}_${Math.random().toString(36).substring(2, 9)}`,
-    };
+    const error = 'WhatsApp Cloud API is not configured: set WHATSAPP_TOKEN and WHATSAPP_PHONE_NUMBER_ID.';
+    console.error('[WHATSAPP_NOT_CONFIGURED]', error);
+    return { success: false, error };
   }
 
   try {

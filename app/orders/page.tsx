@@ -10,54 +10,31 @@ export default function OrdersListPage() {
   const [statusFilter, setStatusFilter] = useState('');
   const [search, setSearch] = useState('');
   const [loading, setLoading] = useState(true);
-
-  const fallbackOrders = [
-    {
-      id: 'ORD-8821',
-      order_number: 'ORD-8821',
-      status: 'picking',
-      restaurant: { name: 'Burger Boutique - Al Olaya' },
-      total_amount: 1240.0,
-      delivery_date: '2026-09-19',
-      created_at: new Date(Date.now() - 1000 * 60 * 120).toISOString(),
-    },
-    {
-      id: 'ORD-8820',
-      order_number: 'ORD-8820',
-      status: 'out_for_delivery',
-      restaurant: { name: 'Shawarma Classic - Al Nakheel' },
-      total_amount: 3450.0,
-      delivery_date: '2026-09-19',
-      created_at: new Date(Date.now() - 1000 * 60 * 240).toISOString(),
-    },
-    {
-      id: 'ORD-8819',
-      order_number: 'ORD-8819',
-      status: 'delivered',
-      restaurant: { name: 'Mama Noura Express' },
-      total_amount: 890.0,
-      delivery_date: '2026-09-18',
-      created_at: new Date(Date.now() - 1000 * 60 * 500).toISOString(),
-    },
-  ];
+  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
+    let cancelled = false;
+
     async function load() {
       setLoading(true);
+      setError(null);
       try {
         const res = await getOrders({ status: statusFilter || undefined, search: search || undefined });
-        if (res.data && res.data.length > 0) {
-          setOrders(res.data);
-        } else {
-          setOrders(fallbackOrders);
-        }
+        if (cancelled) return;
+        setOrders(res.data ?? []);
       } catch (err) {
-        setOrders(fallbackOrders);
+        if (cancelled) return;
+        setOrders([]);
+        setError(err instanceof Error ? err.message : 'Unable to load orders.');
       } finally {
-        setLoading(false);
+        if (!cancelled) setLoading(false);
       }
     }
     load();
+
+    return () => {
+      cancelled = true;
+    };
   }, [statusFilter, search]);
 
   return (
@@ -117,6 +94,27 @@ export default function OrdersListPage() {
                 </tr>
               </thead>
               <tbody className="divide-y divide-slate-100">
+                {loading && orders.length === 0 && (
+                  <tr>
+                    <td colSpan={6} className="p-8 text-center text-xs text-slate-400">
+                      Loading orders...
+                    </td>
+                  </tr>
+                )}
+                {!loading && error && (
+                  <tr>
+                    <td colSpan={6} className="p-8 text-center text-xs text-red-600">
+                      {error}
+                    </td>
+                  </tr>
+                )}
+                {!loading && !error && orders.length === 0 && (
+                  <tr>
+                    <td colSpan={6} className="p-8 text-center text-xs text-slate-400">
+                      No orders found{search ? ` for "${search}"` : ''}.
+                    </td>
+                  </tr>
+                )}
                 {orders.map((o) => (
                   <tr key={o.id} className="hover:bg-slate-50">
                     <td className="p-4 font-bold text-[#142340]">
@@ -124,8 +122,10 @@ export default function OrdersListPage() {
                         {o.order_number || o.id}
                       </Link>
                     </td>
-                    <td className="p-4 font-medium text-slate-900">{o.restaurant?.name || 'Restaurant'}</td>
-                    <td className="p-4 text-slate-500">{o.delivery_date || 'Today'}</td>
+                    <td className="p-4 font-medium text-slate-900">
+                      {o.restaurant?.name || 'Unknown restaurant'}
+                    </td>
+                    <td className="p-4 text-slate-500">{o.delivery_date || 'Not set'}</td>
                     <td className="p-4 font-mono font-bold text-slate-900">
                       SAR {Number(o.total_amount).toFixed(2)}
                     </td>

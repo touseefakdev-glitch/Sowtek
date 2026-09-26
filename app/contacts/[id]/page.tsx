@@ -12,63 +12,62 @@ export default function Restaurant360Page() {
 
   const [profileData, setProfileData] = useState<any>(null);
   const [loading, setLoading] = useState(true);
-
-  const fallback360 = {
-    restaurant: {
-      id: contactId || 'rest-1',
-      name: 'Burger Boutique - Al Olaya',
-      name_ar: 'برجر بوتيك',
-      phone: '+966501234567',
-      whatsapp_number: '+966501234567',
-      email: 'procurement@burgerboutique.sa',
-      address: 'King Fahd Rd, Al Olaya District, Riyadh 12214',
-      delivery_zone: 'Zone A - Riyadh Central',
-      credit_limit: 45000,
-      payment_terms: 'Net 15',
-      notes: 'Delivery gate is located at the back of the building. Delivery window 6:00 AM - 10:00 AM.',
-    },
-    contacts: [
-      { id: 'cnt-1', full_name: 'Fahad Al-Harbi', role: 'Head Chef / Procurement', phone: '+966501234567', is_primary: true },
-      { id: 'cnt-2', full_name: 'Nasser Al-Subaie', role: 'Branch Manager', phone: '+966507654321', is_primary: false },
-    ],
-    recent_orders: [
-      { id: 'ORD-8821', order_number: 'ORD-8821', status: 'picking', total_amount: 1240.0, created_at: '2026-09-19' },
-      { id: 'ORD-8790', order_number: 'ORD-8790', status: 'delivered', total_amount: 3200.0, created_at: '2026-09-15' },
-      { id: 'ORD-8742', order_number: 'ORD-8742', status: 'paid', total_amount: 4150.0, created_at: '2026-09-10' },
-    ],
-    tickets: [
-      { id: 'TKT-104', ticket_number: 'TKT-104', type: 'delivery', status: 'resolved', priority: 'normal', description: 'Driver arrived after 10 AM window' },
-    ],
-    payment_summary: {
-      lifetime_spend: 48500.0,
-      total_paid: 41500.0,
-      outstanding_balance: 7000.0,
-      credit_limit: 45000.0,
-      available_credit: 38000.0,
-      payment_terms: 'Net 15',
-    },
-  };
+  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
+    let cancelled = false;
+
     async function load() {
       setLoading(true);
+      setError(null);
       try {
         const res = await getContact(contactId);
-        if (res.data) {
-          setProfileData(res.data);
-        } else {
-          setProfileData(fallback360);
-        }
+        if (cancelled) return;
+        setProfileData(res.data);
       } catch (err) {
-        setProfileData(fallback360);
+        if (cancelled) return;
+        setProfileData(null);
+        setError(
+          err instanceof Error ? err.message : 'Unable to load this restaurant profile.'
+        );
       } finally {
-        setLoading(false);
+        if (!cancelled) setLoading(false);
       }
     }
     load();
+
+    return () => {
+      cancelled = true;
+    };
   }, [contactId]);
 
-  const data = profileData || fallback360;
+  if (loading) {
+    return (
+      <div className="flex h-screen items-center justify-center bg-[#f1f3f7] font-sans">
+        <p className="text-xs text-slate-400">Loading profile...</p>
+      </div>
+    );
+  }
+
+  if (error || !profileData?.restaurant) {
+    return (
+      <div className="flex h-screen items-center justify-center bg-[#f1f3f7] font-sans">
+        <div className="max-w-md rounded-2xl border border-red-200 bg-white p-8 text-center">
+          <span className="material-symbols-outlined text-[28px] text-red-500">error</span>
+          <h1 className="mt-2 text-sm font-bold text-slate-800">Profile unavailable</h1>
+          <p className="mt-1 text-xs text-slate-500">{error || 'Restaurant not found.'}</p>
+          <Link
+            href="/contacts"
+            className="mt-5 inline-block rounded-xl bg-[#142340] px-4 py-2 text-xs font-bold text-white transition hover:bg-slate-800"
+          >
+            Back to restaurants
+          </Link>
+        </div>
+      </div>
+    );
+  }
+
+  const data = profileData;
   const rest = data.restaurant;
 
   return (
@@ -143,7 +142,12 @@ export default function Restaurant360Page() {
                 Kitchen & Procurement Contacts
               </h3>
               <div className="space-y-3 text-xs">
-                {data.contacts.map((cnt: any) => (
+                {(data.contacts ?? []).length === 0 && (
+                  <p className="rounded-xl border border-dashed border-slate-300 p-4 text-center text-[11px] text-slate-400">
+                    No contacts recorded for this account.
+                  </p>
+                )}
+                {(data.contacts ?? []).map((cnt: any) => (
                   <div key={cnt.id} className="p-3 bg-slate-50 rounded-xl border border-slate-200">
                     <div className="flex items-center justify-between">
                       <span className="font-bold text-slate-900">{cnt.full_name}</span>
@@ -180,7 +184,14 @@ export default function Restaurant360Page() {
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-slate-100">
-                  {data.recent_orders.map((o: any) => (
+                  {(data.recent_orders ?? []).length === 0 && (
+                    <tr>
+                      <td colSpan={4} className="py-6 text-center text-slate-400">
+                        No orders recorded for this account.
+                      </td>
+                    </tr>
+                  )}
+                  {(data.recent_orders ?? []).map((o: any) => (
                     <tr key={o.id} className="hover:bg-slate-50">
                       <td className="py-3 font-bold text-[#142340]">
                         <Link href={`/orders/${o.id}`} className="hover:underline">{o.order_number}</Link>
@@ -210,7 +221,12 @@ export default function Restaurant360Page() {
               </div>
 
               <div className="space-y-3 text-xs">
-                {data.tickets.map((t: any) => (
+                {(data.tickets ?? []).length === 0 && (
+                  <p className="rounded-xl border border-dashed border-slate-300 p-4 text-center text-[11px] text-slate-400">
+                    No service tickets for this account.
+                  </p>
+                )}
+                {(data.tickets ?? []).map((t: any) => (
                   <div key={t.id} className="p-3 bg-slate-50 rounded-xl border border-slate-200 flex items-center justify-between">
                     <div>
                       <div className="flex items-center gap-2">

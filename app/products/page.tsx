@@ -1,162 +1,73 @@
 'use client';
 
-import React, { useEffect, useState } from 'react';
+import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import { AppSidebar } from '@/components/layout/AppSidebar';
 import { getProducts, toggleAvailability } from '@/lib/api/products';
 
+interface ProductRow {
+  id: string;
+  name: string;
+  name_ar: string | null;
+  sku: string;
+  category: string | null;
+  unit: string;
+  price: number;
+  stock_status: 'available' | 'low' | 'out_of_stock';
+  is_active: boolean;
+  updated_at: string | null;
+}
+
 export default function ProductCatalogPage() {
-  const [products, setProducts] = useState<any[]>([]);
+  const [products, setProducts] = useState<ProductRow[]>([]);
   const [category, setCategory] = useState('all');
   const [statusFilter, setStatusFilter] = useState<'all' | 'available' | 'low' | 'out_of_stock'>('all');
   const [search, setSearch] = useState('');
   const [selectedIds, setSelectedIds] = useState<string[]>([]);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+  const [rowError, setRowError] = useState<string | null>(null);
+  const [busyId, setBusyId] = useState<string | null>(null);
 
-  const fallbackProducts = [
-    {
-      id: 'p-1',
-      name: 'Premium Basmati Rice (20kg)',
-      name_ar: 'أرز بسمتي فاخر (٢٠ كجم)',
-      description: 'Aged Long Grain Extra White',
-      sku: 'GRN-402',
-      category: 'Grains & Rice',
-      unit: '20kg Bag',
-      price: 180.0,
-      stock_qty: '142 bags',
-      location: 'Riyadh Bay 4',
-      stock_status: 'available',
-      is_active: true,
-      icon: 'grain',
-    },
-    {
-      id: 'p-2',
-      name: 'San Marzano Crushed Tomatoes',
-      name_ar: 'طماطم سان مارزانو مطحونة',
-      description: 'DOP Certified Campania IT',
-      sku: 'CAN-118',
-      category: 'Canned Goods',
-      unit: '12×800g Case',
-      price: 118.0,
-      stock_qty: '14 cases',
-      location: 'Re-order in progress',
-      stock_status: 'low',
-      is_active: true,
-      icon: 'soup_kitchen',
-    },
-    {
-      id: 'p-3',
-      name: 'Extra Virgin Olive Oil 5L Tin',
-      name_ar: 'زيت زيتون بكر ممتاز ٥ لتر',
-      description: 'Cold Pressed Al Jouf 0.3% Acidity',
-      sku: 'OIL-092',
-      category: 'Oils & Fats',
-      unit: '5L Tin',
-      price: 250.0,
-      stock_qty: '39 tins',
-      location: 'Riyadh Bay 2',
-      stock_status: 'available',
-      is_active: true,
-      icon: 'water_drop',
-    },
-    {
-      id: 'p-4',
-      name: 'White Truffle Infused Butter (500g)',
-      name_ar: 'زبدة منكهة بالكمأة البيضاء',
-      description: 'Chilled Artisan Dairy Line',
-      sku: 'DRY-055',
-      category: 'Dairy & Chilled',
-      unit: '500g Tub',
-      price: 95.0,
-      stock_qty: '18 tubs',
-      location: 'Cold Storage Bay 1',
-      stock_status: 'available',
-      is_active: true,
-      icon: 'egg_alt',
-    },
-    {
-      id: 'p-5',
-      name: 'Black Peppercorn Whole Tellicherry (1kg)',
-      name_ar: 'فلفل أسود حب تليشيري',
-      description: 'Grade A High Piperine Origin IN',
-      sku: 'SPC-033',
-      category: 'Spices & Dry',
-      unit: '1kg Pouch',
-      price: 68.0,
-      stock_qty: '0 pouches',
-      location: 'Out of Stock - ETA 3d',
-      stock_status: 'out_of_stock',
-      is_active: false,
-      icon: 'scatter_plot',
-    },
-    {
-      id: 'p-6',
-      name: 'Black Angus Ribeye Primal Cut MB3+',
-      name_ar: 'ريب آي أنجوس أسود معتق',
-      description: 'Chilled Grain-Fed AUS Whole Cut',
-      sku: 'MEA-801',
-      category: 'Fresh Meat',
-      unit: 'Per KG (Avg 7.5kg)',
-      price: 145.0,
-      stock_qty: '22 cuts',
-      location: 'Meat Aging Locker A',
-      stock_status: 'available',
-      is_active: true,
-      icon: 'kebab_dining',
-    },
-  ];
+  const loadProducts = useCallback(async () => {
+    setError(null);
+    try {
+      const res = await getProducts({
+        category: category !== 'all' ? category : undefined,
+        search: search || undefined,
+        limit: 100,
+      });
+      setProducts((res.data ?? []) as ProductRow[]);
+    } catch (err) {
+      setProducts([]);
+      setError(err instanceof Error ? err.message : 'Unable to load the product catalog.');
+    } finally {
+      setLoading(false);
+    }
+  }, [category, search]);
 
   useEffect(() => {
-    async function load() {
-      setLoading(true);
-      try {
-        const res = await getProducts({
-          category: category !== 'all' ? category : undefined,
-          search: search || undefined,
-        });
-        if (res.data && res.data.length > 0) {
-          const merged = res.data.map((item: any, index: number) => {
-            const fallback = fallbackProducts[index % fallbackProducts.length];
-            return {
-              id: item.id,
-              name: item.name,
-              name_ar: item.name_ar || fallback.name_ar,
-              description: fallback.description,
-              sku: item.sku || `SKU-${100 + index}`,
-              category: item.category || 'General Wholesale',
-              unit: item.unit || 'unit',
-              price: item.price || fallback.price,
-              stock_qty: fallback.stock_qty,
-              location: fallback.location,
-              stock_status: item.stock_status || fallback.stock_status,
-              is_active: item.is_active ?? true,
-              icon: fallback.icon,
-            };
-          });
-          setProducts(merged);
-        } else {
-          setProducts(fallbackProducts);
-        }
-      } catch {
-        setProducts(fallbackProducts);
-      } finally {
-        setLoading(false);
-      }
+    setLoading(true);
+    const timer = setTimeout(() => void loadProducts(), search ? 300 : 0);
+    return () => clearTimeout(timer);
+  }, [loadProducts, search]);
+
+  const categories = useMemo(() => {
+    const unique = new Set<string>();
+    for (const product of products) {
+      if (product.category) unique.add(product.category);
     }
-    load();
-  }, [category, search]);
+    return Array.from(unique).sort();
+  }, [products]);
 
   const filteredProducts = products.filter((p) => {
     if (statusFilter === 'all') return true;
-    if (statusFilter === 'low') return p.stock_status === 'low';
-    if (statusFilter === 'out_of_stock') return p.stock_status === 'out_of_stock' || p.stock_status === 'out';
-    if (statusFilter === 'available') return p.stock_status === 'available';
-    return true;
+    return p.stock_status === statusFilter;
   });
 
   const totalCount = products.length;
   const inStockCount = products.filter((p) => p.stock_status === 'available').length;
   const lowStockCount = products.filter((p) => p.stock_status === 'low').length;
-  const outOfStockCount = products.filter((p) => p.stock_status === 'out_of_stock' || p.stock_status === 'out').length;
+  const outOfStockCount = products.filter((p) => p.stock_status === 'out_of_stock').length;
 
   const handleToggleSelectAll = () => {
     if (selectedIds.length === filteredProducts.length) {
@@ -170,18 +81,38 @@ export default function ProductCatalogPage() {
     setSelectedIds((prev) => (prev.includes(id) ? prev.filter((i) => i !== id) : [...prev, id]));
   };
 
-  const handleToggleProduct = async (id: string, currentStatus: string) => {
+  const handleToggleProduct = async (id: string, currentStatus: ProductRow['stock_status']) => {
     const nextStatus = currentStatus === 'available' ? 'out_of_stock' : 'available';
+    setBusyId(id);
+    setRowError(null);
     try {
-      await toggleAvailability(id, nextStatus as any);
+      await toggleAvailability(id, nextStatus);
       setProducts((prev) =>
         prev.map((p) => (p.id === id ? { ...p, stock_status: nextStatus, is_active: nextStatus === 'available' } : p))
       );
-    } catch {
-      setProducts((prev) =>
-        prev.map((p) => (p.id === id ? { ...p, stock_status: nextStatus, is_active: nextStatus === 'available' } : p))
-      );
+    } catch (err) {
+      setRowError(err instanceof Error ? err.message : 'The stock status could not be updated.');
+    } finally {
+      setBusyId(null);
     }
+  };
+
+  const handleExportCsv = () => {
+    const header = ['sku', 'name', 'name_ar', 'category', 'unit', 'price', 'stock_status', 'is_active'];
+    const escape = (value: unknown) => `"${String(value ?? '').replace(/"/g, '""')}"`;
+    const rows = filteredProducts.map((p) =>
+      [p.sku, p.name, p.name_ar, p.category, p.unit, p.price, p.stock_status, p.is_active]
+        .map(escape)
+        .join(',')
+    );
+    const csv = [header.join(','), ...rows].join('\n');
+    const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+    const url = URL.createObjectURL(blob);
+    const anchor = document.createElement('a');
+    anchor.href = url;
+    anchor.download = `sowtek-products-${new Date().toISOString().slice(0, 10)}.csv`;
+    anchor.click();
+    URL.revokeObjectURL(url);
   };
 
   return (
@@ -205,21 +136,13 @@ export default function ProductCatalogPage() {
             </div>
           </div>
           <div className="flex items-center gap-4">
-            <div className="hidden md:flex items-center gap-1.5 px-3 py-1 rounded-full bg-[#d6eed0] text-[#142340] text-xs font-bold">
-              <span className="w-1.5 h-1.5 rounded-full bg-[#70b928]"></span>
-              WhatsApp Gateway Online
-            </div>
             <div className="flex items-center gap-2 text-slate-500">
               <button className="w-9 h-9 rounded-lg hover:bg-slate-100 hover:text-slate-800 flex items-center justify-center transition-colors">
                 <span className="material-symbols-outlined text-[20px]">tune</span>
               </button>
-              <button className="w-9 h-9 rounded-lg hover:bg-slate-100 hover:text-slate-800 flex items-center justify-center transition-colors relative">
+              <div className="w-9 h-9 rounded-lg hover:bg-slate-100 hover:text-slate-800 flex items-center justify-center transition-colors">
                 <span className="material-symbols-outlined text-[20px]">chat_bubble</span>
-                <span className="w-2 h-2 rounded-full bg-[#70b928] absolute top-2 right-2"></span>
-              </button>
-            </div>
-            <div className="w-8 h-8 rounded-full bg-[#142340] text-white flex items-center justify-center font-bold text-xs">
-              <span>KO</span>
+              </div>
             </div>
           </div>
         </header>
@@ -283,18 +206,12 @@ export default function ProductCatalogPage() {
                 {/* Action CTAs */}
                 <div className="flex items-center gap-2">
                   <button
-                    onClick={() => alert('Exporting Wholesale Product Catalog to CSV...')}
-                    className="px-3.5 py-2 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 font-semibold text-xs flex items-center gap-1.5 transition-colors"
+                    onClick={handleExportCsv}
+                    disabled={filteredProducts.length === 0}
+                    className="px-3.5 py-2 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 font-semibold text-xs flex items-center gap-1.5 transition-colors disabled:opacity-50"
                   >
                     <span className="material-symbols-outlined text-[18px]">file_download</span>
                     <span>Export CSV</span>
-                  </button>
-                  <button
-                    onClick={() => alert('Add Product Modal: Create custom SKU, unit pricing, Arabic name, and warehouse allocation.')}
-                    className="px-4 py-2 rounded-xl bg-[#70b928] hover:bg-[#5da01f] text-white font-bold text-xs flex items-center gap-1.5 shadow-sm transition-all"
-                  >
-                    <span className="material-symbols-outlined text-[18px]">add_circle</span>
-                    <span>+ Add Product</span>
                   </button>
                 </div>
               </div>
@@ -355,12 +272,11 @@ export default function ProductCatalogPage() {
                       className="appearance-none bg-white text-slate-800 text-xs font-semibold pl-3 pr-8 py-1.5 rounded-lg shadow-sm border border-slate-200 outline-none cursor-pointer"
                     >
                       <option value="all">All Categories</option>
-                      <option value="Grains & Rice">Grains & Rice</option>
-                      <option value="Canned Goods">Canned Goods</option>
-                      <option value="Oils & Fats">Oils & Fats</option>
-                      <option value="Dairy & Chilled">Dairy & Chilled</option>
-                      <option value="Spices & Dry">Spices & Dry</option>
-                      <option value="Fresh Meat">Fresh Meat</option>
+                      {categories.map((value) => (
+                        <option key={value} value={value}>
+                          {value}
+                        </option>
+                      ))}
                     </select>
                     <span className="material-symbols-outlined absolute right-2 top-1.5 pointer-events-none text-[16px] text-slate-500">
                       expand_more
@@ -372,6 +288,17 @@ export default function ProductCatalogPage() {
 
             {/* Data Table Container */}
             <div className="w-full overflow-x-auto rounded-xl border border-slate-200 bg-white">
+              {error && (
+                <div className="m-4 rounded-lg border border-red-200 bg-red-50 px-3 py-2 text-[11px] font-semibold text-red-700">
+                  {error}
+                </div>
+              )}
+              {rowError && (
+                <div className="m-4 rounded-lg border border-amber-200 bg-amber-50 px-3 py-2 text-[11px] font-semibold text-amber-800">
+                  {rowError}
+                </div>
+              )}
+
               <table className="w-full text-left border-collapse text-xs">
                 <thead>
                   <tr className="bg-slate-50 text-slate-500 font-bold uppercase tracking-wider border-b border-slate-200 text-[11px]">
@@ -388,12 +315,29 @@ export default function ProductCatalogPage() {
                     <th className="py-3 px-4 font-semibold">Category</th>
                     <th className="py-3 px-4 font-semibold">Unit / Packaging</th>
                     <th className="py-3 px-4 font-semibold text-right">Wholesale Price (SAR)</th>
-                    <th className="py-3 px-4 font-semibold">Live Warehouse Stock</th>
                     <th className="py-3 px-4 font-semibold">Stock Status</th>
-                    <th className="py-3 px-4 font-semibold text-right">Actions</th>
+                    <th className="py-3 px-4 font-semibold text-right">Availability</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-slate-100">
+                  {loading && products.length === 0 && (
+                    <tr>
+                      <td colSpan={8} className="py-12 text-center text-[11px] text-slate-400">
+                        Loading catalog...
+                      </td>
+                    </tr>
+                  )}
+
+                  {!loading && filteredProducts.length === 0 && !error && (
+                    <tr>
+                      <td colSpan={8} className="py-12 text-center text-[11px] leading-relaxed text-slate-400">
+                        {products.length === 0
+                          ? 'No products in the catalog yet. Products added to the database appear here.'
+                          : 'No products match the selected filters.'}
+                      </td>
+                    </tr>
+                  )}
+
                   {filteredProducts.map((p) => {
                     const isSelected = selectedIds.includes(p.id);
                     return (
@@ -412,11 +356,15 @@ export default function ProductCatalogPage() {
                         <td className="py-3.5 px-4">
                           <div className="flex items-center gap-3">
                             <div className="w-10 h-10 rounded-xl bg-slate-100 flex items-center justify-center shrink-0 text-slate-600">
-                              <span className="material-symbols-outlined text-[20px]">{p.icon || 'inventory_2'}</span>
+                              <span className="material-symbols-outlined text-[20px]">inventory_2</span>
                             </div>
                             <div className="flex flex-col min-w-0">
                               <span className="font-bold text-slate-900 truncate text-xs">{p.name}</span>
-                              <span className="text-[11px] text-slate-500 truncate">{p.name_ar || p.description}</span>
+                              {p.name_ar && (
+                                <span className="font-arabic text-[11px] text-slate-500 truncate">
+                                  {p.name_ar}
+                                </span>
+                              )}
                             </div>
                           </div>
                         </td>
@@ -425,16 +373,12 @@ export default function ProductCatalogPage() {
                             {p.sku}
                           </span>
                         </td>
-                        <td className="py-3.5 px-4 font-medium text-slate-700">{p.category}</td>
+                        <td className="py-3.5 px-4 font-medium text-slate-700">
+                          {p.category || '--'}
+                        </td>
                         <td className="py-3.5 px-4 font-medium text-slate-700">{p.unit}</td>
                         <td className="py-3.5 px-4 text-right font-bold text-slate-900">
                           {Number(p.price).toFixed(2)}
-                        </td>
-                        <td className="py-3.5 px-4">
-                          <div className="flex flex-col">
-                            <span className="font-bold text-slate-800 text-xs">{p.stock_qty || '20 units'}</span>
-                            <span className="text-[11px] text-slate-400">{p.location || 'Warehouse Zone A'}</span>
-                          </div>
                         </td>
                         <td className="py-3.5 px-4">
                           {p.stock_status === 'available' ? (
@@ -455,28 +399,20 @@ export default function ProductCatalogPage() {
                           )}
                         </td>
                         <td className="py-3.5 px-4 text-right">
-                          <div className="flex items-center justify-end gap-2">
-                            <button
-                              onClick={() => alert(`Edit SKU details for: ${p.name}`)}
-                              className="px-2.5 py-1 rounded-lg text-[11px] font-bold text-slate-600 hover:text-slate-900 hover:bg-slate-100 transition"
-                            >
-                              Edit
-                            </button>
-                            {/* Toggle stock button */}
-                            <button
-                              onClick={() => handleToggleProduct(p.id, p.stock_status)}
-                              title="Toggle Live Stock Availability"
-                              className={`w-9 h-5 rounded-full p-0.5 flex items-center transition-colors focus:outline-none ${
-                                p.stock_status === 'available' ? 'bg-[#70b928]' : 'bg-slate-300'
+                          <button
+                            onClick={() => void handleToggleProduct(p.id, p.stock_status)}
+                            disabled={busyId === p.id}
+                            title={p.stock_status === 'available' ? 'Mark out of stock' : 'Mark available'}
+                            className={`w-9 h-5 rounded-full p-0.5 flex items-center transition-colors focus:outline-none disabled:opacity-50 ${
+                              p.stock_status === 'available' ? 'bg-[#70b928]' : 'bg-slate-300'
+                            }`}
+                          >
+                            <div
+                              className={`w-4 h-4 rounded-full bg-white shadow-sm transform transition-transform ${
+                                p.stock_status === 'available' ? 'translate-x-4' : 'translate-x-0'
                               }`}
-                            >
-                              <div
-                                className={`w-4 h-4 rounded-full bg-white shadow-sm transform transition-transform ${
-                                  p.stock_status === 'available' ? 'translate-x-4' : 'translate-x-0'
-                                }`}
-                              ></div>
-                            </button>
-                          </div>
+                            ></div>
+                          </button>
                         </td>
                       </tr>
                     );
@@ -485,24 +421,13 @@ export default function ProductCatalogPage() {
               </table>
             </div>
 
-            {/* Bottom Pagination & Summary Row */}
+            {/* Bottom Summary Row */}
             <div className="flex items-center justify-between text-xs text-slate-500 pt-2 border-t border-slate-100">
               <span>
                 Showing <span className="font-bold text-slate-800">{filteredProducts.length}</span> of{' '}
                 <span className="font-bold text-slate-800">{totalCount}</span> items
               </span>
-              <div className="flex items-center gap-2">
-                <button className="px-3 py-1.5 rounded-lg border border-slate-200 text-slate-600 font-semibold hover:bg-slate-50 disabled:opacity-50">
-                  Previous
-                </button>
-                <button className="px-3 py-1.5 rounded-lg bg-[#142340] text-white font-bold">1</button>
-                <button className="px-3 py-1.5 rounded-lg border border-slate-200 text-slate-600 font-semibold hover:bg-slate-50">
-                  2
-                </button>
-                <button className="px-3 py-1.5 rounded-lg border border-slate-200 text-slate-600 font-semibold hover:bg-slate-50">
-                  Next
-                </button>
-              </div>
+              <span>Requesting up to 100 items per page</span>
             </div>
           </div>
         </main>

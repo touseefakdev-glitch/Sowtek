@@ -9,60 +9,31 @@ export default function ContactsDirectoryPage() {
   const [contacts, setContacts] = useState<any[]>([]);
   const [search, setSearch] = useState('');
   const [loading, setLoading] = useState(true);
-
-  const fallbackContacts = [
-    {
-      id: 'rest-1',
-      name: 'Burger Boutique - Al Olaya',
-      name_ar: 'برجر بوتيك',
-      whatsapp_number: '+966501234567',
-      delivery_zone: 'Zone A - Riyadh Central',
-      credit_limit: 45000,
-      open_orders_count: 2,
-      total_spend: 34500.0,
-      open_tickets_count: 0,
-    },
-    {
-      id: 'rest-2',
-      name: 'Shawarma Classic - Al Nakheel',
-      name_ar: 'شاورما كلاسيك',
-      whatsapp_number: '+966559876543',
-      delivery_zone: 'Zone B - Riyadh North',
-      credit_limit: 25000,
-      open_orders_count: 1,
-      total_spend: 18200.0,
-      open_tickets_count: 1,
-    },
-    {
-      id: 'rest-3',
-      name: 'Mama Noura Express',
-      name_ar: 'ماما نورة إكسبرس',
-      whatsapp_number: '+966541122334',
-      delivery_zone: 'Zone J1 - Jeddah City',
-      credit_limit: 60000,
-      open_orders_count: 0,
-      total_spend: 52400.0,
-      open_tickets_count: 0,
-    },
-  ];
+  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
+    let cancelled = false;
+
     async function load() {
       setLoading(true);
+      setError(null);
       try {
         const res = await getContacts({ search: search || undefined });
-        if (res.data && res.data.length > 0) {
-          setContacts(res.data);
-        } else {
-          setContacts(fallbackContacts);
-        }
+        if (cancelled) return;
+        setContacts(res.data ?? []);
       } catch (err) {
-        setContacts(fallbackContacts);
+        if (cancelled) return;
+        setContacts([]);
+        setError(err instanceof Error ? err.message : 'Unable to load contacts.');
       } finally {
-        setLoading(false);
+        if (!cancelled) setLoading(false);
       }
     }
     load();
+
+    return () => {
+      cancelled = true;
+    };
   }, [search]);
 
   return (
@@ -95,6 +66,31 @@ export default function ContactsDirectoryPage() {
             />
           </div>
 
+          {error && (
+            <div className="mb-6 flex items-start gap-2.5 rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-xs text-red-700">
+              <span className="material-symbols-outlined text-[18px] text-red-500">error</span>
+              <div>
+                <p className="font-semibold">Could not load contacts</p>
+                <p className="mt-0.5 text-red-600">{error}</p>
+              </div>
+            </div>
+          )}
+
+          {loading && contacts.length === 0 && (
+            <p className="py-12 text-center text-xs text-slate-400">Loading contacts...</p>
+          )}
+
+          {!loading && !error && contacts.length === 0 && (
+            <div className="rounded-2xl border border-dashed border-slate-300 bg-white py-16 text-center">
+              <p className="text-sm font-bold text-slate-700">No restaurant accounts</p>
+              <p className="mx-auto mt-1 max-w-sm text-xs text-slate-400">
+                {search
+                  ? `No accounts match "${search}".`
+                  : 'No restaurant accounts exist yet. They are created from the Supabase restaurants table.'}
+              </p>
+            </div>
+          )}
+
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             {contacts.map((c) => (
               <div
@@ -107,7 +103,7 @@ export default function ContactsDirectoryPage() {
                       {c.name ? c.name.substring(0, 2).toUpperCase() : 'RT'}
                     </div>
                     <span className="px-2 py-0.5 bg-slate-100 text-slate-600 rounded text-[10px] font-bold">
-                      {c.delivery_zone || 'Zone A'}
+                      {c.delivery_zone || 'Zone not set'}
                     </span>
                   </div>
 

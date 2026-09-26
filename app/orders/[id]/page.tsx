@@ -1,292 +1,430 @@
 'use client';
 
-import React, { useEffect, useState } from 'react';
+import React, { useCallback, useEffect, useState } from 'react';
 import Link from 'next/link';
 import { useParams } from 'next/navigation';
 import { AppSidebar } from '@/components/layout/AppSidebar';
 import { getOrder, updateOrderStatus } from '@/lib/api/orders';
 
+const STATUS_FLOW = [
+  'draft',
+  'pending_confirmation',
+  'confirmed',
+  'sent_to_warehouse',
+  'picking',
+  'packed',
+  'ready_for_delivery',
+  'out_for_delivery',
+  'delivered',
+  'invoiced',
+  'paid',
+  'cancelled',
+] as const;
+
+const ACTIONABLE_STATUSES = [
+  'pending_confirmation',
+  'confirmed',
+  'sent_to_warehouse',
+  'picking',
+  'packed',
+  'ready_for_delivery',
+  'out_for_delivery',
+  'delivered',
+  'invoiced',
+] as const;
+
+interface OrderItem {
+  id: string;
+  name: string;
+  unit: string;
+  quantity: number;
+  unit_price: number;
+  total_price: number | null;
+}
+
+interface OrderHistoryEntry {
+  id: string;
+  from_status: string | null;
+  to_status: string;
+  note: string | null;
+  created_at: string;
+  changed_by_user: { full_name: string; role: string } | null;
+}
+
+interface Order {
+  id: string;
+  order_number: string | null;
+  status: string;
+  subtotal: number;
+  vat_amount: number;
+  total_amount: number;
+  delivery_date: string | null;
+  delivery_address: string | null;
+  payment_terms: string | null;
+  notes: string | null;
+  sla_deadline: string | null;
+  created_at: string;
+  restaurant: Record<string, any> | null;
+  agent: Record<string, any> | null;
+  items: OrderItem[] | null;
+  history: OrderHistoryEntry[] | null;
+}
+
+function formatDateTime(iso: string | null): string {
+  if (!iso) return 'Not set';
+  return new Date(iso).toLocaleString([], {
+    day: '2-digit',
+    month: 'short',
+    year: 'numeric',
+    hour: '2-digit',
+    minute: '2-digit',
+  });
+}
+
 export default function OrderDetailPage() {
   const params = useParams();
-  const orderId = (params?.id as string) || 'ORD-8821';
+  const orderId = params?.id as string;
 
-  const [orderStatus, setOrderStatus] = useState<'PICKING' | 'DISPATCHED' | 'DELIVERED'>('PICKING');
-  const [toastMessage, setToastMessage] = useState<string | null>(null);
+  const [order, setOrder] = useState<Order | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+  const [actionError, setActionError] = useState<string | null>(null);
+  const [updating, setUpdating] = useState(false);
 
-  const showToast = (msg: string) => {
-    setToastMessage(msg);
-    setTimeout(() => setToastMessage(null), 3000);
+  const loadOrder = useCallback(async () => {
+    setError(null);
+    try {
+      const res = await getOrder(orderId);
+      setOrder(res.data as Order | null);
+    } catch (err) {
+      setOrder(null);
+      setError(err instanceof Error ? err.message : 'Unable to load this order.');
+    } finally {
+      setLoading(false);
+    }
+  }, [orderId]);
+
+  useEffect(() => {
+    setLoading(true);
+    void loadOrder();
+  }, [loadOrder]);
+
+  const handleStatusChange = async (status: string) => {
+    setUpdating(true);
+    setActionError(null);
+    try {
+      await updateOrderStatus(orderId, status);
+      await loadOrder();
+    } catch (err) {
+      setActionError(
+        err instanceof Error ? err.message : 'The status update was rejected by the API.'
+      );
+    } finally {
+      setUpdating(false);
+    }
   };
 
-  const handleStatusChange = (newStatus: 'PICKING' | 'DISPATCHED' | 'DELIVERED') => {
-    setOrderStatus(newStatus);
-    showToast(`Order status updated to ${newStatus}. Synced with WhatsApp.`);
-  };
+  if (loading) {
+    return (
+      <div className="flex h-screen items-center justify-center bg-[#f1f3f7] font-sans">
+        <p className="text-xs text-slate-400">Loading order...</p>
+      </div>
+    );
+  }
+
+  if (error || !order) {
+    return (
+      <div className="flex h-screen items-center justify-center bg-[#f1f3f7] font-sans">
+        <div className="max-w-md rounded-2xl border border-red-200 bg-white p-8 text-center">
+          <span className="material-symbols-outlined text-[28px] text-red-500">error</span>
+          <h1 className="mt-2 text-sm font-bold text-slate-800">Order unavailable</h1>
+          <p className="mt-1 text-xs text-slate-500">{error || 'Order not found.'}</p>
+          <Link
+            href="/orders"
+            className="mt-5 inline-block rounded-xl bg-[#142340] px-4 py-2 text-xs font-bold text-white transition hover:bg-slate-800"
+          >
+            Back to orders
+          </Link>
+        </div>
+      </div>
+    );
+  }
+
+  const rest = order.restaurant;
+  const currentIndex = STATUS_FLOW.indexOf(order.status as (typeof STATUS_FLOW)[number]);
 
   return (
-    <div className="flex h-screen overflow-hidden font-sans text-slate-800 antialiased bg-[#f4f6f9]">
+    <div className="flex h-screen overflow-hidden bg-[#f1f3f7] font-sans text-slate-800">
       <AppSidebar />
 
-      {/* Main Content Area */}
-      <main className="flex-1 flex flex-col h-full overflow-hidden bg-[#f4f6f9]">
-        {/* Top Context Bar */}
-        <header className="h-14 bg-white px-5 flex items-center justify-between border-b border-slate-200/80 z-10 flex-shrink-0">
-          <div className="flex items-center gap-3">
-            <div className="flex items-center gap-2">
-              <span className="text-sm font-extrabold text-[#142340]">Orders Hub</span>
-              <span className="px-2 py-0.5 rounded-full bg-[#eef8eb] text-[#5da01f] text-[10px] font-extrabold uppercase tracking-wide">
-                Live
+      <div className="flex-1 overflow-y-auto">
+        <header className="sticky top-0 z-10 flex flex-wrap items-center justify-between gap-4 border-b border-slate-200 bg-white px-6 py-4">
+          <div>
+            <div className="mb-1 flex items-center gap-2 text-xs text-slate-500">
+              <Link href="/orders" className="hover:text-slate-900">
+                Orders
+              </Link>
+              <span>/</span>
+              <span className="font-semibold text-slate-900">
+                {order.order_number || order.id}
               </span>
             </div>
-            <span className="text-slate-300 font-light">/</span>
-            <div className="flex items-center gap-2">
-              <span className="text-xs font-bold text-slate-900">#ORD-8821</span>
-              <span className="px-2 py-0.5 rounded-md bg-sky-50 text-sky-700 text-[10px] font-extrabold border border-sky-200">
-                {orderStatus}
+            <div className="flex items-center gap-3">
+              <h1 className="text-xl font-bold text-[#142340]">
+                {order.order_number || order.id}
+              </h1>
+              <span className="rounded-full bg-blue-50 px-3 py-1 text-[10px] font-bold uppercase text-blue-700">
+                {order.status.replace(/_/g, ' ')}
               </span>
             </div>
+            <p className="mt-1 text-[11px] text-slate-500">
+              Placed {formatDateTime(order.created_at)}
+              {order.agent ? ` · Assigned to ${order.agent.full_name}` : ' · Unassigned'}
+            </p>
           </div>
 
-          <div className="flex items-center gap-3">
-            <button
-              type="button"
-              onClick={() => showToast('Printing invoice #ORD-8821...')}
-              className="px-3 py-1.5 rounded-lg border border-slate-200 text-xs font-semibold text-slate-700 hover:bg-slate-50 flex items-center gap-1.5 transition"
-            >
-              <span className="material-symbols-outlined text-sm">print</span>
-              <span>Print Invoice</span>
-            </button>
+          <div className="flex flex-col items-end gap-2">
+            <div className="text-right">
+              <p className="font-mono text-lg font-bold text-[#142340]">
+                SAR {Number(order.total_amount).toFixed(2)}
+              </p>
+              <p className="text-[11px] text-slate-500">
+                {order.payment_terms || 'No payment terms set'}
+              </p>
+            </div>
             <Link
-              href="/inbox"
-              className="px-3.5 py-1.5 rounded-lg bg-[#142340] hover:bg-slate-800 text-white text-xs font-bold shadow-xs transition no-underline flex items-center gap-1.5"
+              href="/orders"
+              className="rounded-xl border border-slate-200 px-3 py-1.5 text-[11px] font-semibold text-slate-600 transition hover:bg-slate-50"
             >
-              <span className="material-symbols-outlined text-sm">chat</span>
-              <span>Back to Chat</span>
+              All orders
             </Link>
           </div>
         </header>
 
-        {/* 2-Column Content Layout */}
-        <div className="flex-1 flex overflow-hidden p-5 gap-5">
-          {/* Main Order Details Card */}
-          <div className="flex-1 bg-white rounded-2xl border border-slate-200/80 shadow-card p-6 overflow-y-auto space-y-6">
-            {/* Header & Status Stepper */}
-            <div className="flex flex-col sm:flex-row sm:items-center justify-between pb-5 border-b border-slate-100 gap-4">
-              <div>
-                <div className="flex items-center gap-3">
-                  <h1 className="text-xl font-extrabold text-[#142340]">Order #ORD-8821</h1>
-                  <span className="px-2.5 py-0.5 rounded-full bg-[#eef8eb] text-[#2c771c] font-bold text-xs border border-[#d6eed0]">
-                    WhatsApp Verified PO
+        <div className="grid grid-cols-1 gap-6 p-6 xl:grid-cols-3">
+          <div className="space-y-6 xl:col-span-2">
+            {/* Status control */}
+            <section className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
+              <h2 className="mb-1 text-xs font-bold uppercase tracking-wider text-slate-400">
+                Fulfilment status
+              </h2>
+              <p className="mb-4 text-[11px] text-slate-400">
+                Every change is written to <code>order_status_history</code> and the customer is
+                notified on WhatsApp when the status becomes <code>delivered</code>.
+              </p>
+
+              {actionError && (
+                <div className="mb-3 rounded-lg border border-red-200 bg-red-50 px-3 py-2 text-[11px] font-semibold text-red-700">
+                  {actionError}
+                </div>
+              )}
+
+              <div className="mb-4 flex items-center gap-2">
+                <div className="h-1.5 flex-1 overflow-hidden rounded-full bg-slate-100">
+                  <div
+                    className="h-full rounded-full bg-[#70b928] transition-all"
+                    style={{
+                      width: `${
+                        currentIndex < 0
+                          ? 0
+                          : ((currentIndex + 1) / STATUS_FLOW.length) * 100
+                      }%`,
+                    }}
+                  />
+                </div>
+                <span className="shrink-0 text-[10px] font-semibold text-slate-400">
+                  Step {currentIndex < 0 ? 0 : currentIndex + 1} of {STATUS_FLOW.length}
+                </span>
+              </div>
+
+              <div className="flex flex-wrap gap-2">
+                {ACTIONABLE_STATUSES.map((status) => (
+                  <button
+                    key={status}
+                    type="button"
+                    disabled={updating || order.status === status}
+                    onClick={() => void handleStatusChange(status)}
+                    className={`rounded-xl px-3 py-1.5 text-[11px] font-bold capitalize transition ${
+                      order.status === status
+                        ? 'bg-[#142340] text-white'
+                        : 'bg-slate-100 text-slate-600 hover:bg-slate-200 disabled:opacity-50'
+                    }`}
+                  >
+                    {status.replace(/_/g, ' ')}
+                  </button>
+                ))}
+              </div>
+            </section>
+
+            {/* Line items */}
+            <section className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
+              <h2 className="mb-4 text-sm font-bold text-[#142340]">Line items</h2>
+              <table className="w-full text-left text-xs">
+                <thead>
+                  <tr className="border-b border-slate-100 uppercase text-slate-400">
+                    <th className="pb-3">Item</th>
+                    <th className="pb-3">Unit</th>
+                    <th className="pb-3 text-right">Qty</th>
+                    <th className="pb-3 text-right">Unit price</th>
+                    <th className="pb-3 text-right">Total</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-slate-100">
+                  {(order.items ?? []).length === 0 && (
+                    <tr>
+                      <td colSpan={5} className="py-6 text-center text-slate-400">
+                        No line items recorded on this order.
+                      </td>
+                    </tr>
+                  )}
+                  {(order.items ?? []).map((item) => (
+                    <tr key={item.id}>
+                      <td className="py-3 font-semibold text-slate-900">{item.name}</td>
+                      <td className="py-3 text-slate-500">{item.unit}</td>
+                      <td className="py-3 text-right font-mono">{item.quantity}</td>
+                      <td className="py-3 text-right font-mono">
+                        {Number(item.unit_price).toFixed(2)}
+                      </td>
+                      <td className="py-3 text-right font-mono font-bold text-slate-900">
+                        {Number(item.total_price ?? item.quantity * item.unit_price).toFixed(2)}
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+                <tfoot>
+                  <tr className="border-t border-slate-100">
+                    <td colSpan={4} className="pt-3 text-right text-slate-500">
+                      Subtotal
+                    </td>
+                    <td className="pt-3 text-right font-mono">
+                      {Number(order.subtotal).toFixed(2)}
+                    </td>
+                  </tr>
+                  <tr>
+                    <td colSpan={4} className="pt-1 text-right text-slate-500">
+                      VAT
+                    </td>
+                    <td className="pt-1 text-right font-mono">
+                      {Number(order.vat_amount).toFixed(2)}
+                    </td>
+                  </tr>
+                  <tr>
+                    <td colSpan={4} className="pt-2 text-right font-bold text-[#142340]">
+                      Total
+                    </td>
+                    <td className="pt-2 text-right font-mono font-bold text-[#142340]">
+                      {Number(order.total_amount).toFixed(2)}
+                    </td>
+                  </tr>
+                </tfoot>
+              </table>
+            </section>
+
+            {/* History */}
+            <section className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
+              <h2 className="mb-4 text-sm font-bold text-[#142340]">Status history</h2>
+              {(order.history ?? []).length === 0 ? (
+                <p className="rounded-xl border border-dashed border-slate-300 p-4 text-center text-[11px] text-slate-400">
+                  No status changes have been recorded yet.
+                </p>
+              ) : (
+                <ol className="space-y-3">
+                  {(order.history ?? []).map((entry) => (
+                    <li key={entry.id} className="flex gap-3">
+                      <span className="mt-1.5 h-2 w-2 shrink-0 rounded-full bg-[#70b928]" />
+                      <div>
+                        <p className="text-xs font-semibold text-slate-800">
+                          {entry.from_status ? `${entry.from_status} → ` : ''}
+                          {entry.to_status.replace(/_/g, ' ')}
+                        </p>
+                        {entry.note && (
+                          <p className="mt-0.5 text-[11px] text-slate-500">{entry.note}</p>
+                        )}
+                        <p className="mt-0.5 text-[10px] text-slate-400">
+                          {formatDateTime(entry.created_at)}
+                          {entry.changed_by_user ? ` · ${entry.changed_by_user.full_name}` : ''}
+                        </p>
+                      </div>
+                    </li>
+                  ))}
+                </ol>
+              )}
+            </section>
+          </div>
+
+          {/* Sidebar */}
+          <div className="space-y-6">
+            <section className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
+              <h2 className="mb-3 text-xs font-bold uppercase tracking-wider text-slate-400">
+                Customer
+              </h2>
+              {rest ? (
+                <div className="space-y-2 text-xs">
+                  <p className="font-bold text-[#142340]">{rest.name}</p>
+                  {rest.name_ar && (
+                    <p className="font-arabic text-[11px] text-slate-400">{rest.name_ar}</p>
+                  )}
+                  {rest.whatsapp_number && (
+                    <p className="font-mono text-[11px] text-slate-600">
+                      {rest.whatsapp_number}
+                    </p>
+                  )}
+                  {rest.email && <p className="text-[11px] text-slate-500">{rest.email}</p>}
+                  {rest.address && <p className="text-[11px] text-slate-500">{rest.address}</p>}
+                  {rest.delivery_zone && (
+                    <p className="text-[11px] text-slate-500">Zone: {rest.delivery_zone}</p>
+                  )}
+                  <Link
+                    href={`/contacts/${rest.id}`}
+                    className="mt-3 inline-block rounded-lg bg-slate-100 px-3 py-1.5 font-semibold text-slate-700 transition hover:bg-slate-200"
+                  >
+                    View 360° profile
+                  </Link>
+                </div>
+              ) : (
+                <p className="text-[11px] text-slate-400">
+                  No restaurant is linked to this order.
+                </p>
+              )}
+            </section>
+
+            <section className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
+              <h2 className="mb-3 text-xs font-bold uppercase tracking-wider text-slate-400">
+                Delivery
+              </h2>
+              <div className="space-y-2 text-xs">
+                <div className="flex justify-between">
+                  <span className="text-slate-500">Delivery date</span>
+                  <span className="font-semibold text-slate-800">
+                    {order.delivery_date || 'Not set'}
                   </span>
                 </div>
-                <p className="text-xs text-slate-500 mt-1">
-                  Placed on Today at 17:28 • Assigned Agent: Kenneth Ofkeli
-                </p>
-              </div>
-
-              <div className="text-right">
-                <div className="text-2xl font-black text-[#142340]">SAR 4,820.00</div>
-                <div className="text-[11px] text-emerald-600 font-semibold">Payment Terms: Net 15</div>
-              </div>
-            </div>
-
-            {/* Stepper */}
-            <div className="grid grid-cols-4 gap-2 pt-2">
-              <div className="p-3 rounded-xl bg-emerald-50 border border-emerald-200 text-center">
-                <span className="material-symbols-outlined text-emerald-600 text-lg">check_circle</span>
-                <p className="text-xs font-bold text-emerald-800 mt-1">Confirmed</p>
-                <p className="text-[10px] text-emerald-600">17:28</p>
-              </div>
-
-              <div
-                className={`p-3 rounded-xl border text-center ${
-                  orderStatus === 'PICKING' || orderStatus === 'DISPATCHED' || orderStatus === 'DELIVERED'
-                    ? 'bg-sky-50 border-sky-200 text-sky-800'
-                    : 'bg-slate-50 border-slate-200 text-slate-400'
-                }`}
-              >
-                <span className="material-symbols-outlined text-lg">inventory</span>
-                <p className="text-xs font-bold mt-1">Picking (WMS)</p>
-                <p className="text-[10px]">Bay 4 Active</p>
-              </div>
-
-              <div
-                className={`p-3 rounded-xl border text-center ${
-                  orderStatus === 'DISPATCHED' || orderStatus === 'DELIVERED'
-                    ? 'bg-amber-50 border-amber-200 text-amber-800'
-                    : 'bg-slate-50 border-slate-200 text-slate-400'
-                }`}
-              >
-                <span className="material-symbols-outlined text-lg">local_shipping</span>
-                <p className="text-xs font-bold mt-1">Dispatched</p>
-                <p className="text-[10px]">Reefer Van #12</p>
-              </div>
-
-              <div
-                className={`p-3 rounded-xl border text-center ${
-                  orderStatus === 'DELIVERED'
-                    ? 'bg-emerald-50 border-emerald-200 text-emerald-800'
-                    : 'bg-slate-50 border-slate-200 text-slate-400'
-                }`}
-              >
-                <span className="material-symbols-outlined text-lg">task_alt</span>
-                <p className="text-xs font-bold mt-1">Delivered</p>
-                <p className="text-[10px]">Gate 3 Kitchen</p>
-              </div>
-            </div>
-
-            {/* Line Items Table */}
-            <div>
-              <h3 className="text-sm font-bold text-[#142340] mb-3">Order Line Items</h3>
-              <div className="border border-slate-200 rounded-xl overflow-hidden">
-                <table className="w-full text-xs text-left">
-                  <thead className="bg-slate-50 text-slate-500 font-semibold border-b border-slate-200">
-                    <tr>
-                      <th className="p-3">Product Description</th>
-                      <th className="p-3">SKU</th>
-                      <th className="p-3 text-center">Unit</th>
-                      <th className="p-3 text-right">Qty</th>
-                      <th className="p-3 text-right">Unit Price</th>
-                      <th className="p-3 text-right">Total</th>
-                    </tr>
-                  </thead>
-                  <tbody className="divide-y divide-slate-100">
-                    <tr>
-                      <td className="p-3 font-bold text-slate-800">Fresh Roma Tomatoes (A-Grade)</td>
-                      <td className="p-3 text-slate-500 font-mono">TOM-ROMA-50</td>
-                      <td className="p-3 text-center">50kg Box</td>
-                      <td className="p-3 text-right font-bold">15</td>
-                      <td className="p-3 text-right">SAR 14.50</td>
-                      <td className="p-3 text-right font-bold">SAR 2,175.00</td>
-                    </tr>
-                    <tr>
-                      <td className="p-3 font-bold text-slate-800">Premium Iceberg Lettuce</td>
-                      <td className="p-3 text-slate-500 font-mono">LET-ICE-BOX</td>
-                      <td className="p-3 text-center">Box (12 heads)</td>
-                      <td className="p-3 text-right font-bold">20</td>
-                      <td className="p-3 text-right">SAR 24.00</td>
-                      <td className="p-3 text-right font-bold">SAR 480.00</td>
-                    </tr>
-                    <tr>
-                      <td className="p-3 font-bold text-slate-800">Red Onions Sacks (Imported)</td>
-                      <td className="p-3 text-slate-500 font-mono">ONI-RED-25</td>
-                      <td className="p-3 text-center">25kg Sack</td>
-                      <td className="p-3 text-right font-bold">10</td>
-                      <td className="p-3 text-right">SAR 36.50</td>
-                      <td className="p-3 text-right font-bold">SAR 365.00</td>
-                    </tr>
-                    <tr>
-                      <td className="p-3 font-bold text-slate-800">Extra Virgin Olive Oil (Greek)</td>
-                      <td className="p-3 text-slate-500 font-mono">OIL-EV-5L</td>
-                      <td className="p-3 text-center">5L Tin</td>
-                      <td className="p-3 text-right font-bold">8</td>
-                      <td className="p-3 text-right">SAR 175.00</td>
-                      <td className="p-3 text-right font-bold">SAR 1,400.00</td>
-                    </tr>
-                    <tr>
-                      <td className="p-3 font-bold text-slate-800">Fresh Whole Milk (Pasteurized)</td>
-                      <td className="p-3 text-slate-500 font-mono">DAI-MILK-2L</td>
-                      <td className="p-3 text-center">Crate (6x2L)</td>
-                      <td className="p-3 text-right font-bold">10</td>
-                      <td className="p-3 text-right">SAR 40.00</td>
-                      <td className="p-3 text-right font-bold">SAR 400.00</td>
-                    </tr>
-                  </tbody>
-                  <tfoot className="bg-slate-50 font-bold border-t border-slate-200">
-                    <tr>
-                      <td colSpan={5} className="p-3 text-right text-slate-600">Subtotal</td>
-                      <td className="p-3 text-right">SAR 4,820.00</td>
-                    </tr>
-                  </tfoot>
-                </table>
-              </div>
-            </div>
-
-            {/* Action Buttons */}
-            <div className="flex items-center justify-between pt-4 border-t border-slate-100">
-              <button
-                type="button"
-                onClick={() => showToast('Dispute / return ticket opened for #ORD-8821')}
-                className="px-4 py-2 rounded-xl border border-rose-200 text-rose-600 hover:bg-rose-50 text-xs font-bold transition"
-              >
-                Flag Issue / Return
-              </button>
-
-              <div className="flex items-center gap-2">
-                <button
-                  type="button"
-                  onClick={() => handleStatusChange('DISPATCHED')}
-                  className="px-4 py-2 rounded-xl bg-[#142340] hover:bg-slate-800 text-white text-xs font-bold transition shadow-xs"
-                >
-                  Mark as Dispatched 🚚
-                </button>
-                <button
-                  type="button"
-                  onClick={() => handleStatusChange('DELIVERED')}
-                  className="px-4 py-2 rounded-xl bg-[#70b928] hover:bg-[#5a991f] text-white text-xs font-bold transition shadow-xs"
-                >
-                  Confirm Delivery ✓
-                </button>
-              </div>
-            </div>
-          </div>
-
-          {/* Right Customer / Logistics Summary */}
-          <div className="w-80 space-y-4">
-            {/* Restaurant Info Card */}
-            <div className="bg-white rounded-2xl border border-slate-200/80 shadow-card p-5 text-xs space-y-3">
-              <h3 className="font-bold text-sm text-[#142340]">Restaurant & Delivery</h3>
-              <div className="p-3 rounded-xl bg-slate-50 border border-slate-200">
-                <div className="font-bold text-slate-900 text-sm">Al Noor Restaurant (Bay 3)</div>
-                <div className="text-slate-500 mt-1">King Fahd Rd, Al Olaya, Riyadh</div>
-                <div className="text-[11px] text-emerald-700 font-semibold mt-1">Zone A • Delivery Slot: Tomorrow 10:30 AM</div>
-              </div>
-
-              <div className="space-y-2 pt-2 border-t border-slate-100">
                 <div className="flex justify-between">
-                  <span className="text-slate-400">Contact Person</span>
-                  <span className="font-bold text-slate-800">Faisal Al-Qaisi</span>
+                  <span className="text-slate-500">SLA deadline</span>
+                  <span className="font-semibold text-slate-800">
+                    {formatDateTime(order.sla_deadline)}
+                  </span>
                 </div>
                 <div className="flex justify-between">
-                  <span className="text-slate-400">Phone</span>
-                  <span className="font-bold text-slate-800">+966 50 123 4567</span>
-                </div>
-                <div className="flex justify-between">
-                  <span className="text-slate-400">Gate Notes</span>
-                  <span className="font-bold text-slate-800">Kitchen Gate #3 (Rear Alley)</span>
+                  <span className="text-slate-500">Address</span>
+                  <span className="max-w-[60%] text-right font-semibold text-slate-800">
+                    {order.delivery_address || 'Not set'}
+                  </span>
                 </div>
               </div>
-            </div>
+            </section>
 
-            {/* Warehouse Dispatch Status */}
-            <div className="bg-white rounded-2xl border border-slate-200/80 shadow-card p-5 text-xs space-y-3">
-              <h3 className="font-bold text-sm text-[#142340]">Warehouse Dispatch</h3>
-              <div className="space-y-2 text-slate-600">
-                <div className="flex justify-between">
-                  <span>Warehouse Batch</span>
-                  <span className="font-mono font-bold text-slate-800">#BATCH-441</span>
-                </div>
-                <div className="flex justify-between">
-                  <span>Reefer Temp</span>
-                  <span className="text-emerald-600 font-bold">2.4°C (Normal)</span>
-                </div>
-                <div className="flex justify-between">
-                  <span>Assigned Driver</span>
-                  <span className="font-bold text-slate-800">Tariq Al-Mansoor</span>
-                </div>
-              </div>
-            </div>
+            {order.notes && (
+              <section className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
+                <h2 className="mb-2 text-xs font-bold uppercase tracking-wider text-slate-400">
+                  Notes
+                </h2>
+                <p className="whitespace-pre-wrap text-xs text-slate-600">{order.notes}</p>
+              </section>
+            )}
           </div>
         </div>
-      </main>
-
-      {/* Toast Notification */}
-      {toastMessage && (
-        <div className="fixed bottom-5 right-5 bg-slate-900 text-white px-4 py-3 rounded-xl text-xs font-semibold shadow-xl border border-slate-800 flex items-center gap-2.5 transition-all z-50 animate-bounce">
-          <span className="w-2 h-2 rounded-full bg-emerald-400" />
-          <span>{toastMessage}</span>
-        </div>
-      )}
+      </div>
     </div>
   );
 }

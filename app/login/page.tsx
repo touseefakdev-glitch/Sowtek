@@ -2,39 +2,40 @@
 
 import React, { useState } from 'react';
 import { useRouter } from 'next/navigation';
+import { createClient } from '@/lib/supabase/client';
 
 export default function LoginPage() {
   const router = useRouter();
-  const [email, setEmail] = useState('kenneth.ofkeli@sowtek.io');
-  const [password, setPassword] = useState('password123');
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
   const [lang, setLang] = useState<'en' | 'ar'>('en');
-  const [toastMessage, setToastMessage] = useState<string | null>(null);
-
-  const showToast = (msg: string) => {
-    setToastMessage(msg);
-    setTimeout(() => setToastMessage(null), 3000);
-  };
+  const [errorMessage, setErrorMessage] = useState<string | null>(null);
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
+    setErrorMessage(null);
 
     try {
-      showToast(lang === 'ar' ? 'جاري التحقق من الهوية...' : 'Authenticating agent credentials...');
-      setTimeout(() => {
-        router.push('/inbox');
-      }, 1000);
-    } catch {
-      showToast('Login failed. Check credentials.');
+      const supabase = createClient();
+      const { error } = await supabase.auth.signInWithPassword({ email, password });
+
+      if (error) {
+        setErrorMessage(error.message);
+        setLoading(false);
+        return;
+      }
+
+      router.push('/inbox');
+      router.refresh();
+    } catch (err) {
+      setErrorMessage(
+        err instanceof Error ? err.message : 'Unable to sign in. Please try again.'
+      );
       setLoading(false);
     }
-  };
-
-  const selectAgent = (name: string, agentEmail: string, role: string) => {
-    setEmail(agentEmail);
-    showToast(`Selected profile: ${name} (${role})`);
   };
 
   return (
@@ -44,18 +45,9 @@ export default function LoginPage() {
       }`}
       dir={lang === 'ar' ? 'rtl' : 'ltr'}
     >
-      {/* Top Right Utility Bar: Language Switcher and System Status */}
+      {/* Top Right Utility Bar: Language Switcher */}
       <div className="w-full px-8 py-6 flex justify-between items-center z-10">
-        {/* Subtle Live Platform Status Indicator */}
-        <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-white/80 border border-slate-200/80 shadow-xs backdrop-blur-xs">
-          <span className="relative flex h-2 w-2">
-            <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-[#70b928] opacity-75" />
-            <span className="relative inline-flex rounded-full h-2 w-2 bg-[#70b928]" />
-          </span>
-          <span className="text-[11px] font-semibold text-slate-600">WhatsApp Gateway Active</span>
-          <span className="text-slate-300 text-xs">|</span>
-          <span className="text-[11px] font-medium text-slate-500">4 Agents Online</span>
-        </div>
+        <div />
 
         {/* Language toggle: EN | العربية */}
         <div className="inline-flex items-center bg-white border border-slate-200/90 rounded-xl p-1 shadow-xs">
@@ -156,7 +148,29 @@ export default function LoginPage() {
                   </label>
                   <button
                     type="button"
-                    onClick={() => showToast('Password reset link sent to registered email')}
+                    onClick={async () => {
+                      if (!email) {
+                        setErrorMessage('Enter your work email first, then request a reset link.');
+                        return;
+                      }
+                      try {
+                        const supabase = createClient();
+                        const { error } = await supabase.auth.resetPasswordForEmail(email, {
+                          redirectTo: `${window.location.origin}/login`,
+                        });
+                        setErrorMessage(
+                          error
+                            ? error.message
+                            : 'If that email is registered, a password reset link has been sent.'
+                        );
+                      } catch (err) {
+                        setErrorMessage(
+                          err instanceof Error
+                            ? err.message
+                            : 'Unable to request a password reset.'
+                        );
+                      }
+                    }}
                     className="text-[11px] font-medium text-slate-500 hover:text-[#142340] transition"
                   >
                     Forgot password?
@@ -186,23 +200,15 @@ export default function LoginPage() {
                 </div>
               </div>
 
-              {/* Remember Me & Shift Status */}
-              <div className="flex items-center justify-between pt-1">
-                <label className="flex items-center gap-2 cursor-pointer">
-                  <input
-                    type="checkbox"
-                    defaultChecked
-                    className="w-4 h-4 text-[#142340] border-slate-300 rounded focus:ring-[#142340] cursor-pointer"
-                  />
-                  <span className="text-xs text-slate-600 select-none">
-                    {lang === 'ar' ? 'تذكر محطة العمل هذه' : 'Remember this workstation'}
+              {/* Auth Error */}
+              {errorMessage && (
+                <div className="flex items-start gap-2 rounded-xl border border-red-200 bg-red-50 px-3 py-2.5 text-xs text-red-700">
+                  <span className="material-symbols-outlined text-[16px] text-red-500">
+                    error
                   </span>
-                </label>
-                <div className="flex items-center gap-1.5">
-                  <span className="w-1.5 h-1.5 rounded-full bg-emerald-500" />
-                  <span className="text-[11px] font-medium text-emerald-700">Shift Active</span>
+                  <span>{errorMessage}</span>
                 </div>
-              </div>
+              )}
 
               {/* Primary CTA: "Sign in" */}
               <div className="pt-2">
@@ -214,7 +220,7 @@ export default function LoginPage() {
                   {loading ? (
                     <span className="inline-flex items-center gap-2">
                       <span className="animate-spin rounded-full h-4 w-4 border-2 border-white border-t-transparent" />
-                      Authenticating Kenneth Ofkeli...
+                      {lang === 'ar' ? 'جاري التحقق من الهوية...' : 'Authenticating...'}
                     </span>
                   ) : (
                     <>
@@ -225,64 +231,6 @@ export default function LoginPage() {
                 </button>
               </div>
             </form>
-
-            {/* Quick Switch Demo Profile */}
-            <div className="mt-6 pt-5 border-t border-slate-100">
-              <p className="text-[10px] font-bold uppercase tracking-wider text-slate-400 mb-2.5 text-center">
-                Quick Switch Agent Profile
-              </p>
-              <div className="grid grid-cols-2 gap-2">
-                <button
-                  type="button"
-                  onClick={() => selectAgent('Kenneth Ofkeli', 'kenneth.ofkeli@sowtek.io', 'Senior Agent')}
-                  className="flex items-center gap-2 p-2 rounded-xl border border-slate-200/90 hover:border-[#142340] hover:bg-slate-50 transition text-left group"
-                >
-                  <div className="w-7 h-7 rounded-full bg-[#142340] text-white flex items-center justify-center text-[10px] font-bold group-hover:bg-[#70b928] transition">
-                    KO
-                  </div>
-                  <div className="truncate">
-                    <p className="text-xs font-bold text-slate-800 leading-tight">Kenneth O.</p>
-                    <p className="text-[10px] text-slate-500 truncate">Senior Agent</p>
-                  </div>
-                </button>
-
-                <button
-                  type="button"
-                  onClick={() => selectAgent('Sarah Tariq', 'sarah.tariq@sowtek.io', 'Supervisor')}
-                  className="flex items-center gap-2 p-2 rounded-xl border border-slate-200/90 hover:border-[#142340] hover:bg-slate-50 transition text-left group"
-                >
-                  <div className="w-7 h-7 rounded-full bg-slate-200 text-slate-700 flex items-center justify-center text-[10px] font-bold group-hover:bg-[#70b928] group-hover:text-white transition">
-                    ST
-                  </div>
-                  <div className="truncate">
-                    <p className="text-xs font-bold text-slate-800 leading-tight">Sarah Tariq</p>
-                    <p className="text-[10px] text-slate-500 truncate">Supervisor</p>
-                  </div>
-                </button>
-              </div>
-            </div>
-
-            {/* Security Note */}
-            <div className="mt-5 text-center">
-              <p className="text-[11px] text-slate-400 flex items-center justify-center gap-1.5">
-                <span className="material-symbols-outlined text-[14px] text-slate-400">verified_user</span>
-                <span>Protected by Sowtek Enterprise 2FA & SSL</span>
-              </p>
-            </div>
-          </div>
-
-          {/* Secondary Help Link */}
-          <div className="text-center mt-5">
-            <p className="text-xs text-slate-500">
-              Need access or report a dispatch issue?{' '}
-              <button
-                type="button"
-                onClick={() => showToast('Supervisor support desk notified.')}
-                className="font-semibold text-[#142340] hover:text-[#70b928] underline underline-offset-2 transition"
-              >
-                Contact Supervisor
-              </button>
-            </p>
           </div>
         </div>
       </main>
@@ -293,27 +241,8 @@ export default function LoginPage() {
           <span className="font-semibold text-slate-600">Sowtek OrderFlow</span>
           <span>•</span>
           <span>Restaurant Supply Logistics OS</span>
-          <span>•</span>
-          <span>v2.4.1</span>
-        </div>
-        <div className="flex items-center gap-4">
-          <span className="hover:text-slate-600 transition cursor-pointer">Privacy Policy</span>
-          <span className="hover:text-slate-600 transition cursor-pointer">SLA Terms</span>
-          <span className="hover:text-slate-600 transition cursor-pointer">System Status</span>
-          <span className="text-emerald-600 font-semibold flex items-center gap-1">
-            <span className="w-1.5 h-1.5 rounded-full bg-emerald-500" />
-            All Systems Normal
-          </span>
         </div>
       </footer>
-
-      {/* Toast Notification */}
-      {toastMessage && (
-        <div className="fixed bottom-5 right-5 bg-slate-900 text-white px-4 py-3 rounded-xl text-xs font-semibold shadow-xl border border-slate-800 flex items-center gap-2.5 transition-all z-50">
-          <span className="material-symbols-outlined text-emerald-400 text-[18px]">check_circle</span>
-          <span>{toastMessage}</span>
-        </div>
-      )}
     </div>
   );
 }

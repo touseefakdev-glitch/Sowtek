@@ -1,879 +1,658 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
-import Link from 'next/link';
+import React, { useCallback, useEffect, useMemo, useState } from 'react';
+import { useRouter } from 'next/navigation';
 import { AppSidebar } from '@/components/layout/AppSidebar';
 import {
   getConversations,
-  getConversation,
   getMessages,
   sendMessage,
   updateConversation,
+  type ConversationFilters,
 } from '@/lib/api/conversations';
 
-interface ConversationItem {
+type Channel = 'whatsapp' | 'email' | 'sms' | 'facebook' | 'instagram';
+type ConversationStatus = 'active' | 'in_process' | 'completed' | 'archived';
+
+interface Conversation {
   id: string;
-  name: string;
-  company: string;
-  avatar: string;
-  channel: 'whatsapp' | 'facebook' | 'instagram' | 'email';
-  lastMessage: string;
-  time: string;
-  isUrgent?: boolean;
-  isRtl?: boolean;
-  category: 'active' | 'in-process' | 'completed';
-  phone: string;
-  email: string;
-  orderNumber: string;
-  orderTotal: string;
+  restaurant_id: string | null;
+  whatsapp_number: string;
+  channel: Channel;
+  status: ConversationStatus;
+  assigned_agent: string | null;
+  last_message: string | null;
+  last_message_at: string;
+  unread_count: number;
+  sla_deadline: string | null;
+  restaurant: { id: string; name: string; name_ar: string | null } | null;
+  agent: { id: string; full_name: string; avatar_url: string | null } | null;
 }
 
-const INITIAL_CONVERSATIONS: ConversationItem[] = [
-  {
-    id: '1',
-    name: 'Faisal Al-Qaisi',
-    company: 'Al Noor Restaurant',
-    avatar: 'https://lh3.googleusercontent.com/aida-public/AB6AXuBbIuuXHb3vp7JVbat23Mn9wuZj-Try5MdPbVsCNeZfIuvWm8tmNKeyOMKWddPLwpJ6_apaCV8NSgP9g9DqbeOcOXCUHy7Y0ob_yGa46dNcbrSX0pfzc4n_Ra2V9sWAtzwn8GGqPiFbRUvV2KxABKIEguzHWn6gUmURj86iWeAJkXyaTNymcBemYtNl8jnCPM77v1uG1mhWxzJJ__7FdjK0DRrVo8LJ1Ndn-tl3v8AxMFtKOtgk_5PoLw',
-    channel: 'whatsapp',
-    lastMessage: "Thanks! We're on it.",
-    time: '19:36',
-    isUrgent: true,
-    category: 'active',
-    phone: '+966 50 123 4567',
-    email: 'faisal@alnoor.sa',
-    orderNumber: '#ORD-8821',
-    orderTotal: 'SAR 4,820.00',
-  },
-  {
-    id: '2',
-    name: 'Khaled Al-Amrani',
-    company: 'Sultan Burger Co.',
-    avatar: 'https://lh3.googleusercontent.com/aida-public/AB6AXuBDMFySBMQAOUkbKznzhhDtxfosttX8FzczeC6SY7auUmYMYTl1FkwOdhow0TjxV04WkPItTJBZsLc-_uCPGMD96dg1p8i4UTor0PFEB2LWXeYBlcPfXHtq7A15dP-YKi-3GBZTFKIhTk-N0vOHNFow8eu9gnKQt5qAxvcBhN7uJJrvuMmjsgWtcAPqd_ixpEEbeqFixhKIvJBNHJJrr0w4tw1UIbgdADZTEpiKMZs_No2VhBICpHBihQ',
-    channel: 'facebook',
-    lastMessage: 'شكراً جزيلاً',
-    time: '19:29',
-    isUrgent: true,
-    isRtl: true,
-    category: 'active',
-    phone: '+966 55 987 6543',
-    email: 'khaled@sultanburger.sa',
-    orderNumber: '#ORD-8819',
-    orderTotal: 'SAR 2,350.00',
-  },
-  {
-    id: '3',
-    name: 'Faisal Al-Qaisi',
-    company: 'Al Noor Restaurant (Bay 3)',
-    avatar: 'https://lh3.googleusercontent.com/aida-public/AB6AXuAkedzXwg7S9Q71hIDGqqDKNaiiStg5xoUn6iczhlKCeYZ9XwlS3tcRq0q2nPVZcDtRwowQQGOW0yxh7_xVPzPz2WWrmD4TFAej3N_uOhrtwsc5tETAPrOjlTkdJWg_AcWLNP-m8-k2eOAVHaDlnR0RZcYUhrHxfzrlCeSVVZR0NZeZzzPBTez5xdCabf7EoDFFhf0egKihpWo8J42EItA5-5m5PAoIpMMKhjav2V-MQuiu2Y79SRAD7w',
-    channel: 'whatsapp',
-    lastMessage: 'Feel free to ask any...',
-    time: '18:09',
-    isUrgent: false,
-    category: 'active',
-    phone: '+966 50 123 4567',
-    email: 'faisal@example.com',
-    orderNumber: '#ORD-8821',
-    orderTotal: 'SAR 4,820.00',
-  },
-  {
-    id: '4',
-    name: 'Fatimah Madi',
-    company: 'Madi Bakery',
-    avatar: 'https://lh3.googleusercontent.com/aida-public/AB6AXuCS8odlANmqGfaviXYdU3u0NPr_OKs8cxkkJ1HAoHLSrbSlUccLnxe4wgj0a6c-vcLO4uGmfn7BXskGsLLnyixHn_rcfwgNYuJS83yeR-x7x9ELT3qGd0XuoRA41xFpnGuHMs6bM5d7PqJ0GfNrDxXsJF7-asFt9ByPzrdfMueJfZ2Knd_Yp2RoefkLCYuDxI8wGRfPoBv6Aeg6ZbTFrRsipqffh6VHjd6dCUp_kpkRn8osJGx66ybMAw',
-    channel: 'whatsapp',
-    lastMessage: 'أي خدمة أخرى',
-    time: '17:21',
-    isUrgent: false,
-    isRtl: true,
-    category: 'in-process',
-    phone: '+966 54 321 0987',
-    email: 'fatimah@madibakery.com',
-    orderNumber: '#ORD-8815',
-    orderTotal: 'SAR 1,120.00',
-  },
-  {
-    id: '5',
-    name: 'Hassan Al-Yahya',
-    company: 'Yahya Grill House',
-    avatar: 'https://lh3.googleusercontent.com/aida-public/AB6AXuD6UuduS6FK4Lkdrst60qRAKcUODxyQrkjdUI6fzMR7l6-aM6w0WD-Sm6GJSbu3KwBpdOv2zEIRH91WdDxxqiviVqd0j6Cd8bQop95kFBSNTf33rpCW-4f7eHy-Mu-_w2NM5KRE6iUzNejEwJQ4OZJKeMw4yhQreJ8fCqrjeAJOjyGtSuysPeAcDSkGJpApXClN6polPvgyEUk-42rN_eWBIznlHxOVq3l8QY01FOOlVkE8YnR-opLB-Q',
-    channel: 'whatsapp',
-    lastMessage: 'Have a great day 😊',
-    time: '17:39',
-    isUrgent: true,
-    category: 'active',
-    phone: '+966 53 456 7890',
-    email: 'hassan@yahyagrill.sa',
-    orderNumber: '#ORD-8812',
-    orderTotal: 'SAR 6,400.00',
-  },
-  {
-    id: '6',
-    name: 'Noura Al-Ahmad',
-    company: 'Aroma Cafe',
-    avatar: 'https://lh3.googleusercontent.com/aida-public/AB6AXuA8Ze4sxz9sUTCHUlpRgUiRw62jAjqVaUhcrdsu70_EDunVqdHebROQnuM44cccIeFafHQwr9Gapqu2dexSaehDY8Y3jPi_6dOElQbJslhBf3RoDrpPYOT71Ext5PGH4H89CLXkLhmPHH7t69LU0wVi3c2Nwzs6BNwqCAc9UeDBidPks53HxvbNa8XVY0jh64DY7f1jto81mADT9HPzHxVLIO2Pll_L0MJyvso4D0Befw3fggQx-WaQQA',
-    channel: 'instagram',
-    lastMessage: 'Tech team will reach...',
-    time: '15:16',
-    isUrgent: false,
-    category: 'completed',
-    phone: '+966 56 123 7890',
-    email: 'noura@aromacafe.sa',
-    orderNumber: '#ORD-8809',
-    orderTotal: 'SAR 940.00',
-  },
-];
-
-interface ChatMessage {
+interface Message {
   id: string;
-  sender: 'customer' | 'agent';
-  text: string;
-  time: string;
-  isRead?: boolean;
-  hasAttachment?: boolean;
-  attachmentName?: string;
-  attachmentSize?: string;
+  conversation_id: string;
+  direction: 'inbound' | 'outbound';
+  body: string | null;
+  media_url: string | null;
+  media_type: string | null;
+  status: string;
+  created_at: string;
+  sender: { id: string; full_name: string; avatar_url: string | null } | null;
 }
 
-const INITIAL_MESSAGES: ChatMessage[] = [
-  {
-    id: 'm1',
-    sender: 'customer',
-    text: 'Hi, I wanted to inquire about my recent transaction. I noticed a duplicate charge on my credit card, here I attached.',
-    time: '17:28',
-  },
-  {
-    id: 'm2',
-    sender: 'agent',
-    text: "I'm sorry to hear that. Could you please provide the invoice so I can check it for you?",
-    time: '17:28',
-    isRead: true,
-  },
-  {
-    id: 'm3',
-    sender: 'customer',
-    text: 'Sure here it is, please check it out.',
-    time: '17:30',
-    hasAttachment: true,
-    attachmentName: 'invoice_ORD8821.pdf',
-    attachmentSize: '324 KB',
-  },
-  {
-    id: 'm4',
-    sender: 'agent',
-    text: "Thank you! I'll look into it right away. It seems like the transaction was mistakenly processed twice. I've filed a dispute for you, and the amount should be refunded within 5-7 business days.",
-    time: '17:32',
-    isRead: true,
-  },
+const STATUS_TABS: Array<{ key: ConversationStatus; label: string }> = [
+  { key: 'active', label: 'Active' },
+  { key: 'in_process', label: 'In Process' },
+  { key: 'completed', label: 'Completed' },
+  { key: 'archived', label: 'Archived' },
 ];
 
-export default function UnifiedInboxPage() {
-  const [conversations, setConversations] = useState<ConversationItem[]>(INITIAL_CONVERSATIONS);
-  const [selectedChat, setSelectedChat] = useState<ConversationItem>(INITIAL_CONVERSATIONS[2]);
-  const [messages, setMessages] = useState<ChatMessage[]>(INITIAL_MESSAGES);
-  const [categoryFilter, setCategoryFilter] = useState<'all' | 'in-process' | 'completed'>('all');
-  const [searchQuery, setSearchQuery] = useState('');
-  const [inputText, setInputText] = useState('');
-  const [toastMessage, setToastMessage] = useState<string | null>(null);
+const CHANNEL_ICON: Record<Channel, string> = {
+  whatsapp: 'chat',
+  email: 'mail',
+  sms: 'sms',
+  facebook: 'public',
+  instagram: 'photo_camera',
+};
 
-  const showToast = (msg: string) => {
-    setToastMessage(msg);
-    setTimeout(() => setToastMessage(null), 3000);
+function formatClock(iso: string): string {
+  return new Date(iso).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+}
+
+function formatDayLabel(iso: string): string {
+  const date = new Date(iso);
+  const today = new Date();
+  const isToday = date.toDateString() === today.toDateString();
+  if (isToday) return formatClock(iso);
+
+  const yesterday = new Date(today);
+  yesterday.setDate(today.getDate() - 1);
+  if (date.toDateString() === yesterday.toDateString()) return 'Yesterday';
+
+  return date.toLocaleDateString([], { day: '2-digit', month: 'short' });
+}
+
+function slaLabel(iso: string | null): { text: string; breached: boolean } | null {
+  if (!iso) return null;
+  const remainingMs = new Date(iso).getTime() - Date.now();
+  if (Number.isNaN(remainingMs)) return null;
+
+  const totalMinutes = Math.floor(Math.abs(remainingMs) / 60000);
+  const hours = Math.floor(totalMinutes / 60);
+  const minutes = totalMinutes % 60;
+  const text = hours > 0 ? `${hours}h ${minutes}m` : `${minutes}m`;
+
+  return remainingMs < 0
+    ? { text: `Breached ${text} ago`, breached: true }
+    : { text, breached: false };
+}
+
+function ErrorBanner({ message, onRetry }: { message: string; onRetry?: () => void }) {
+  return (
+    <div className="flex items-start gap-2.5 rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-xs text-red-700">
+      <span className="material-symbols-outlined text-[18px] text-red-500">error</span>
+      <div className="flex-1">
+        <p className="font-semibold">Could not load live data</p>
+        <p className="mt-0.5 break-words text-red-600">{message}</p>
+      </div>
+      {onRetry && (
+        <button
+          type="button"
+          onClick={onRetry}
+          className="shrink-0 rounded-lg border border-red-300 px-2.5 py-1 font-semibold text-red-700 transition hover:bg-red-100"
+        >
+          Retry
+        </button>
+      )}
+    </div>
+  );
+}
+
+function EmptyState({ title, hint }: { title: string; hint: string }) {
+  return (
+    <div className="flex flex-1 flex-col items-center justify-center gap-2 px-6 py-16 text-center">
+      <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-slate-100 text-slate-400">
+        <span className="material-symbols-outlined text-[24px]">inbox</span>
+      </div>
+      <p className="text-sm font-bold text-slate-700">{title}</p>
+      <p className="max-w-xs text-xs leading-relaxed text-slate-400">{hint}</p>
+    </div>
+  );
+}
+
+export default function InboxPage() {
+  const router = useRouter();
+
+  const [statusFilter, setStatusFilter] = useState<ConversationStatus>('active');
+  const [search, setSearch] = useState('');
+  const [debouncedSearch, setDebouncedSearch] = useState('');
+
+  const [conversations, setConversations] = useState<Conversation[]>([]);
+  const [counts, setCounts] = useState<Record<ConversationStatus, number> | null>(null);
+  const [listLoading, setListLoading] = useState(true);
+  const [listError, setListError] = useState<string | null>(null);
+
+  const [selectedId, setSelectedId] = useState<string | null>(null);
+  const [messages, setMessages] = useState<Message[]>([]);
+  const [threadLoading, setThreadLoading] = useState(false);
+  const [threadError, setThreadError] = useState<string | null>(null);
+
+  const [draft, setDraft] = useState('');
+  const [sending, setSending] = useState(false);
+  const [sendingStatus, setSendingStatus] = useState<string | null>(null);
+  const [actionError, setActionError] = useState<string | null>(null);
+
+  useEffect(() => {
+    const timer = setTimeout(() => setDebouncedSearch(search.trim()), 300);
+    return () => clearTimeout(timer);
+  }, [search]);
+
+  const loadConversations = useCallback(
+    async (signal?: AbortSignal) => {
+      setListError(null);
+      try {
+        const filters: ConversationFilters = { status: statusFilter, limit: 50 };
+        if (debouncedSearch) filters.search = debouncedSearch;
+
+        const [activeRes, inProcessRes, completedRes, archivedRes] = await Promise.all([
+          getConversations({ status: 'active', limit: 1, search: debouncedSearch || undefined }),
+          getConversations({ status: 'in_process', limit: 1, search: debouncedSearch || undefined }),
+          getConversations({ status: 'completed', limit: 1, search: debouncedSearch || undefined }),
+          getConversations({ status: 'archived', limit: 1, search: debouncedSearch || undefined }),
+        ]);
+
+        setCounts({
+          active: activeRes.meta?.count ?? 0,
+          in_process: inProcessRes.meta?.count ?? 0,
+          completed: completedRes.meta?.count ?? 0,
+          archived: archivedRes.meta?.count ?? 0,
+        });
+
+        const listResponse = await getConversations(filters);
+        if (signal?.aborted) return;
+
+        const list = (listResponse.data ?? []) as Conversation[];
+        setConversations(list);
+        setSelectedId((current) => {
+          if (current && list.some((item) => item.id === current)) return current;
+          return list[0]?.id ?? null;
+        });
+      } catch (err) {
+        if (signal?.aborted) return;
+        setConversations([]);
+        setCounts(null);
+        setListError(
+          err instanceof Error ? err.message : 'Unable to reach the conversations API.'
+        );
+      } finally {
+        if (!signal?.aborted) setListLoading(false);
+      }
+    },
+    [statusFilter, debouncedSearch]
+  );
+
+  useEffect(() => {
+    const controller = new AbortController();
+    setListLoading(true);
+    loadConversations(controller.signal);
+    return () => controller.abort();
+  }, [loadConversations]);
+
+  const selected = useMemo(
+    () => conversations.find((item) => item.id === selectedId) ?? null,
+    [conversations, selectedId]
+  );
+
+  const loadMessages = useCallback(async (conversationId: string) => {
+    setThreadError(null);
+    setThreadLoading(true);
+    try {
+      const response = await getMessages(conversationId, 1, 100);
+      setMessages((response.data ?? []) as Message[]);
+    } catch (err) {
+      setMessages([]);
+      setThreadError(
+        err instanceof Error ? err.message : 'Unable to load this conversation thread.'
+      );
+    } finally {
+      setThreadLoading(false);
+    }
+  }, []);
+
+  useEffect(() => {
+    if (!selectedId) {
+      setMessages([]);
+      return;
+    }
+    loadMessages(selectedId);
+  }, [selectedId, loadMessages]);
+
+  const handleSelect = async (conversation: Conversation) => {
+    setSelectedId(conversation.id);
+    setActionError(null);
+    setSendingStatus(null);
+
+    if (conversation.unread_count > 0) {
+      try {
+        await updateConversation(conversation.id, { unread_count: 0 });
+        setConversations((prev) =>
+          prev.map((item) =>
+            item.id === conversation.id ? { ...item, unread_count: 0 } : item
+          )
+        );
+      } catch (err) {
+        setActionError(
+          err instanceof Error ? err.message : 'Could not clear the unread badge.'
+        );
+      }
+    }
   };
 
-  const handleSendMessage = (e: React.FormEvent) => {
+  const handleSend = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!inputText.trim()) return;
+    const body = draft.trim();
+    if (!body || !selectedId || sending) return;
 
-    const newMsg: ChatMessage = {
-      id: `m_${Date.now()}`,
-      sender: 'agent',
-      text: inputText.trim(),
-      time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
-      isRead: true,
-    };
+    setSending(true);
+    setActionError(null);
+    setSendingStatus('Sending via WhatsApp Cloud API...');
 
-    setMessages((prev) => [...prev, newMsg]);
-    setInputText('');
-    showToast('WhatsApp message sent successfully');
+    try {
+      const response = await sendMessage(selectedId, { body });
+      const created = response.data as Message | null;
+      if (created) {
+        setMessages((prev) => [...prev, created]);
+      }
+      setDraft('');
+      setSendingStatus('Sent.');
+      void loadConversations();
+    } catch (err) {
+      setActionError(
+        err instanceof Error ? err.message : 'The message could not be dispatched.'
+      );
+      setSendingStatus(null);
+    } finally {
+      setSending(false);
+    }
   };
 
-  const filteredConversations = conversations.filter((c) => {
-    const matchesCategory =
-      categoryFilter === 'all' ? true : c.category === categoryFilter;
-    const matchesSearch =
-      c.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      c.company.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      c.lastMessage.toLowerCase().includes(searchQuery.toLowerCase());
-    return matchesCategory && matchesSearch;
-  });
+  const handleStatusChange = async (status: ConversationStatus) => {
+    if (!selectedId) return;
+    setActionError(null);
+    setSendingStatus('Updating thread status...');
+    try {
+      await updateConversation(selectedId, { status });
+      setConversations((prev) =>
+        prev.map((item) => (item.id === selectedId ? { ...item, status } : item))
+      );
+      setSendingStatus('Thread status updated.');
+    } catch (err) {
+      setActionError(
+        err instanceof Error ? err.message : 'Could not update the thread status.'
+      );
+      setSendingStatus(null);
+    }
+  };
+
+  const handleResolve = async () => {
+    if (!selected) return;
+    const next: ConversationStatus = selected.status === 'completed' ? 'active' : 'completed';
+    await handleStatusChange(next);
+  };
+
+  const selectedSla = selected ? slaLabel(selected.sla_deadline) : null;
 
   return (
-    <div className="flex h-screen overflow-hidden font-sans text-slate-700 bg-[#f1f3f7] antialiased selection:bg-lime-500 selection:text-white">
-      {/* App Sidebar */}
+    <div className="flex h-screen overflow-hidden bg-[#f4f6f9] font-sans text-slate-800 antialiased">
       <AppSidebar />
 
-      {/* Main Content Wrapper */}
-      <div className="flex-1 flex flex-col min-w-0 overflow-hidden">
-        {/* Top Header */}
-        <header
-          className="h-14 bg-transparent px-5 flex items-center justify-between flex-shrink-0"
-          data-purpose="top-header"
-        >
-          <div className="flex items-center gap-4">
-            <h1 className="text-base font-bold text-slate-900 tracking-tight">Unified Inbox</h1>
-
-            {/* Channel Pills */}
-            <div className="flex items-center gap-1.5 pl-1">
-              <div
-                className="w-6 h-6 rounded-full bg-[#84d658] flex items-center justify-center text-white shadow-xs cursor-pointer"
-                title="WhatsApp Active"
+      <div className="flex min-w-0 flex-1">
+        {/* Conversation list */}
+        <section className="flex w-full max-w-[400px] flex-col border-r border-slate-200 bg-white md:w-[360px]">
+          <header className="flex flex-col gap-3 border-b border-slate-200 px-5 py-4">
+            <div className="flex items-center justify-between">
+              <h1 className="text-sm font-black text-[#142340]">Unified Inbox</h1>
+              <button
+                type="button"
+                onClick={() => void loadConversations()}
+                className="rounded-lg border border-slate-200 px-2.5 py-1 text-[11px] font-semibold text-slate-600 transition hover:bg-slate-50"
               >
-                <svg className="w-3.5 h-3.5" fill="currentColor" viewBox="0 0 24 24">
-                  <path d="M.057 24l1.687-6.163c-1.041-1.804-1.588-3.849-1.587-5.946.003-6.556 5.338-11.891 11.893-11.891 3.181.001 6.167 1.24 8.413 3.488 2.245 2.248 3.481 5.236 3.48 8.414-.003 6.557-5.338 11.892-11.893 11.892-1.99-.001-3.951-.5-5.688-1.448l-6.305 1.654z" />
-                </svg>
-              </div>
-              <div
-                className="w-6 h-6 rounded-full bg-[#2080f6] flex items-center justify-center text-white text-[11px] font-bold shadow-xs cursor-pointer"
-                title="Email Channels"
-              >
-                @
-              </div>
-              <div
-                className="w-6 h-6 rounded-full bg-[#25D366] flex items-center justify-center text-white shadow-xs cursor-pointer"
-                title="WhatsApp Business"
-              >
-                <svg className="w-3.5 h-3.5" fill="currentColor" viewBox="0 0 24 24">
-                  <path d="M.057 24l1.687-6.163c-1.041-1.804-1.588-3.849-1.587-5.946.003-6.556 5.338-11.891 11.893-11.891 3.181.001 6.167 1.24 8.413 3.488 2.245 2.248 3.481 5.236 3.48 8.414-.003 6.557-5.338 11.892-11.893 11.892-1.99-.001-3.951-.5-5.688-1.448l-6.305 1.654z" />
-                </svg>
-              </div>
-              <div
-                className="w-6 h-6 rounded-full bg-black flex items-center justify-center text-white text-[11px] font-bold shadow-xs cursor-pointer"
-                title="Twitter / X"
-              >
-                𝕏
-              </div>
-              <div
-                className="w-6 h-6 rounded-full bg-[#0a66c2] flex items-center justify-center text-white text-[10px] font-bold shadow-xs cursor-pointer"
-                title="LinkedIn"
-              >
-                in
-              </div>
-              <div
-                className="w-6 h-6 rounded-full bg-[#1877f2] flex items-center justify-center text-white text-[11px] font-bold shadow-xs cursor-pointer"
-                title="Facebook"
-              >
-                f
-              </div>
-              <div
-                className="w-6 h-6 rounded-full bg-gradient-to-tr from-[#f09433] via-[#dc2743] to-[#bc1888] flex items-center justify-center text-white shadow-xs cursor-pointer"
-                title="Instagram"
-              >
-                📷
-              </div>
-            </div>
-          </div>
-
-          {/* Right Header Actions */}
-          <div className="flex items-center gap-3">
-            <span className="text-xs font-semibold px-2 py-1 rounded-md text-slate-600 cursor-pointer">
-              EN | العربية
-            </span>
-            <Link
-              href="/orders/new"
-              className="px-3 py-1.5 bg-[#142340] hover:bg-slate-800 text-white text-xs font-semibold rounded-lg shadow-sm flex items-center gap-1.5 transition-colors no-underline"
-            >
-              <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path d="M12 4v16m8-8H4" strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" />
-              </svg>
-              <span>New Order / PO</span>
-            </Link>
-          </div>
-        </header>
-
-        {/* 3 Floating Cards Layout */}
-        <div className="flex-1 flex gap-3 px-5 pb-4 overflow-hidden">
-          {/* CARD 1: CONVERSATION LIST */}
-          <section
-            className="w-72 lg:w-80 flex-shrink-0 bg-white rounded-2xl shadow-card border border-slate-200/80 flex flex-col overflow-hidden"
-            data-purpose="conversation-list-card"
-          >
-            {/* Search & Tabs inside Card */}
-            <div className="p-3 border-b border-slate-100 space-y-2.5">
-              <div className="flex items-center gap-1.5">
-                <button className="p-1.5 text-slate-400 hover:text-slate-600 rounded-lg">
-                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path
-                      d="M4 6h16M4 12h8m-8 6h16"
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      strokeWidth="2"
-                    />
-                  </svg>
-                </button>
-                <div className="relative flex-1">
-                  <input
-                    className="w-full pl-3 pr-7 py-1.5 text-xs bg-slate-50 rounded-lg text-slate-700 placeholder-slate-400 focus:outline-none focus:bg-white border border-transparent focus:border-slate-200"
-                    placeholder="Find an Interaction..."
-                    type="text"
-                    value={searchQuery}
-                    onChange={(e) => setSearchQuery(e.target.value)}
-                  />
-                  <svg
-                    className="w-3.5 h-3.5 text-slate-400 absolute right-2.5 top-2.5"
-                    fill="none"
-                    stroke="currentColor"
-                    viewBox="0 0 24 24"
-                  >
-                    <path
-                      d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      strokeWidth="2"
-                    />
-                  </svg>
-                </div>
-              </div>
-
-              {/* Segmented Pill Tabs */}
-              <div className="flex items-center justify-between text-[11px] font-semibold bg-slate-100/70 p-0.5 rounded-lg text-slate-600">
-                <button
-                  type="button"
-                  onClick={() => setCategoryFilter('all')}
-                  className={`flex-1 py-1 px-1.5 rounded-md transition-all ${
-                    categoryFilter === 'all'
-                      ? 'bg-white text-slate-900 shadow-xs font-bold'
-                      : 'hover:text-slate-900'
-                  }`}
-                >
-                  Active <span className="text-blue-500 font-normal">10</span>
-                </button>
-                <button
-                  type="button"
-                  onClick={() => setCategoryFilter('in-process')}
-                  className={`flex-1 py-1 px-1.5 rounded-md transition-all ${
-                    categoryFilter === 'in-process'
-                      ? 'bg-white text-slate-900 shadow-xs font-bold'
-                      : 'hover:text-slate-900'
-                  }`}
-                >
-                  In Process <span className="text-amber-600 font-normal">12</span>
-                </button>
-                <button
-                  type="button"
-                  onClick={() => setCategoryFilter('completed')}
-                  className={`flex-1 py-1 px-1.5 rounded-md transition-all ${
-                    categoryFilter === 'completed'
-                      ? 'bg-white text-slate-900 shadow-xs font-bold'
-                      : 'hover:text-slate-900'
-                  }`}
-                >
-                  Completed <span className="text-emerald-600 font-normal">99</span>
-                </button>
-              </div>
+                Refresh
+              </button>
             </div>
 
-            {/* Conversations Feed */}
-            <div className="flex-1 overflow-y-auto divide-y divide-slate-100">
-              {filteredConversations.map((item) => {
-                const isSelected = selectedChat.id === item.id;
+            <div className="relative">
+              <div className="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3 text-slate-400">
+                <span className="material-symbols-outlined text-[18px]">search</span>
+              </div>
+              <input
+                type="search"
+                value={search}
+                onChange={(e) => setSearch(e.target.value)}
+                placeholder="Search number or last message"
+                className="w-full rounded-xl border border-slate-200 bg-slate-50 py-2 pl-9 pr-3 text-xs text-slate-900 placeholder:text-slate-400 focus:border-[#142340] focus:outline-none"
+              />
+            </div>
+
+            <div className="flex flex-wrap gap-1.5">
+              {STATUS_TABS.map((tab) => {
+                const isActive = tab.key === statusFilter;
                 return (
-                  <article
-                    key={item.id}
-                    onClick={() => setSelectedChat(item)}
-                    className={`p-3 cursor-pointer transition-colors flex items-start gap-2.5 ${
-                      isSelected
-                        ? 'bg-[#eef4fd] border-l-4 border-[#2463eb]'
-                        : 'hover:bg-slate-50'
+                  <button
+                    key={tab.key}
+                    type="button"
+                    onClick={() => setStatusFilter(tab.key)}
+                    className={`rounded-lg px-2.5 py-1 text-[11px] font-bold transition ${
+                      isActive
+                        ? 'bg-[#142340] text-white'
+                        : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
                     }`}
                   >
-                    <div className="relative flex-shrink-0">
-                      <img
-                        alt={item.name}
-                        className={`w-9 h-9 rounded-full object-cover ring-1 ${
-                          isSelected ? 'ring-2 ring-blue-300' : 'ring-slate-200'
-                        }`}
-                        src={item.avatar}
-                      />
-                      <span className="absolute -bottom-0.5 -right-0.5 bg-[#25D366] text-white p-0.5 rounded-full ring-2 ring-white">
-                        <svg className="w-2 h-2" fill="currentColor" viewBox="0 0 24 24">
-                          <path d="M.057 24l1.687-6.163c-1.041-1.804-1.588-3.849-1.587-5.946.003-6.556 5.338-11.891 11.893-11.891 3.181.001 6.167 1.24 8.413 3.488 2.245 2.248 3.481 5.236 3.48 8.414-.003 6.557-5.338 11.892-11.893 11.892-1.99-.001-3.951-.5-5.688-1.448l-6.305 1.654z" />
-                        </svg>
+                    {tab.label}
+                    {counts ? (
+                      <span className={`ml-1 ${isActive ? 'text-white/70' : 'text-slate-400'}`}>
+                        {counts[tab.key]}
                       </span>
-                    </div>
-                    <div className="flex-1 min-w-0">
-                      <div className="flex items-center justify-between">
-                        <h4 className="text-xs font-bold text-slate-900 truncate">{item.name}</h4>
-                        <span
-                          className={`text-[10px] flex items-center gap-1 font-medium ${
-                            item.isUrgent ? 'text-slate-400' : 'text-emerald-600 font-semibold'
-                          }`}
-                        >
-                          <span
-                            className={`w-1.5 h-1.5 rounded-full ${
-                              item.isUrgent ? 'bg-rose-400' : 'bg-emerald-500'
-                            }`}
-                          />
-                          {item.time}
-                        </span>
-                      </div>
-                      <p
-                        className={`text-[11px] text-slate-500 truncate mt-0.5 ${
-                          item.isRtl ? 'font-sans' : ''
-                        }`}
-                        dir={item.isRtl ? 'rtl' : 'ltr'}
-                      >
-                        {item.lastMessage}
-                      </p>
-                    </div>
-                  </article>
+                    ) : null}
+                  </button>
                 );
               })}
             </div>
-          </section>
+          </header>
 
-          {/* CARD 2: MIDDLE CHAT PANEL */}
-          <section
-            className="flex-1 min-w-0 bg-white rounded-2xl shadow-card border border-slate-200/80 flex flex-col overflow-hidden"
-            data-purpose="chat-stream-card"
-          >
-            {/* Chat Header */}
-            <div className="px-5 py-3 border-b border-slate-100 flex items-center justify-between gap-4 flex-shrink-0 bg-white">
-              <div className="flex items-center gap-3 min-w-0">
-                <div className="relative flex-shrink-0">
-                  <img
-                    alt={selectedChat.name}
-                    className="w-10 h-10 rounded-full object-cover ring-1 ring-slate-200"
-                    src={selectedChat.avatar}
-                  />
-                  <span className="absolute -bottom-0.5 -right-0.5 bg-[#25D366] text-white p-0.5 rounded-full ring-2 ring-white">
-                    <svg className="w-2.5 h-2.5" fill="currentColor" viewBox="0 0 24 24">
-                      <path d="M.057 24l1.687-6.163c-1.041-1.804-1.588-3.849-1.587-5.946.003-6.556 5.338-11.891 11.893-11.891 3.181.001 6.167 1.24 8.413 3.488 2.245 2.248 3.481 5.236 3.48 8.414-.003 6.557-5.338 11.892-11.893 11.892-1.99-.001-3.951-.5-5.688-1.448l-6.305 1.654z" />
-                    </svg>
-                  </span>
-                </div>
-                <div className="min-w-0 flex flex-col justify-center">
-                  <div className="flex items-center gap-2">
-                    <h2 className="font-bold text-sm text-slate-900 leading-tight truncate">
-                      {selectedChat.name}
-                    </h2>
-                    <span className="text-xs text-slate-400 font-normal truncate">
-                      ({selectedChat.company})
-                    </span>
-                  </div>
-                  <div className="flex items-center gap-2 mt-0.5 text-xs text-slate-500">
-                    <span className="text-slate-500 font-medium">{selectedChat.orderNumber}</span>
-                    <span className="text-slate-300">•</span>
-                    <span className="inline-flex items-center gap-1 text-emerald-600 font-semibold text-[11px]">
-                      <span className="w-1.5 h-1.5 rounded-full bg-emerald-500" />
-                      Active Session
-                    </span>
-                  </div>
-                </div>
+          <div className="min-h-0 flex-1 overflow-y-auto">
+            {listError && (
+              <div className="p-4">
+                <ErrorBanner message={listError} onRetry={() => void loadConversations()} />
               </div>
+            )}
 
-              {/* Chat Header Actions */}
-              <div className="flex items-center gap-2 flex-shrink-0">
-                <div className="px-2.5 py-1 rounded-full border border-emerald-300 text-emerald-700 text-xs font-semibold bg-emerald-50 flex items-center gap-1.5">
-                  <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
-                  <span>23:59</span>
-                </div>
-                <button
-                  type="button"
-                  onClick={() => showToast('Chat marked as resolved.')}
-                  className="px-3.5 py-1.5 rounded-full bg-[#f97346] hover:bg-[#ea5d30] text-white text-xs font-bold shadow-xs transition-colors"
-                >
-                  End Chat
-                </button>
+            {!listError && listLoading && (
+              <div className="flex items-center justify-center gap-2 py-16 text-xs text-slate-400">
+                <span className="h-4 w-4 animate-spin rounded-full border-2 border-slate-300 border-t-transparent" />
+                Loading conversations...
               </div>
-            </div>
+            )}
 
-            {/* Sub-tabs Bar */}
-            <div className="px-5 border-b border-slate-100 flex items-center gap-6 text-xs font-medium text-slate-500">
-              <button className="py-2.5 text-slate-900 font-bold border-b-2 border-slate-900 transition-colors">
-                Inbox
-              </button>
-              <button className="py-2.5 hover:text-slate-900 transition-colors">Agent Script</button>
-              <button className="py-2.5 hover:text-slate-900 transition-colors">Internal Notes</button>
-              <button className="py-2.5 hover:text-slate-900 transition-colors">Templates</button>
-            </div>
-
-            {/* Messages Stream Viewport */}
-            <div className="flex-1 overflow-y-auto p-5 space-y-4 bg-white">
-              <div className="flex items-center justify-center my-1">
-                <span className="px-4 py-0.5 rounded-full border border-slate-200 text-slate-500 text-[11px] font-medium bg-slate-50">
-                  Today
-                </span>
-              </div>
-
-              {messages.map((m) => {
-                if (m.sender === 'customer') {
-                  return (
-                    <div key={m.id} className="flex items-start gap-2.5 max-w-lg">
-                      <img
-                        alt={selectedChat.name}
-                        className="w-8 h-8 rounded-full object-cover flex-shrink-0 mt-0.5 ring-1 ring-slate-200"
-                        src={selectedChat.avatar}
-                      />
-                      <div className="space-y-2">
-                        <div className="bg-slate-50 border border-slate-200/80 p-3 rounded-2xl rounded-tl-sm text-xs text-slate-800 leading-relaxed shadow-subtle">
-                          {m.text}
-                        </div>
-                        {m.hasAttachment && (
-                          <div className="bg-white border border-slate-200 rounded-xl p-2.5 flex items-center gap-3 w-64 shadow-subtle">
-                            <div className="w-8 h-8 rounded-lg bg-rose-50 border border-rose-100 text-rose-500 flex items-center justify-center flex-shrink-0 font-black text-[10px]">
-                              PDF
-                            </div>
-                            <div className="flex-1 min-w-0">
-                              <p className="text-xs font-bold text-slate-800 truncate">
-                                {m.attachmentName}
-                              </p>
-                              <p className="text-[10px] text-slate-400">{m.attachmentSize}</p>
-                            </div>
-                            <button
-                              type="button"
-                              onClick={() => showToast('Downloading invoice attachment...')}
-                              className="text-slate-400 hover:text-slate-700 p-1"
-                            >
-                              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path
-                                  d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"
-                                  strokeLinecap="round"
-                                  strokeLinejoin="round"
-                                  strokeWidth="2"
-                                />
-                              </svg>
-                            </button>
-                          </div>
-                        )}
-                        <span className="text-[10px] text-slate-400 ml-1 block">{m.time}</span>
-                      </div>
-                    </div>
-                  );
+            {!listError && !listLoading && conversations.length === 0 && (
+              <EmptyState
+                title="No conversations"
+                hint={
+                  debouncedSearch
+                    ? `No ${statusFilter.replace('_', ' ')} threads match "${debouncedSearch}".`
+                    : `There are no ${statusFilter.replace('_', ' ')} threads yet. Threads appear here once a customer message is received.`
                 }
+              />
+            )}
+
+            {!listError &&
+              conversations.map((conversation) => {
+                const isSelected = conversation.id === selectedId;
+                const displayName =
+                  conversation.restaurant?.name ||
+                  conversation.restaurant?.name_ar ||
+                  conversation.whatsapp_number;
+                const sla = slaLabel(conversation.sla_deadline);
 
                 return (
-                  <div key={m.id} className="flex items-start justify-end gap-2.5 max-w-lg ml-auto">
-                    <div className="flex flex-col items-end">
-                      <div className="bg-[#edf8e7] border border-[#d6eed0] p-3 rounded-2xl rounded-tr-sm text-xs text-slate-800 leading-relaxed shadow-subtle text-left">
-                        {m.text}
-                      </div>
-                      <div className="flex items-center gap-1 mt-1 mr-1 text-[10px] text-slate-400 font-medium">
-                        <span>{m.time}</span>
-                        <span className="text-emerald-600 font-bold">✓✓</span>
-                      </div>
+                  <button
+                    key={conversation.id}
+                    type="button"
+                    onClick={() => void handleSelect(conversation)}
+                    className={`flex w-full flex-col gap-1.5 border-b border-slate-100 px-5 py-3.5 text-left transition ${
+                      isSelected ? 'bg-[#eef8eb]' : 'hover:bg-slate-50'
+                    }`}
+                  >
+                    <div className="flex items-center justify-between gap-2">
+                      <span className="flex min-w-0 items-center gap-1.5">
+                        <span
+                          className={`material-symbols-outlined text-[15px] ${
+                            conversation.channel === 'whatsapp' ? 'text-emerald-600' : 'text-slate-400'
+                          }`}
+                        >
+                          {CHANNEL_ICON[conversation.channel]}
+                        </span>
+                        <span className="truncate text-xs font-bold text-slate-900">
+                          {displayName}
+                        </span>
+                      </span>
+                      <span className="shrink-0 text-[10px] font-medium text-slate-400">
+                        {formatDayLabel(conversation.last_message_at)}
+                      </span>
                     </div>
-                    <div className="w-8 h-8 rounded-full bg-[#142340] text-white flex items-center justify-center font-bold text-xs shrink-0 ring-1 ring-slate-200">
-                      KO
+
+                    <div className="flex items-center justify-between gap-2">
+                      <p className="truncate text-[11px] text-slate-500">
+                        {conversation.last_message || 'No messages yet'}
+                      </p>
+                      {conversation.unread_count > 0 && (
+                        <span className="shrink-0 rounded-full bg-[#70b928] px-1.5 py-0.5 text-[10px] font-bold text-white">
+                          {conversation.unread_count}
+                        </span>
+                      )}
                     </div>
-                  </div>
+
+                    <div className="flex flex-wrap items-center gap-1.5">
+                      <span className="rounded-md bg-slate-100 px-1.5 py-0.5 text-[10px] font-semibold capitalize text-slate-600">
+                        {conversation.channel}
+                      </span>
+                      <span className="rounded-md bg-slate-100 px-1.5 py-0.5 text-[10px] font-semibold capitalize text-slate-600">
+                        {conversation.status.replace('_', ' ')}
+                      </span>
+                      {sla && (
+                        <span
+                          className={`rounded-md px-1.5 py-0.5 text-[10px] font-semibold ${
+                            sla.breached
+                              ? 'bg-red-50 text-red-700'
+                              : 'bg-emerald-50 text-emerald-700'
+                          }`}
+                        >
+                          SLA {sla.text}
+                        </span>
+                      )}
+                    </div>
+                  </button>
                 );
               })}
-            </div>
+          </div>
+        </section>
 
-            {/* Quick Templates Bar */}
-            <div className="px-5 py-2 border-t border-slate-100 flex items-center justify-between text-xs text-slate-500 bg-white">
-              <div className="flex items-center gap-2">
-                <button
-                  type="button"
-                  onClick={() => setInputText('Your wholesale delivery is scheduled for tomorrow at 10:30 AM.')}
-                  className="px-2.5 py-1 rounded-lg bg-slate-50 hover:bg-slate-100 border border-slate-200 text-[11px] font-medium text-slate-700"
-                >
-                  ⚡ Delivery Confirmation
-                </button>
-                <button
-                  type="button"
-                  onClick={() => setInputText('We have confirmed your purchase order items and stock is allocated.')}
-                  className="px-2.5 py-1 rounded-lg bg-slate-50 hover:bg-slate-100 border border-slate-200 text-[11px] font-medium text-slate-700"
-                >
-                  📦 Order Confirmed
-                </button>
-              </div>
-              <div className="flex items-center gap-2">
-                <button
-                  type="button"
-                  onClick={() => showToast('Template library opened')}
-                  className="inline-flex items-center gap-1.5 px-3 py-1 rounded-lg border border-slate-200 hover:bg-slate-50 text-slate-700 font-semibold text-[11px] transition-colors"
-                >
-                  <svg className="w-3.5 h-3.5 text-slate-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path
-                      d="M4 6h16M4 10h16M4 14h16M4 18h16"
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      strokeWidth="2"
-                    />
-                  </svg>
-                  <span>Add Template</span>
-                </button>
-              </div>
-            </div>
-
-            {/* Message Composer Box */}
-            <div className="p-4 pt-1 border-t border-slate-100 bg-white">
-              <form onSubmit={handleSendMessage} className="space-y-2">
-                <textarea
-                  className="w-full text-xs p-2 rounded-lg border-0 focus:ring-0 placeholder-slate-400 resize-none"
-                  placeholder="Type WhatsApp message here..."
-                  rows={2}
-                  value={inputText}
-                  onChange={(e) => setInputText(e.target.value)}
-                  onKeyDown={(e) => {
-                    if (e.key === 'Enter' && !e.shiftKey) {
-                      e.preventDefault();
-                      handleSendMessage(e);
-                    }
-                  }}
-                />
-                <div className="flex items-center justify-between pt-1">
-                  <div className="flex items-center gap-2 text-slate-400">
-                    <button
-                      type="button"
-                      onClick={() => setInputText((prev) => `${prev} 👍`)}
-                      className="hover:text-slate-600 p-1"
-                      title="Emoji"
-                    >
-                      <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <circle cx="12" cy="12" r="10" />
-                        <path d="M8 14s1.5 2 4 2 4-2 4-2M9 9h.01M15 9h.01" />
-                      </svg>
-                    </button>
-                    <button
-                      type="button"
-                      onClick={() => showToast('Attachment dialog opened')}
-                      className="hover:text-slate-600 p-1"
-                      title="Attach file"
-                    >
-                      <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path
-                          d="M15.172 7l-6.586 6.586a2 2 0 102.828 2.828l6.414-6.586a4 4 0 00-5.656-5.656l-6.415 6.585a6 6 0 108.486 8.486L20.5 13"
-                          strokeLinecap="round"
-                          strokeLinejoin="round"
-                          strokeWidth="2"
-                        />
-                      </svg>
-                    </button>
-                    <button
-                      type="button"
-                      onClick={() => showToast('Voice note recorded')}
-                      className="hover:text-slate-600 p-1"
-                      title="Voice note"
-                    >
-                      <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path
-                          d="M19 11a7 7 0 01-7 7m0 0a7 7 0 01-7-7m7 7v4m0 0H8m4 0h4m-4-8a3 3 0 01-3-3V5a3 3 0 116 0v6a3 3 0 01-3 3z"
-                          strokeLinecap="round"
-                          strokeLinejoin="round"
-                          strokeWidth="2"
-                        />
-                      </svg>
-                    </button>
+        {/* Thread panel */}
+        <section className="hidden min-w-0 flex-1 flex-col bg-[#f4f6f9] md:flex">
+          {!selected ? (
+            <EmptyState
+              title="No thread selected"
+              hint="Select a conversation on the left to read its message history and reply."
+            />
+          ) : (
+            <>
+              <header className="flex flex-col gap-3 border-b border-slate-200 bg-white px-6 py-4">
+                <div className="flex items-start justify-between gap-4">
+                  <div className="min-w-0">
+                    <h2 className="truncate text-sm font-black text-[#142340]">
+                      {selected.restaurant?.name ||
+                        selected.restaurant?.name_ar ||
+                        selected.whatsapp_number}
+                    </h2>
+                    <p className="mt-0.5 font-mono text-[11px] text-slate-500">
+                      {selected.whatsapp_number}
+                    </p>
+                    <div className="mt-1.5 flex flex-wrap items-center gap-1.5">
+                      <span className="rounded-md bg-slate-100 px-1.5 py-0.5 text-[10px] font-semibold capitalize text-slate-600">
+                        {selected.channel}
+                      </span>
+                      <span className="rounded-md bg-slate-100 px-1.5 py-0.5 text-[10px] font-semibold capitalize text-slate-600">
+                        {selected.status.replace('_', ' ')}
+                      </span>
+                      {selected.agent && (
+                        <span className="rounded-md bg-slate-100 px-1.5 py-0.5 text-[10px] font-semibold text-slate-600">
+                          {selected.agent.full_name}
+                        </span>
+                      )}
+                      {selectedSla && (
+                        <span
+                          className={`rounded-md px-1.5 py-0.5 text-[10px] font-semibold ${
+                            selectedSla.breached
+                              ? 'bg-red-50 text-red-700'
+                              : 'bg-emerald-50 text-emerald-700'
+                          }`}
+                        >
+                          SLA {selectedSla.text}
+                        </span>
+                      )}
+                    </div>
                   </div>
+
+                  <div className="flex shrink-0 flex-col items-end gap-2">
+                    <div className="flex flex-wrap justify-end gap-1.5">
+                      {STATUS_TABS.filter((tab) => tab.key !== 'archived').map((tab) => (
+                        <button
+                          key={tab.key}
+                          type="button"
+                          onClick={() => void handleStatusChange(tab.key)}
+                          disabled={selected.status === tab.key}
+                          className={`rounded-lg px-2.5 py-1 text-[11px] font-bold capitalize transition ${
+                            selected.status === tab.key
+                              ? 'bg-[#142340] text-white'
+                              : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
+                          }`}
+                        >
+                          {tab.label}
+                        </button>
+                      ))}
+                    </div>
+                    {selected.restaurant_id && (
+                      <button
+                        type="button"
+                        onClick={() => router.push(`/contacts/${selected.restaurant_id}`)}
+                        className="rounded-lg border border-slate-200 px-2.5 py-1 text-[11px] font-semibold text-slate-600 transition hover:bg-slate-50"
+                      >
+                        View customer
+                      </button>
+                    )}
+                  </div>
+                </div>
+
+                {(actionError || sendingStatus) && (
+                  <div
+                    className={`rounded-lg px-3 py-2 text-[11px] font-semibold ${
+                      actionError
+                        ? 'border border-red-200 bg-red-50 text-red-700'
+                        : 'bg-slate-50 text-slate-600'
+                    }`}
+                  >
+                    {actionError || sendingStatus}
+                  </div>
+                )}
+              </header>
+
+              <div className="min-h-0 flex-1 overflow-y-auto px-6 py-5">
+                {threadError && (
+                  <ErrorBanner
+                    message={threadError}
+                    onRetry={() => void loadMessages(selected.id)}
+                  />
+                )}
+
+                {!threadError && threadLoading && (
+                  <div className="flex items-center justify-center gap-2 py-16 text-xs text-slate-400">
+                    <span className="h-4 w-4 animate-spin rounded-full border-2 border-slate-300 border-t-transparent" />
+                    Loading messages...
+                  </div>
+                )}
+
+                {!threadError && !threadLoading && messages.length === 0 && (
+                  <EmptyState
+                    title="No messages yet"
+                    hint="This thread has no stored messages. Send the first reply below."
+                  />
+                )}
+
+                {!threadError &&
+                  messages.map((message) => {
+                    const isOutbound = message.direction === 'outbound';
+                    return (
+                      <div
+                        key={message.id}
+                        className={`mb-3 flex ${isOutbound ? 'justify-end' : 'justify-start'}`}
+                      >
+                        <div
+                          className={`max-w-[75%] rounded-2xl px-4 py-2.5 text-xs shadow-sm ${
+                            isOutbound
+                              ? 'bg-[#142340] text-white'
+                              : 'border border-slate-200 bg-white text-slate-800'
+                          }`}
+                        >
+                          {message.body && <p className="whitespace-pre-wrap">{message.body}</p>}
+                          {message.media_url && (
+                            <a
+                              href={message.media_url}
+                              target="_blank"
+                              rel="noreferrer"
+                              className={`mt-1.5 block text-[10px] font-semibold underline ${
+                                isOutbound ? 'text-emerald-200' : 'text-[#2c771c]'
+                              }`}
+                            >
+                              {message.media_type || 'attachment'}
+                            </a>
+                          )}
+                          <div
+                            className={`mt-1.5 flex items-center justify-end gap-2 text-[10px] ${
+                              isOutbound ? 'text-white/60' : 'text-slate-400'
+                            }`}
+                          >
+                            <span>{formatClock(message.created_at)}</span>
+                            {isOutbound && (
+                              <span className="capitalize">{message.status}</span>
+                            )}
+                          </div>
+                        </div>
+                      </div>
+                    );
+                  })}
+              </div>
+
+              <form
+                onSubmit={handleSend}
+                className="border-t border-slate-200 bg-white px-6 py-4"
+              >
+                <div className="flex items-end gap-3">
+                  <textarea
+                    value={draft}
+                    onChange={(e) => setDraft(e.target.value)}
+                    onKeyDown={(e) => {
+                      if (e.key === 'Enter' && !e.shiftKey) {
+                        e.preventDefault();
+                        e.currentTarget.form?.requestSubmit();
+                      }
+                    }}
+                    rows={2}
+                    placeholder={`Reply over ${selected.channel}...`}
+                    className="flex-1 resize-none rounded-xl border border-slate-200 bg-slate-50 px-3 py-2.5 text-xs text-slate-900 placeholder:text-slate-400 focus:border-[#142340] focus:outline-none"
+                  />
                   <button
                     type="submit"
-                    className="px-5 py-1.5 bg-[#142340] hover:bg-slate-800 text-white text-xs font-bold rounded-full transition-all shadow-xs"
+                    disabled={sending || draft.trim().length === 0}
+                    className="flex items-center gap-2 rounded-xl bg-[#142340] px-4 py-2.5 text-xs font-bold text-white transition hover:bg-slate-800 disabled:cursor-not-allowed disabled:opacity-40"
                   >
+                    {sending ? (
+                      <span className="h-4 w-4 animate-spin rounded-full border-2 border-white border-t-transparent" />
+                    ) : (
+                      <span className="material-symbols-outlined text-[16px]">send</span>
+                    )}
                     Send
                   </button>
                 </div>
-              </form>
-            </div>
-          </section>
-
-          {/* CARD 3: RIGHT COLUMN - CUSTOMER 360 & HISTORY */}
-          <aside
-            className="w-72 lg:w-80 flex-shrink-0 bg-white rounded-2xl shadow-card border border-slate-200/80 flex flex-col overflow-hidden"
-            data-purpose="customer-360-card"
-          >
-            {/* Top Search Contact Input */}
-            <div className="p-3 border-b border-slate-100 flex items-center justify-between">
-              <input
-                className="w-full text-xs text-slate-700 placeholder-slate-400 bg-transparent border-0 focus:ring-0 p-0"
-                placeholder="Find a Contact..."
-                type="text"
-              />
-              <svg className="w-3.5 h-3.5 text-slate-400 cursor-pointer" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path d="M19 9l-7 7-7-7" strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" />
-              </svg>
-            </div>
-
-            <div className="flex-1 overflow-y-auto p-4 space-y-4 text-xs">
-              {/* Contact Header Profile Card */}
-              <div className="flex items-center justify-between">
-                <div className="flex items-center gap-3">
-                  <div className="relative">
-                    <img
-                      alt={selectedChat.name}
-                      className="w-12 h-12 rounded-full object-cover ring-2 ring-slate-100"
-                      src={selectedChat.avatar}
-                    />
-                    <span className="absolute bottom-0 right-0 w-3 h-3 bg-emerald-500 rounded-full ring-2 ring-white" />
-                  </div>
-                  <div>
-                    <h3 className="font-bold text-sm text-slate-900 leading-tight">
-                      {selectedChat.name}
-                    </h3>
-                    <p className="text-[11px] text-slate-400 mt-0.5">{selectedChat.company}</p>
-                  </div>
-                </div>
-              </div>
-
-              {/* Quick Channel Circle Buttons */}
-              <div className="flex items-center justify-center gap-3 py-1">
-                <button
-                  type="button"
-                  onClick={() => showToast(`Calling ${selectedChat.phone}`)}
-                  className="w-8 h-8 rounded-full border border-slate-200 hover:border-slate-300 hover:bg-slate-50 flex items-center justify-center text-slate-600"
-                  title="Call"
-                >
-                  <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path
-                      d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z"
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      strokeWidth="2"
-                    />
-                  </svg>
-                </button>
-                <button
-                  type="button"
-                  onClick={() => showToast(`Opening WhatsApp chat with ${selectedChat.phone}`)}
-                  className="w-8 h-8 rounded-full border border-slate-200 hover:border-slate-300 hover:bg-slate-50 flex items-center justify-center text-emerald-600"
-                  title="WhatsApp"
-                >
-                  <svg className="w-3.5 h-3.5" fill="currentColor" viewBox="0 0 24 24">
-                    <path d="M.057 24l1.687-6.163c-1.041-1.804-1.588-3.849-1.587-5.946.003-6.556 5.338-11.891 11.893-11.891 3.181.001 6.167 1.24 8.413 3.488 2.245 2.248 3.481 5.236 3.48 8.414-.003 6.557-5.338 11.892-11.893 11.892-1.99-.001-3.951-.5-5.688-1.448l-6.305 1.654z" />
-                  </svg>
-                </button>
-                <button
-                  type="button"
-                  onClick={() => showToast(`Composing email to ${selectedChat.email}`)}
-                  className="w-8 h-8 rounded-full border border-slate-200 hover:border-slate-300 hover:bg-slate-50 flex items-center justify-center text-slate-600"
-                  title="Email"
-                >
-                  <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path
-                      d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      strokeWidth="2"
-                    />
-                  </svg>
-                </button>
-              </div>
-
-              {/* View 360 Profile CTA */}
-              <div>
-                <Link
-                  href="/contacts/rest-1"
-                  className="block w-full py-2 px-4 rounded-xl bg-[#70b928] hover:bg-[#62a422] text-white font-bold text-xs shadow-sm transition-colors text-center no-underline"
-                >
-                  View 360° Profile
-                </Link>
-              </div>
-
-              {/* Key Details List */}
-              <div className="space-y-2 py-2 border-t border-b border-slate-100 text-xs">
-                <div className="flex justify-between items-center text-slate-600">
-                  <span className="text-slate-400">Email</span>
-                  <span className="font-semibold text-slate-800">{selectedChat.email}</span>
-                </div>
-                <div className="flex justify-between items-center text-slate-600">
-                  <span className="text-slate-400">Phone</span>
-                  <span className="font-semibold text-slate-800">{selectedChat.phone}</span>
-                </div>
-                <div className="flex justify-between items-center text-slate-600">
-                  <span className="text-slate-400">Job role</span>
-                  <span className="font-semibold text-slate-800">Procurement Manager</span>
-                </div>
-                <div className="flex justify-between items-center text-slate-600">
-                  <span className="text-slate-400">Company</span>
-                  <span className="font-semibold text-slate-800">{selectedChat.company}</span>
-                </div>
-              </div>
-
-              {/* Order Context Quick Card */}
-              <div className="bg-slate-50 p-2.5 rounded-xl border border-slate-200 space-y-1.5">
-                <div className="flex justify-between items-center">
-                  <span className="text-[10px] font-bold uppercase tracking-wider text-slate-500">
-                    Active Order {selectedChat.orderNumber}
-                  </span>
-                  <span className="text-[10px] font-bold px-1.5 py-0.5 rounded bg-amber-100 text-amber-800">
-                    {selectedChat.orderTotal}
-                  </span>
-                </div>
-                <p className="text-[11px] text-slate-600">
-                  Basmati Rice (10x), San Marzano Tomatoes (15x), Mozzarella (20kg)
+                <p className="mt-2 text-[10px] text-slate-400">
+                  Delivery is confirmed by the WhatsApp Cloud API response. Messages that fail to
+                  dispatch are recorded as failed.
                 </p>
-                <div className="flex justify-between text-[10px] text-slate-400 pt-1 border-t border-slate-200">
-                  <span>Delivery: Tomorrow 10:30 AM</span>
-                  <Link
-                    href="/inbox/order/ORD-8821"
-                    className="text-emerald-600 font-bold hover:underline"
-                  >
-                    View Details &rarr;
-                  </Link>
-                </div>
-              </div>
-
-              {/* History Timeline */}
-              <div>
-                <div className="flex border-b border-slate-200 text-[11px] font-semibold text-slate-500">
-                  <button className="pb-2 border-b-2 border-slate-900 text-slate-900 font-bold">
-                    Interaction History
-                  </button>
-                </div>
-                <div className="space-y-3 pt-3">
-                  <div className="flex items-start justify-between">
-                    <div className="flex items-center gap-2">
-                      <div className="w-6 h-6 rounded-full bg-[#2080f6] text-white flex items-center justify-center text-[11px] font-bold">
-                        @
-                      </div>
-                      <div>
-                        <p className="text-xs font-bold text-slate-800 leading-tight">Email</p>
-                        <p className="text-[10px] text-slate-400">orders@sowtek.io</p>
-                      </div>
-                    </div>
-                    <div className="text-right">
-                      <span className="text-[9px] text-slate-400 block">Today 17:28</span>
-                      <span className="text-emerald-500 text-xs">↓</span>
-                    </div>
-                  </div>
-
-                  <div className="flex items-start justify-between">
-                    <div className="flex items-center gap-2">
-                      <div className="w-6 h-6 rounded-full bg-[#70b928] text-white flex items-center justify-center">
-                        <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                          <path
-                            d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z"
-                            strokeLinecap="round"
-                            strokeLinejoin="round"
-                            strokeWidth="2"
-                          />
-                        </svg>
-                      </div>
-                      <div>
-                        <p className="text-xs font-bold text-slate-800 leading-tight">Phone Call</p>
-                        <p className="text-[10px] text-slate-400">{selectedChat.phone}</p>
-                      </div>
-                    </div>
-                    <div className="text-right">
-                      <span className="text-[9px] text-slate-400 block">Yesterday</span>
-                      <span className="text-emerald-500 text-xs">↓</span>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </aside>
-        </div>
+              </form>
+            </>
+          )}
+        </section>
       </div>
-
-      {/* Toast Notification */}
-      {toastMessage && (
-        <div className="fixed bottom-5 right-5 bg-slate-900 text-white px-4 py-3 rounded-xl text-xs font-semibold shadow-xl border border-slate-800 flex items-center gap-2.5 transition-all z-50 animate-bounce">
-          <span className="w-2 h-2 rounded-full bg-emerald-400" />
-          <span>{toastMessage}</span>
-        </div>
-      )}
     </div>
   );
 }

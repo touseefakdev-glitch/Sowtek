@@ -1,548 +1,432 @@
 ﻿'use client';
 
-import React, { useState, Suspense } from 'react';
+import React, { Suspense, useCallback, useEffect, useMemo, useState } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import Link from 'next/link';
 import { AppSidebar } from '@/components/layout/AppSidebar';
+import { getContacts } from '@/lib/api/contacts';
+import { getProducts } from '@/lib/api/products';
+import { createOrder } from '@/lib/api/orders';
+
+interface RestaurantOption {
+  id: string;
+  name: string;
+  name_ar: string | null;
+  address: string | null;
+  delivery_zone: string | null;
+  credit_limit: number | null;
+  payment_terms: string | null;
+}
+
+interface ProductOption {
+  id: string;
+  name: string;
+  sku: string;
+  unit: string;
+  price: number;
+  stock_status: string;
+  is_active: boolean;
+}
+
+interface DraftLine {
+  key: string;
+  product_id: string;
+  name: string;
+  unit: string;
+  quantity: number;
+  unit_price: number;
+}
 
 function CreateOrderContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
-  const prefilledRestaurant = searchParams.get('restaurant') || 'Al Noor Restaurant';
+  const preselectedRestaurantId = searchParams.get('restaurant_id');
 
-  const [restaurantName, setRestaurantName] = useState(prefilledRestaurant);
-  const [activeTab, setActiveTab] = useState<'items' | 'logistics' | 'billing'>('items');
+  const [restaurants, setRestaurants] = useState<RestaurantOption[]>([]);
+  const [products, setProducts] = useState<ProductOption[]>([]);
+  const [referenceError, setReferenceError] = useState<string | null>(null);
+  const [loadingReferences, setLoadingReferences] = useState(true);
+
+  const [restaurantId, setRestaurantId] = useState(preselectedRestaurantId ?? '');
+  const [deliveryDate, setDeliveryDate] = useState('');
+  const [deliveryAddress, setDeliveryAddress] = useState('');
+  const [notes, setNotes] = useState('');
+  const [productSearch, setProductSearch] = useState('');
+  const [lines, setLines] = useState<DraftLine[]>([]);
+
   const [submitting, setSubmitting] = useState(false);
-  const [toastMessage, setToastMessage] = useState<string | null>(null);
+  const [submitError, setSubmitError] = useState<string | null>(null);
 
-  const [items, setItems] = useState<
-    Array<{
-      id: string;
-      name: string;
-      sku: string;
-      unit: string;
-      stock: string;
-      quantity: number;
-      unit_price: number;
-    }>
-  >([
-    {
-      id: 'i1',
-      name: 'Premium Basmati Rice (20kg Bag)',
-      sku: 'RIC-BAS-20KG',
-      unit: '20kg Bag',
-      stock: '280 In Stock',
-      quantity: 10,
-      unit_price: 185.0,
-    },
-    {
-      id: 'i2',
-      name: 'Roma Tomatoes (Grade A Crates)',
-      sku: 'VEG-TOM-ROMA',
-      unit: '15kg Crate',
-      stock: '145 In Stock',
-      quantity: 15,
-      unit_price: 64.0,
-    },
-    {
-      id: 'i3',
-      name: 'Greek Extra Virgin Olive Oil (5L Tin)',
-      sku: 'OIL-EV-5L',
-      unit: '5L Tin',
-      stock: '92 In Stock',
-      quantity: 5,
-      unit_price: 175.0,
-    },
-    {
-      id: 'i4',
-      name: 'French Truffle Butter (500g Tub)',
-      sku: 'DAI-BUT-TRUF',
-      unit: '500g Tub',
-      stock: '48 In Stock',
-      quantity: 8,
-      unit_price: 142.0,
-    },
-  ]);
+  const loadReferences = useCallback(async () => {
+    setReferenceError(null);
+    try {
+      const [contactRes, productRes] = await Promise.all([
+        getContacts({ limit: 100 }),
+        getProducts({ active_only: true, limit: 100 }),
+      ]);
+      setRestaurants((contactRes.data ?? []) as RestaurantOption[]);
+      setProducts((productRes.data ?? []) as ProductOption[]);
+    } catch (err) {
+      setReferenceError(
+        err instanceof Error
+          ? err.message
+          : 'Unable to load restaurants and products from the database.'
+      );
+    } finally {
+      setLoadingReferences(false);
+    }
+  }, []);
 
-  const showToast = (msg: string) => {
-    setToastMessage(msg);
-    setTimeout(() => setToastMessage(null), 3000);
-  };
+  useEffect(() => {
+    void loadReferences();
+  }, [loadReferences]);
 
-  const updateQuantity = (id: string, qty: number) => {
-    if (qty < 1) return;
-    setItems((prev) =>
-      prev.map((it) => (it.id === id ? { ...it, quantity: qty } : it))
+  const selectedRestaurant = useMemo(
+    () => restaurants.find((item) => item.id === restaurantId) ?? null,
+    [restaurants, restaurantId]
+  );
+
+  useEffect(() => {
+    if (selectedRestaurant?.address !== undefined) {
+      setDeliveryAddress((current) => current || (selectedRestaurant.address ?? ''));
+    }
+  }, [selectedRestaurant]);
+
+  const visibleProducts = useMemo(() => {
+    const term = productSearch.trim().toLowerCase();
+    if (!term) return products;
+    return products.filter(
+      (product) =>
+        product.name.toLowerCase().includes(term) || product.sku.toLowerCase().includes(term)
     );
+  }, [products, productSearch]);
+
+  const addProduct = (product: ProductOption) => {
+    setLines((prev) => {
+      const existing = prev.find((line) => line.product_id === product.id);
+      if (existing) {
+        return prev.map((line) =>
+          line.product_id === product.id
+            ? { ...line, quantity: line.quantity + 1 }
+            : line
+        );
+      }
+      return [
+        ...prev,
+        {
+          key: `${product.id}-${prev.length}`,
+          product_id: product.id,
+          name: product.name,
+          unit: product.unit,
+          quantity: 1,
+          unit_price: Number(product.price),
+        },
+      ];
+    });
   };
 
-  const removeItem = (id: string) => {
-    setItems((prev) => prev.filter((it) => it.id !== id));
+  const updateLine = (key: string, patch: Partial<DraftLine>) => {
+    setLines((prev) => prev.map((line) => (line.key === key ? { ...line, ...patch } : line)));
   };
 
-  const addCustomItem = () => {
-    const newItem = {
-      id: `i_${Date.now()}`,
-      name: 'Fresh Mozzarella Cheese (1kg Loaf)',
-      sku: 'DAI-MOZ-1KG',
-      unit: '1kg Pack',
-      stock: '120 In Stock',
-      quantity: 5,
-      unit_price: 38.0,
-    };
-    setItems((prev) => [...prev, newItem]);
-    showToast('Added Fresh Mozzarella Cheese to order list');
+  const removeLine = (key: string) => {
+    setLines((prev) => prev.filter((line) => line.key !== key));
   };
 
-  const subtotal = items.reduce((sum, it) => sum + it.quantity * it.unit_price, 0);
+  const subtotal = lines.reduce((sum, line) => sum + line.quantity * line.unit_price, 0);
   const vatAmount = Number((subtotal * 0.15).toFixed(2));
   const totalAmount = Number((subtotal + vatAmount).toFixed(2));
 
-  const handleSubmitOrder = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setSubmitting(true);
-    showToast('Dispatching order to WMS picking system...');
+  const canSubmit = Boolean(restaurantId) && lines.length > 0 && !submitting;
 
-    setTimeout(() => {
-      router.push('/inbox/order/ORD-8821');
-    }, 1200);
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!canSubmit) return;
+
+    setSubmitting(true);
+    setSubmitError(null);
+
+    try {
+      const response = await createOrder({
+        restaurant_id: restaurantId,
+        delivery_date: deliveryDate || null,
+        delivery_address: deliveryAddress || null,
+        payment_terms: selectedRestaurant?.payment_terms ?? null,
+        notes: notes || null,
+        items: lines.map((line) => ({
+          product_id: line.product_id,
+          name: line.name,
+          unit: line.unit,
+          quantity: line.quantity,
+          unit_price: line.unit_price,
+        })),
+      });
+
+      const created = response.data as { id: string } | null;
+      if (created?.id) {
+        router.push(`/orders/${created.id}`);
+      } else {
+        router.push('/orders');
+      }
+      router.refresh();
+    } catch (err) {
+      setSubmitError(
+        err instanceof Error ? err.message : 'The order could not be created.'
+      );
+      setSubmitting(false);
+    }
   };
 
   return (
-    <div className="flex h-screen overflow-hidden font-sans text-slate-800 antialiased bg-[#f4f6f9]">
+    <div className="flex h-screen overflow-hidden bg-[#f4f6f9] font-sans text-slate-800 antialiased">
       <AppSidebar />
 
-      {/* Main Content Area */}
-      <main className="flex-1 flex flex-col h-full overflow-hidden bg-[#f4f6f9]">
-        {/* Top Context Bar */}
-        <header className="h-14 bg-white px-6 py-2.5 flex items-center justify-between border-b border-slate-200/80 z-10 flex-shrink-0">
-          <div className="flex items-center space-x-3">
-            <div className="flex items-center space-x-2">
-              <span className="text-sm font-extrabold text-slate-900 font-headline">
-                Create / Edit Order
-              </span>
-              <span className="px-2 py-0.5 rounded-full bg-emerald-50 text-emerald-800 text-[10px] font-extrabold uppercase tracking-wide">
-                Live Workspace
-              </span>
+      <main className="flex-1 overflow-y-auto">
+        <header className="sticky top-0 z-10 flex flex-wrap items-center justify-between gap-4 border-b border-slate-200 bg-white px-6 py-4">
+          <div>
+            <div className="mb-1 flex items-center gap-2 text-xs text-slate-500">
+              <Link href="/orders" className="hover:text-slate-900">
+                Orders
+              </Link>
+              <span>/</span>
+              <span className="font-semibold text-slate-900">New order</span>
             </div>
+            <h1 className="text-xl font-bold text-[#142340]">Create wholesale order</h1>
           </div>
-
-          <div className="flex items-center space-x-4">
-            <div className="flex items-center space-x-2 px-2.5 py-1 rounded-lg bg-slate-50 border border-slate-200/70 text-xs font-medium text-slate-700">
-              <span className="material-symbols-outlined text-[15px] text-emerald-600">timer</span>
-              <span className="text-slate-500">Order SLA Target:</span>
-              <span className="font-bold font-mono text-slate-800">00:14:32</span>
-            </div>
-            <button
-              type="button"
-              onClick={() => showToast('Draft autosaved to cloud database')}
-              className="flex items-center space-x-1 px-2.5 py-1 text-xs text-slate-500 hover:text-slate-700 hover:bg-slate-100 rounded-lg transition"
-            >
-              <span className="material-symbols-outlined text-[16px] text-emerald-600">cloud_done</span>
-              <span>Synced</span>
-            </button>
-          </div>
+          <Link
+            href="/orders"
+            className="rounded-xl border border-slate-200 px-4 py-2 text-xs font-semibold text-slate-700 transition hover:bg-slate-50"
+          >
+            Cancel
+          </Link>
         </header>
 
-        {/* Main Content Grid */}
-        <div className="flex-1 overflow-y-auto p-6 grid grid-cols-12 gap-6">
-          {/* Column 1: Source WhatsApp Context & Queue Panel */}
-          <aside className="col-span-12 xl:col-span-4 flex flex-col space-y-5">
-            {/* WhatsApp Source Card */}
-            <div className="rounded-2xl bg-white border border-slate-200/80 shadow-sm p-4 space-y-3.5">
-              <div className="flex items-center justify-between pb-2 border-b border-slate-100">
-                <div className="flex items-center space-x-2 text-emerald-700 font-bold text-xs uppercase tracking-wider">
-                  <span className="material-symbols-outlined text-[16px] text-emerald-600">chat</span>
-                  <span>Source Thread</span>
-                </div>
-                <span className="px-2 py-0.5 rounded-md bg-slate-100 text-slate-600 font-mono text-[11px] font-semibold">
-                  #ORD-8821
-                </span>
-              </div>
-
-              <div className="flex items-start space-x-3">
-                <div className="w-10 h-10 rounded-xl bg-slate-900 text-white font-bold text-xs flex items-center justify-center flex-shrink-0 shadow-xs">
-                  AN
-                </div>
-                <div className="min-w-0 flex-1">
-                  <h2 className="text-sm font-bold text-slate-900 truncate leading-tight">
-                    {restaurantName}
-                  </h2>
-                  <p className="text-xs text-slate-500 leading-tight mt-0.5">Chef Faisal Al-Qaisi</p>
-                  <p className="text-[11px] text-slate-400 font-mono mt-0.5">+966 54 321 8890</p>
-                </div>
-                <span className="w-2.5 h-2.5 rounded-full bg-emerald-500 ring-4 ring-emerald-50" />
-              </div>
-
-              {/* Parsed message excerpt */}
-              <div className="p-3 rounded-xl bg-slate-50 border border-slate-200/70 text-xs space-y-1.5">
-                <div className="flex items-center justify-between text-[11px] text-slate-400 font-medium">
-                  <span className="inline-flex items-center gap-1 text-emerald-600 font-semibold">
-                    <span className="material-symbols-outlined text-[13px]">verified</span> Parsed via
-                    WhatsApp
-                  </span>
-                  <span>10:14 AM</span>
-                </div>
-                <p className="text-slate-700 leading-relaxed italic bg-white p-2.5 rounded-lg border border-slate-200/50 shadow-2xs">
-                  "Salam brother Kenneth, please re-up 10 bags of 20kg Basmati, 15 cases tomatoes, 5
-                  tins olive oil and 8 tubs truffle butter for tomorrow morning early dispatch bay 3.
-                  Reference PO-NOOR-2024-8822."
-                </p>
-              </div>
-
-              <Link
-                href="/inbox"
-                className="w-full flex items-center justify-center space-x-2 py-2 px-3 rounded-xl bg-slate-50 hover:bg-slate-100 border border-slate-200 text-xs font-semibold text-slate-700 transition no-underline"
-              >
-                <span className="material-symbols-outlined text-[15px] text-slate-500">forum</span>
-                <span>Open Split WhatsApp Feed</span>
-              </Link>
-            </div>
-
-            {/* Active Drafts Queue Card */}
-            <div className="rounded-2xl bg-white border border-slate-200/80 shadow-sm p-4 space-y-3 flex-1 flex flex-col">
-              <div className="flex items-center justify-between pb-2 border-b border-slate-100">
-                <span className="text-xs font-bold text-slate-900 uppercase tracking-wider">
-                  Active Drafts Queue
-                </span>
-                <span className="px-2 py-0.5 rounded-full bg-slate-100 text-slate-600 text-[11px] font-semibold">
-                  3 Pending
-                </span>
-              </div>
-
-              <div className="space-y-2 flex-1">
-                {/* Active Draft Item 1 */}
-                <div className="p-3 rounded-xl bg-emerald-50/70 border border-emerald-200/80 shadow-2xs space-y-1.5">
-                  <div className="flex items-center justify-between">
-                    <span className="text-xs font-bold text-slate-900">Al Noor Restaurant</span>
-                    <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-emerald-100 text-emerald-800">
-                      Drafting
-                    </span>
-                  </div>
-                  <p className="text-[11px] text-slate-500 font-mono">
-                    PO-NOOR-2024-8822 â€¢ {items.length} Line SKUs
-                  </p>
-                  <div className="flex items-center justify-between pt-1">
-                    <span className="text-xs font-black text-slate-900 font-mono">
-                      SAR {totalAmount.toFixed(2)}
-                    </span>
-                    <span className="text-[10px] font-semibold text-emerald-700">
-                      Current Editing
-                    </span>
-                  </div>
-                </div>
-
-                {/* Draft Item 2 */}
-                <div
-                  onClick={() => {
-                    setRestaurantName('Marina Cafe & Bakery');
-                    showToast('Switched to Marina Cafe draft order');
-                  }}
-                  className="p-3 rounded-xl bg-white hover:bg-slate-50 border border-slate-200/70 transition cursor-pointer space-y-1"
-                >
-                  <div className="flex items-center justify-between">
-                    <span className="text-xs font-bold text-slate-800">Marina Cafe & Bakery</span>
-                    <span className="text-[11px] text-slate-400">09:48 AM</span>
-                  </div>
-                  <p className="text-[11px] text-slate-500">PO-MAR-9102 â€¢ Pastry Flour 50kg</p>
-                  <div className="flex items-center justify-between pt-1">
-                    <span className="text-xs font-bold text-slate-700 font-mono">
-                      SAR 2,140.00
-                    </span>
-                    <span className="px-1.5 py-0.5 rounded text-[10px] font-semibold bg-slate-100 text-slate-600">
-                      Review
-                    </span>
-                  </div>
-                </div>
-
-                {/* Draft Item 3 */}
-                <div
-                  onClick={() => {
-                    setRestaurantName('Sultan Grill Express');
-                    showToast('Switched to Sultan Grill draft order');
-                  }}
-                  className="p-3 rounded-xl bg-white hover:bg-slate-50 border border-slate-200/70 transition cursor-pointer space-y-1"
-                >
-                  <div className="flex items-center justify-between">
-                    <span className="text-xs font-bold text-slate-800">Sultan Grill Express</span>
-                    <span className="text-[11px] text-slate-400">09:12 AM</span>
-                  </div>
-                  <p className="text-[11px] text-slate-500">PO-SULT-4481 â€¢ Charcoal & Spices</p>
-                  <div className="flex items-center justify-between pt-1">
-                    <span className="text-xs font-bold text-slate-700 font-mono">
-                      SAR 8,920.00
-                    </span>
-                    <span className="px-1.5 py-0.5 rounded text-[10px] font-bold bg-rose-50 text-rose-700 border border-rose-200/60">
-                      Credit Hold
-                    </span>
-                  </div>
-                </div>
-              </div>
-
-              {/* Capacity Metric Bar */}
-              <div className="p-3 rounded-xl bg-slate-50 border border-slate-200/70 space-y-1.5 mt-auto">
-                <div className="flex items-center justify-between text-[11px] font-semibold text-slate-700">
-                  <span>Daily Dispatch Capacity</span>
-                  <span className="text-emerald-700 font-bold">78% Filled</span>
-                </div>
-                <div className="w-full bg-slate-200 rounded-full h-1.5 overflow-hidden">
-                  <div className="bg-emerald-600 h-1.5 rounded-full" style={{ width: '78%' }} />
-                </div>
-                <span className="text-[10px] text-slate-400 block">
-                  18 of 23 Delivery Runs Dispatched
-                </span>
-              </div>
-            </div>
-          </aside>
-
-          {/* Column 2: Order Builder Staged Panel */}
-          <section className="col-span-12 xl:col-span-8 flex flex-col space-y-6">
-            <div className="rounded-2xl bg-white border border-slate-200/80 shadow-sm p-6 space-y-6">
-              {/* Header with Status & Action */}
-              <div className="flex flex-wrap items-center justify-between gap-3 pb-5 border-b border-slate-100">
+        <form onSubmit={handleSubmit} className="grid grid-cols-1 gap-6 p-6 xl:grid-cols-3">
+          <div className="space-y-6 xl:col-span-2">
+            {referenceError && (
+              <div className="flex items-start gap-2.5 rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-xs text-red-700">
+                <span className="material-symbols-outlined text-[18px] text-red-500">error</span>
                 <div>
-                  <div className="flex items-center space-x-2.5">
-                    <h1 className="text-lg font-bold text-slate-900 tracking-tight">
-                      Create New Order
-                    </h1>
-                    <span className="px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-800 text-[11px] font-bold">
-                      Draft In Progress
-                    </span>
-                    <span className="font-mono font-bold text-slate-500 text-xs">#ORD-8822</span>
-                  </div>
-                  <p className="text-xs text-slate-500 mt-0.5 flex items-center space-x-1.5">
-                    <span className="material-symbols-outlined text-[15px] text-emerald-600">
-                      verified
-                    </span>
-                    <span>
-                      Parsed from WhatsApp conversation with{' '}
-                      <strong className="text-slate-700 font-semibold">{restaurantName}</strong>
-                    </span>
-                  </p>
-                </div>
-
-                <div className="flex items-center space-x-2">
-                  <span className="inline-flex items-center px-2.5 py-1 rounded-lg bg-emerald-50 border border-emerald-100 text-emerald-800 text-xs font-semibold">
-                    <span className="material-symbols-outlined text-[14px] mr-1 text-emerald-600">
-                      link
-                    </span>
-                    <span>WhatsApp Linked</span>
-                  </span>
-                  <button
-                    type="button"
-                    onClick={() => router.push('/inbox')}
-                    className="px-2.5 py-1 rounded-lg text-slate-400 hover:text-rose-600 hover:bg-rose-50 text-xs font-medium transition flex items-center space-x-1"
-                  >
-                    <span className="material-symbols-outlined text-[15px]">close</span>
-                    <span>Cancel</span>
-                  </button>
+                  <p className="font-semibold">Could not load reference data</p>
+                  <p className="mt-0.5 text-red-600">{referenceError}</p>
                 </div>
               </div>
+            )}
 
-              {/* Order Workflow Navigation Toggles */}
-              <div className="flex items-center space-x-3 p-1 rounded-xl bg-slate-100/70 border border-slate-200/60 text-xs font-semibold">
-                <button
-                  type="button"
-                  onClick={() => setActiveTab('items')}
-                  className={`flex items-center space-x-2 px-3.5 py-1.5 rounded-lg font-bold transition ${
-                    activeTab === 'items'
-                      ? 'bg-white text-slate-900 shadow-xs border border-slate-200/80'
-                      : 'text-slate-500 hover:text-slate-800'
-                  }`}
-                >
-                  <span className="material-symbols-outlined text-[16px] text-emerald-600">
-                    shopping_cart
-                  </span>
-                  <span>1. Line SKUs & Catalog</span>
-                </button>
-                <button
-                  type="button"
-                  onClick={() => setActiveTab('logistics')}
-                  className={`flex items-center space-x-2 px-3.5 py-1.5 rounded-lg transition ${
-                    activeTab === 'logistics'
-                      ? 'bg-white text-slate-900 shadow-xs border border-slate-200/80 font-bold'
-                      : 'text-slate-500 hover:text-slate-800'
-                  }`}
-                >
-                  <span className="material-symbols-outlined text-[16px]">local_shipping</span>
-                  <span>2. Delivery Logistics</span>
-                </button>
-                <button
-                  type="button"
-                  onClick={() => setActiveTab('billing')}
-                  className={`flex items-center space-x-2 px-3.5 py-1.5 rounded-lg transition ${
-                    activeTab === 'billing'
-                      ? 'bg-white text-slate-900 shadow-xs border border-slate-200/80 font-bold'
-                      : 'text-slate-500 hover:text-slate-800'
-                  }`}
-                >
-                  <span className="material-symbols-outlined text-[16px]">receipt_long</span>
-                  <span>3. VIP Net-30 Billing</span>
-                </button>
+            {submitError && (
+              <div className="flex items-start gap-2.5 rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-xs text-red-700">
+                <span className="material-symbols-outlined text-[18px] text-red-500">error</span>
+                <div>
+                  <p className="font-semibold">Order was rejected</p>
+                  <p className="mt-0.5 text-red-600">{submitError}</p>
+                </div>
               </div>
+            )}
 
-              {/* Section 1: Restaurant Selector & Credit Dossier */}
-              <div className="p-4 rounded-xl bg-slate-50/80 border border-slate-200/80 space-y-3.5">
-                <div className="flex items-center justify-between">
-                  <label className="text-xs font-bold text-slate-800 flex items-center space-x-1 uppercase tracking-wider">
-                    <span>Client Restaurant Entity</span>
-                    <span className="text-rose-500">*</span>
+            <section className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
+              <h2 className="mb-4 text-sm font-bold text-[#142340]">Customer &amp; delivery</h2>
+              <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
+                <div className="md:col-span-2">
+                  <label className="mb-1 block text-[10px] font-bold uppercase tracking-wider text-slate-400">
+                    Restaurant account
                   </label>
-                  <span className="text-[11px] font-semibold text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded-md border border-emerald-200/60">
-                    Validated B2B Wholesale Account
-                  </span>
-                </div>
-
-                <div className="grid grid-cols-1 md:grid-cols-12 gap-3">
-                  <div className="md:col-span-7 relative">
-                    <div className="flex items-center px-3 py-2 rounded-xl bg-white border border-slate-200 text-xs shadow-xs">
-                      <span className="material-symbols-outlined text-[18px] text-emerald-600 mr-2">
-                        store
-                      </span>
-                      <input
-                        className="w-full bg-transparent text-xs font-medium text-slate-900 outline-none"
-                        type="text"
-                        value={restaurantName}
-                        onChange={(e) => setRestaurantName(e.target.value)}
-                      />
-                    </div>
-                  </div>
-                  <div className="md:col-span-5 flex items-center justify-between p-2 px-3 rounded-xl bg-white border border-slate-200/70 text-xs">
-                    <div>
-                      <span className="block text-[10px] text-slate-400 font-medium uppercase tracking-wider">
-                        Tier Privilege
-                      </span>
-                      <span className="text-xs font-bold text-emerald-700">
-                        VIP Net-30 Auto-Approved
-                      </span>
-                    </div>
-                    <div className="text-right">
-                      <span className="block text-[10px] text-slate-400 font-medium uppercase tracking-wider">
-                        Account Manager
-                      </span>
-                      <span className="text-xs font-bold text-slate-800">Kenneth Ofkeli</span>
-                    </div>
-                  </div>
-                </div>
-
-                {/* Quick Metrics Bar */}
-                <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 pt-1">
-                  <div className="p-2.5 rounded-lg bg-white border border-slate-200/70 space-y-0.5">
-                    <div className="flex items-center space-x-1 text-slate-400 text-[11px] font-medium">
-                      <span className="material-symbols-outlined text-[14px]">
-                        account_balance_wallet
-                      </span>
-                      <span>Wholesale Credit Line</span>
-                    </div>
-                    <p className="text-xs font-bold font-mono text-slate-900">SAR 45,000.00</p>
-                    <div className="flex items-center space-x-1 text-[10px] font-semibold text-emerald-700">
-                      <span className="material-symbols-outlined text-[11px]">check_circle</span>
-                      <span>SAR 28,400.00 Available</span>
-                    </div>
-                  </div>
-                  <div className="p-2.5 rounded-lg bg-white border border-slate-200/70 space-y-0.5">
-                    <div className="flex items-center space-x-1 text-slate-400 text-[11px] font-medium">
-                      <span className="material-symbols-outlined text-[14px]">contacts</span>
-                      <span>Executive Contact</span>
-                    </div>
-                    <p className="text-xs font-bold text-slate-900">Chef Faisal Al-Qaisi</p>
-                    <p className="text-[10px] text-slate-500 font-mono">
-                      +966 54 321 8890 (Direct WhatsApp)
+                  <select
+                    required
+                    value={restaurantId}
+                    onChange={(e) => setRestaurantId(e.target.value)}
+                    disabled={loadingReferences}
+                    className="w-full rounded-xl border border-slate-200 bg-slate-50 px-3 py-2.5 text-xs font-semibold text-slate-900 focus:border-[#142340] focus:outline-none disabled:opacity-60"
+                  >
+                    <option value="">
+                      {loadingReferences
+                        ? 'Loading restaurants...'
+                        : restaurants.length === 0
+                        ? 'No restaurants available'
+                        : 'Select a restaurant'}
+                    </option>
+                    {restaurants.map((restaurant) => (
+                      <option key={restaurant.id} value={restaurant.id}>
+                        {restaurant.name}
+                        {restaurant.delivery_zone ? ` — ${restaurant.delivery_zone}` : ''}
+                      </option>
+                    ))}
+                  </select>
+                  {selectedRestaurant && (
+                    <p className="mt-1.5 text-[11px] text-slate-500">
+                      Credit limit SAR {Number(selectedRestaurant.credit_limit ?? 0).toLocaleString()}
+                      {selectedRestaurant.payment_terms
+                        ? ` · ${selectedRestaurant.payment_terms}`
+                        : ''}
                     </p>
+                  )}
+                </div>
+
+                <div>
+                  <label className="mb-1 block text-[10px] font-bold uppercase tracking-wider text-slate-400">
+                    Delivery date
+                  </label>
+                  <input
+                    type="date"
+                    value={deliveryDate}
+                    onChange={(e) => setDeliveryDate(e.target.value)}
+                    className="w-full rounded-xl border border-slate-200 bg-slate-50 px-3 py-2.5 text-xs text-slate-900 focus:border-[#142340] focus:outline-none"
+                  />
+                </div>
+
+                <div>
+                  <label className="mb-1 block text-[10px] font-bold uppercase tracking-wider text-slate-400">
+                    Delivery address
+                  </label>
+                  <input
+                    type="text"
+                    value={deliveryAddress}
+                    onChange={(e) => setDeliveryAddress(e.target.value)}
+                    placeholder="Kitchen gate and delivery window"
+                    className="w-full rounded-xl border border-slate-200 bg-slate-50 px-3 py-2.5 text-xs text-slate-900 placeholder:text-slate-400 focus:border-[#142340] focus:outline-none"
+                  />
+                </div>
+
+                <div className="md:col-span-2">
+                  <label className="mb-1 block text-[10px] font-bold uppercase tracking-wider text-slate-400">
+                    Notes
+                  </label>
+                  <textarea
+                    rows={2}
+                    value={notes}
+                    onChange={(e) => setNotes(e.target.value)}
+                    className="w-full resize-none rounded-xl border border-slate-200 bg-slate-50 px-3 py-2.5 text-xs text-slate-900 focus:border-[#142340] focus:outline-none"
+                  />
+                </div>
+              </div>
+            </section>
+
+            <section className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
+              <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
+                <h2 className="text-sm font-bold text-[#142340]">Order lines</h2>
+                <div className="relative">
+                  <div className="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3 text-slate-400">
+                    <span className="material-symbols-outlined text-[18px]">search</span>
                   </div>
-                  <div className="p-2.5 rounded-lg bg-white border border-slate-200/70 space-y-0.5">
-                    <div className="flex items-center space-x-1 text-slate-400 text-[11px] font-medium">
-                      <span className="material-symbols-outlined text-[14px]">schedule</span>
-                      <span>Fulfillment Speed</span>
-                    </div>
-                    <p className="text-xs font-bold text-slate-900">Priority Loading Bay 3</p>
-                    <span className="text-[10px] font-semibold text-emerald-700">
-                      Standard 0% Incident Rate (90d)
-                    </span>
-                  </div>
+                  <input
+                    type="search"
+                    value={productSearch}
+                    onChange={(e) => setProductSearch(e.target.value)}
+                    placeholder="Search catalogue"
+                    className="rounded-xl border border-slate-200 bg-slate-50 py-2 pl-9 pr-3 text-xs placeholder:text-slate-400 focus:border-[#142340] focus:outline-none"
+                  />
                 </div>
               </div>
 
-              {/* Section 2: Order Items Table */}
-              <div className="space-y-3">
-                <div className="flex items-center justify-between">
-                  <div>
-                    <h2 className="text-sm font-bold text-slate-900">
-                      Order Line Items & Inventory Allocation
-                    </h2>
-                    <p className="text-xs text-slate-500">
-                      Allocating live stock from Sowtek Central Riyadh Hub (Warehouse Bay 4)
-                    </p>
-                  </div>
-                  <button
-                    type="button"
-                    onClick={addCustomItem}
-                    className="inline-flex items-center space-x-1.5 px-3 py-1.5 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-semibold transition cursor-pointer"
-                  >
-                    <span className="material-symbols-outlined text-[15px] text-emerald-700">
-                      add_circle
-                    </span>
-                    <span>Add Custom SKU</span>
-                  </button>
-                </div>
+              {products.length === 0 && !loadingReferences && (
+                <p className="rounded-xl border border-dashed border-slate-300 p-4 text-center text-[11px] text-slate-400">
+                  No active products exist in the catalogue.
+                </p>
+              )}
 
-                {/* SKU Table */}
-                <div className="overflow-x-auto rounded-xl border border-slate-200">
+              {products.length > 0 && (
+                <div className="mb-5 max-h-56 overflow-y-auto rounded-xl border border-slate-200">
+                  {visibleProducts.length === 0 ? (
+                    <p className="p-4 text-center text-[11px] text-slate-400">
+                      No products match that search.
+                    </p>
+                  ) : (
+                    visibleProducts.map((product) => (
+                      <button
+                        key={product.id}
+                        type="button"
+                        onClick={() => addProduct(product)}
+                        className="flex w-full items-center justify-between gap-3 border-b border-slate-100 px-3 py-2 text-left transition last:border-0 hover:bg-slate-50"
+                      >
+                        <span className="min-w-0">
+                          <span className="block truncate text-xs font-semibold text-slate-900">
+                            {product.name}
+                          </span>
+                          <span className="block font-mono text-[10px] text-slate-400">
+                            {product.sku} · {product.unit}
+                          </span>
+                        </span>
+                        <span className="flex shrink-0 items-center gap-3">
+                          <span className="font-mono text-xs font-bold text-slate-900">
+                            {Number(product.price).toFixed(2)}
+                          </span>
+                          <span
+                            className={`rounded-md px-1.5 py-0.5 text-[10px] font-semibold capitalize ${
+                              product.stock_status === 'available'
+                                ? 'bg-emerald-50 text-emerald-700'
+                                : product.stock_status === 'low'
+                                ? 'bg-amber-50 text-amber-700'
+                                : 'bg-red-50 text-red-700'
+                            }`}
+                          >
+                            {product.stock_status.replace(/_/g, ' ')}
+                          </span>
+                        </span>
+                      </button>
+                    ))
+                  )}
+                </div>
+              )}
+
+              {lines.length === 0 ? (
+                <p className="rounded-xl border border-dashed border-slate-300 p-6 text-center text-[11px] text-slate-400">
+                  No lines added yet. Select products from the catalogue above.
+                </p>
+              ) : (
+                <div className="overflow-x-auto">
                   <table className="w-full text-left text-xs">
-                    <thead className="bg-slate-50 border-b border-slate-200 text-[11px] font-bold uppercase tracking-wider text-slate-500">
-                      <tr>
-                        <th className="py-2.5 px-4">Product / Wholesale SKU</th>
-                        <th className="py-2.5 px-3">Unit Spec</th>
-                        <th className="py-2.5 px-3 text-center">Warehouse Stock</th>
-                        <th className="py-2.5 px-3 text-center">Qty</th>
-                        <th className="py-2.5 px-3 text-right">Unit Price</th>
-                        <th className="py-2.5 px-4 text-right">Total (SAR)</th>
-                        <th className="py-2.5 px-3 text-center">Action</th>
+                    <thead>
+                      <tr className="border-b border-slate-100 uppercase text-slate-400">
+                        <th className="pb-2">Item</th>
+                        <th className="pb-2">Unit</th>
+                        <th className="pb-2 text-right">Qty</th>
+                        <th className="pb-2 text-right">Unit price</th>
+                        <th className="pb-2 text-right">Total</th>
+                        <th className="pb-2" />
                       </tr>
                     </thead>
                     <tbody className="divide-y divide-slate-100">
-                      {items.map((it) => (
-                        <tr key={it.id} className="hover:bg-slate-50/80 transition">
-                          <td className="py-3 px-4 font-bold text-slate-900">
-                            <div>{it.name}</div>
-                            <div className="text-[10px] text-slate-400 font-mono">{it.sku}</div>
+                      {lines.map((line) => (
+                        <tr key={line.key}>
+                          <td className="py-2.5 pr-2 font-semibold text-slate-900">{line.name}</td>
+                          <td className="py-2.5 pr-2 text-slate-500">{line.unit}</td>
+                          <td className="py-2.5 pr-2">
+                            <input
+                              type="number"
+                              min={1}
+                              value={line.quantity}
+                              onChange={(e) =>
+                                updateLine(line.key, {
+                                  quantity: Math.max(1, Number(e.target.value) || 1),
+                                })
+                              }
+                              className="w-20 rounded-lg border border-slate-200 px-2 py-1.5 text-right font-mono focus:border-[#142340] focus:outline-none"
+                            />
                           </td>
-                          <td className="py-3 px-3 text-slate-600">{it.unit}</td>
-                          <td className="py-3 px-3 text-center text-emerald-700 font-semibold text-[11px]">
-                            {it.stock}
+                          <td className="py-2.5 pr-2">
+                            <input
+                              type="number"
+                              min={0}
+                              step="0.01"
+                              value={line.unit_price}
+                              onChange={(e) =>
+                                updateLine(line.key, {
+                                  unit_price: Math.max(0, Number(e.target.value) || 0),
+                                })
+                              }
+                              className="w-28 rounded-lg border border-slate-200 px-2 py-1.5 text-right font-mono focus:border-[#142340] focus:outline-none"
+                            />
                           </td>
-                          <td className="py-3 px-3 text-center">
-                            <div className="inline-flex items-center border border-slate-200 rounded-lg overflow-hidden bg-white">
-                              <button
-                                type="button"
-                                onClick={() => updateQuantity(it.id, it.quantity - 1)}
-                                className="px-2 py-1 text-slate-500 hover:bg-slate-100"
-                              >
-                                -
-                              </button>
-                              <span className="px-2.5 py-1 font-bold text-xs">{it.quantity}</span>
-                              <button
-                                type="button"
-                                onClick={() => updateQuantity(it.id, it.quantity + 1)}
-                                className="px-2 py-1 text-slate-500 hover:bg-slate-100"
-                              >
-                                +
-                              </button>
-                            </div>
+                          <td className="py-2.5 pr-2 text-right font-mono font-bold text-slate-900">
+                            {(line.quantity * line.unit_price).toFixed(2)}
                           </td>
-                          <td className="py-3 px-3 text-right font-mono text-slate-600">
-                            SAR {it.unit_price.toFixed(2)}
-                          </td>
-                          <td className="py-3 px-4 text-right font-mono font-bold text-slate-900">
-                            SAR {(it.quantity * it.unit_price).toFixed(2)}
-                          </td>
-                          <td className="py-3 px-3 text-center">
+                          <td className="py-2.5 text-right">
                             <button
                               type="button"
-                              onClick={() => removeItem(it.id)}
-                              className="text-slate-400 hover:text-rose-600 p-1"
+                              onClick={() => removeLine(line.key)}
+                              className="rounded-lg px-2 py-1 text-red-500 transition hover:bg-red-50"
+                              aria-label={`Remove ${line.name}`}
                             >
-                              <span className="material-symbols-outlined text-[16px]">delete</span>
+                              <span className="material-symbols-outlined text-[16px]">close</span>
                             </button>
                           </td>
                         </tr>
@@ -550,74 +434,79 @@ function CreateOrderContent() {
                     </tbody>
                   </table>
                 </div>
+              )}
+            </section>
+          </div>
 
-                {/* Financial Summary Breakdown */}
-                <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center pt-4 border-t border-slate-100 gap-4">
-                  <div className="text-xs text-slate-500 space-y-1">
-                    <p>â€¢ Delivery Zone: Zone A Central Riyadh (Morning Run 06:00 - 10:00)</p>
-                    <p>â€¢ Payment Terms: Standard Net-30 Invoiced via ZATCA E-Invoice</p>
-                  </div>
-
-                  <div className="w-full sm:w-72 bg-slate-50 p-4 rounded-xl border border-slate-200/80 space-y-2 text-xs">
-                    <div className="flex justify-between text-slate-600">
-                      <span>Subtotal ({items.length} items)</span>
-                      <span className="font-mono font-semibold">SAR {subtotal.toFixed(2)}</span>
-                    </div>
-                    <div className="flex justify-between text-slate-600">
-                      <span>ZATCA VAT (15%)</span>
-                      <span className="font-mono font-semibold">SAR {vatAmount.toFixed(2)}</span>
-                    </div>
-                    <div className="flex justify-between text-sm font-black text-slate-900 pt-2 border-t border-slate-200">
-                      <span>Total Invoice</span>
-                      <span className="font-mono text-emerald-700">
-                        SAR {totalAmount.toFixed(2)}
-                      </span>
-                    </div>
-                  </div>
+          <div>
+            <section className="sticky top-24 rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
+              <h2 className="mb-4 text-xs font-bold uppercase tracking-wider text-slate-400">
+                Summary
+              </h2>
+              <div className="space-y-2.5 text-xs">
+                <div className="flex justify-between">
+                  <span className="text-slate-500">Lines</span>
+                  <span className="font-semibold text-slate-800">{lines.length}</span>
                 </div>
-
-                {/* Bottom Action Footer */}
-                <div className="flex items-center justify-between pt-6 border-t border-slate-100">
-                  <button
-                    type="button"
-                    onClick={() => showToast('Order draft saved to queue')}
-                    className="px-4 py-2.5 rounded-xl border border-slate-200 text-slate-700 hover:bg-slate-50 text-xs font-bold transition"
-                  >
-                    Save as Draft
-                  </button>
-
-                  <div className="flex items-center space-x-3">
-                    <button
-                      type="button"
-                      onClick={handleSubmitOrder}
-                      disabled={submitting}
-                      className="px-6 py-2.5 rounded-xl bg-[#142340] hover:bg-slate-800 text-white text-xs font-bold transition shadow-md flex items-center space-x-2"
-                    >
-                      <span>{submitting ? 'Dispatching...' : 'Submit Order & Dispatch WMS'}</span>
-                      <span className="material-symbols-outlined text-[16px]">arrow_forward</span>
-                    </button>
-                  </div>
+                <div className="flex justify-between">
+                  <span className="text-slate-500">Subtotal</span>
+                  <span className="font-mono font-semibold text-slate-800">
+                    SAR {subtotal.toFixed(2)}
+                  </span>
+                </div>
+                <div className="flex justify-between">
+                  <span className="text-slate-500">VAT (15%)</span>
+                  <span className="font-mono font-semibold text-slate-800">
+                    SAR {vatAmount.toFixed(2)}
+                  </span>
+                </div>
+                <div className="flex justify-between border-t border-slate-200 pt-2.5 text-sm">
+                  <span className="font-bold text-[#142340]">Total</span>
+                  <span className="font-mono font-bold text-[#70b928]">
+                    SAR {totalAmount.toFixed(2)}
+                  </span>
                 </div>
               </div>
-            </div>
-          </section>
-        </div>
-      </main>
 
-      {/* Toast Notification */}
-      {toastMessage && (
-        <div className="fixed bottom-5 right-5 bg-slate-900 text-white px-4 py-3 rounded-xl text-xs font-semibold shadow-xl border border-slate-800 flex items-center gap-2.5 transition-all z-50 animate-bounce">
-          <span className="w-2 h-2 rounded-full bg-emerald-400" />
-          <span>{toastMessage}</span>
-        </div>
-      )}
+              <button
+                type="submit"
+                disabled={!canSubmit}
+                className="mt-5 flex w-full items-center justify-center gap-2 rounded-xl bg-[#142340] px-4 py-3 text-xs font-bold text-white transition hover:bg-slate-800 disabled:cursor-not-allowed disabled:opacity-40"
+              >
+                {submitting ? (
+                  <>
+                    <span className="h-4 w-4 animate-spin rounded-full border-2 border-white border-t-transparent" />
+                    Creating order...
+                  </>
+                ) : (
+                  <>
+                    <span>Create order</span>
+                    <span className="material-symbols-outlined text-[16px]">arrow_forward</span>
+                  </>
+                )}
+              </button>
+
+              <p className="mt-2.5 text-[10px] leading-relaxed text-slate-400">
+                Orders are saved with status <code>pending_confirmation</code>. Totals are
+                recalculated server-side, including ZATCA VAT.
+              </p>
+            </section>
+          </div>
+        </form>
+      </main>
     </div>
   );
 }
 
 export default function CreateOrderPage() {
   return (
-    <Suspense fallback={<div className="p-8 text-center text-xs">Loading order builder...</div>}>
+    <Suspense
+      fallback={
+        <div className="flex h-screen items-center justify-center bg-[#f4f6f9] font-sans">
+          <p className="text-xs text-slate-400">Loading order builder...</p>
+        </div>
+      }
+    >
       <CreateOrderContent />
     </Suspense>
   );

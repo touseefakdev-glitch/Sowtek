@@ -2,7 +2,7 @@
 
 import React, { useEffect, useState } from 'react';
 import Link from 'next/link';
-import { usePathname } from 'next/navigation';
+import { usePathname, useRouter } from 'next/navigation';
 
 interface UserProfile {
   id: string;
@@ -14,7 +14,9 @@ interface UserProfile {
 
 export function AppSidebar() {
   const pathname = usePathname();
+  const router = useRouter();
   const [profile, setProfile] = useState<UserProfile | null>(null);
+  const [signingOut, setSigningOut] = useState(false);
 
   useEffect(() => {
     async function loadProfile() {
@@ -30,6 +32,18 @@ export function AppSidebar() {
     }
     loadProfile();
   }, []);
+
+  const handleSignOut = async () => {
+    setSigningOut(true);
+    try {
+      await fetch('/api/auth/logout', { method: 'POST' });
+    } catch {
+      // The local session is cleared regardless of the server response.
+    }
+    setSigningOut(false);
+    router.push('/login');
+    router.refresh();
+  };
 
   if (pathname === '/login') {
     return null;
@@ -176,7 +190,7 @@ export function AppSidebar() {
               <span className="text-[9px] font-bold text-[#70b928] uppercase tracking-widest mt-0.5">ORDERFLOW</span>
             </div>
           </Link>
-          <div className="w-2 h-2 rounded-full bg-[#70b928] shadow-xs" title="Connected" />
+          <div className="w-2 h-2 rounded-full bg-slate-300" title="Signed in" />
         </div>
 
         {/* Navigation Menu Items */}
@@ -237,27 +251,55 @@ export function AppSidebar() {
           <div className="flex items-center justify-between p-2 rounded-xl bg-slate-50/80 border border-slate-200/60">
             <div className="flex items-center gap-2.5 min-w-0">
               <div className="relative w-8 h-8 rounded-full overflow-hidden bg-slate-200 ring-1 ring-slate-300 shrink-0">
-                <div className="w-full h-full bg-[#142340] text-white flex items-center justify-center font-bold text-xs uppercase">
-                  {profile?.full_name ? profile.full_name.substring(0, 2) : 'KO'}
-                </div>
-                <span className="absolute bottom-0 right-0 w-2.5 h-2.5 bg-emerald-500 border-2 border-white rounded-full" />
+                {profile?.avatar_url ? (
+                  // eslint-disable-next-line @next/next/no-img-element
+                  <img
+                    src={profile.avatar_url}
+                    alt={profile.full_name || 'User avatar'}
+                    className="w-full h-full object-cover"
+                  />
+                ) : (
+                  <div className="w-full h-full bg-[#142340] text-white flex items-center justify-center font-bold text-xs uppercase">
+                    {profile?.full_name ? profile.full_name.substring(0, 2) : '--'}
+                  </div>
+                )}
+                <span
+                  className={`absolute bottom-0 right-0 w-2.5 h-2.5 border-2 border-white rounded-full ${
+                    profile?.is_online ? 'bg-emerald-500' : 'bg-slate-300'
+                  }`}
+                />
               </div>
               <div className="min-w-0">
                 <div className="text-[12px] font-bold text-slate-900 leading-tight truncate">
-                  {profile?.full_name || 'Kenneth Ofkeli'}
+                  {profile?.full_name || 'Signed in'}
                 </div>
-                {/* Green Available pill */}
-                <div className="inline-flex items-center gap-1 mt-0.5 px-1.5 py-0.5 rounded-full bg-emerald-50 border border-emerald-300 text-[9px] font-bold text-emerald-700">
-                  <span className="w-1.5 h-1.5 rounded-full bg-emerald-500" />
-                  <span>Available</span>
+                <div
+                  className={`inline-flex items-center gap-1 mt-0.5 px-1.5 py-0.5 rounded-full border text-[9px] font-bold ${
+                    profile?.is_online
+                      ? 'bg-emerald-50 border-emerald-300 text-emerald-700'
+                      : 'bg-slate-100 border-slate-200 text-slate-500'
+                  }`}
+                >
+                  <span
+                    className={`w-1.5 h-1.5 rounded-full ${
+                      profile?.is_online ? 'bg-emerald-500' : 'bg-slate-400'
+                    }`}
+                  />
+                  <span>{profile?.is_online ? 'Online' : 'Offline'}</span>
                 </div>
               </div>
             </div>
-            <Link href="/login" className="text-slate-400 hover:text-slate-600 p-1" title="Sign out / Switch user">
+            <button
+              type="button"
+              onClick={handleSignOut}
+              disabled={signingOut}
+              className="text-slate-400 hover:text-slate-600 p-1 disabled:opacity-50"
+              title="Sign out"
+            >
               <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path d="M9 5l7 7-7 7" strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" />
               </svg>
-            </Link>
+            </button>
           </div>
         </div>
       </div>
