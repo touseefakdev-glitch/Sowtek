@@ -1,4 +1,4 @@
-import { createClient } from '@/lib/supabase/server';
+﻿import { createClient } from '@/lib/supabase/server';
 import type { OrderStatus } from '@/lib/domain/status';
 
 /**
@@ -96,76 +96,50 @@ export async function fetchOrders(filters: OrderFilters = {}): Promise<OrdersRes
   };
 }
 
-/** Aggregate order metrics for the operations dashboard. */
-export interface OrderMetrics {
-  total: number;
-  open: number;
-  warehouse: number;
-  outForDelivery: number;
-  atRisk: number;
-  openValue: number;
-  unassigned: number;
-  statusCounts: Record<string, number>;
-  workload: { id: string; name: string; count: number }[];
+export const DASHBOARD_SELECT = `
+  id,
+  order_number,
+  status,
+  total_amount,
+  created_at,
+  sla_deadline,
+  restaurant:restaurants(id, name),
+  agent:profiles!orders_assigned_agent_fkey(id, full_name)
+`;
+
+export interface DashboardOrder {
+  id: string;
+  order_number: string | null;
+  status: OrderStatus;
+  total_amount: number | null;
+  created_at: string;
+  sla_deadline: string | null;
+  restaurant: { id: string; name: string } | null;
+  agent: { id: string; full_name: string } | null;
 }
 
-export async function fetchOrderMetrics(slaWindowHours = 24): Promise<OrderMetrics> {
-  const supabase = createClient();
-  const { data, error } = await supabase
+export interface DashboardData {
+  orders: DashboardOrder[];
+  total: number;
+}
+
+/**
+ * Orders for the supervisor dashboard. Uses the real `sla_deadline` column
+ * rather than inferring a deadline from age, so the breach queue reflects the
+ * deadline that was actually recorded on the order.
+ */
+export async function fetchDashboardData(limit = 100): Promise<DashboardData> {
+  const { data, error, count } = await createClient()
     .from('orders')
-    .select('id, status, total_amount, assigned_agent, created_at, agent:profiles!orders_assigned_agent_fkey(full_name)');
+    .select(DASHBOARD_SELECT, { count: 'exact' })
+    .order('created_at', { ascending: false })
+    .limit(limit);
 
   if (error) throw new Error(error.message);
 
-  // Same PostgREST embed caveat as fetchOrders above.
-  const rows = (data ?? []) as unknown as Array<{
-    id: string;
-    status: string;
-    total_amount: number | null;
-    assigned_agent: string | null;
-    created_at: string;
-    agent: { full_name: string } | null;
-  }>;
-
-  // Imported here to keep this module's public surface focused on data access.
-  const { isTerminalOrderStatus, isWarehouseStatus } = await import('@/lib/domain/status');
-
-  const statusCounts: Record<string, number> = {};
-  for (const row of rows) {
-    statusCounts[row.status] = (statusCounts[row.status] ?? 0) + 1;
-  }
-
-  const cutoff = Date.now() - slaWindowHours * 60 * 60 * 1000;
-  const openRows = rows.filter((row) => !isTerminalOrderStatus(row.status));
-
-  const workload = new Map<string, { id: string; name: string; count: number }>();
-  let unassigned = 0;
-
-  for (const row of openRows) {
-    if (!row.assigned_agent) {
-      unassigned += 1;
-      continue;
-    }
-    const name = row.agent?.full_name ?? 'Unnamed agent';
-    const existing = workload.get(row.assigned_agent);
-    if (existing) existing.count += 1;
-    else
-      workload.set(row.assigned_agent, {
-        id: row.assigned_agent,
-        name,
-        count: 1,
-      });
-  }
-
   return {
-    total: rows.length,
-    open: openRows.length,
-    warehouse: rows.filter((row) => isWarehouseStatus(row.status)).length,
-    outForDelivery: statusCounts.out_for_delivery ?? 0,
-    atRisk: openRows.filter((row) => new Date(row.created_at).getTime() < cutoff).length,
-    openValue: openRows.reduce((sum, row) => sum + Number(row.total_amount ?? 0), 0),
-    unassigned,
-    statusCounts,
-    workload: [...workload.values()].sort((a, b) => b.count - a.count),
+    // PostgREST embed caveat, as in fetchOrders.
+    orders: (data ?? []) as unknown as DashboardOrder[],
+    total: count ?? 0,
   };
 }

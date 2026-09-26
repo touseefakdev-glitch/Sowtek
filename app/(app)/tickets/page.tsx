@@ -1,4 +1,4 @@
-'use client';
+﻿'use client';
 
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import Link from 'next/link';
@@ -174,7 +174,7 @@ export default function TicketsPage() {
   return (
     <>
       <div className="flex min-w-0 flex-1 flex-col overflow-hidden">
-        <header className="flex h-16 shrink-0 items-center justify-between border-b border-slate-200 bg-white px-6 shadow-xs">
+        <header className="flex h-16 shrink-0 items-center justify-between border-b border-slate-200 bg-white px-6 shadow-subtle">
           <div className="flex items-center gap-3">
             <h1 className="text-lg font-bold text-[#142340]">Tickets &amp; Escalations</h1>
             {criticalCount > 0 && (
@@ -235,14 +235,14 @@ export default function TicketsPage() {
                   onClick={() => setStatusFilter(tab.key)}
                   className={`flex shrink-0 items-center gap-1 whitespace-nowrap rounded-lg px-2.5 py-1 font-bold transition ${
                     statusFilter === tab.key
-                      ? 'bg-[#142340] text-white shadow-xs'
+                      ? 'bg-[#142340] text-white shadow-subtle'
                       : 'text-slate-600 hover:bg-slate-100'
                   }`}
                 >
                   <span>{tab.label}</span>
                   {tab.key !== 'all' && statusCounts[tab.key] ? (
                     <span
-                      className={`rounded-full px-1.5 py-0.2 text-[10px] ${
+                      className={`rounded-full px-1.5 py-0.5 text-[10px] ${
                         statusFilter === tab.key ? 'bg-white/20' : 'bg-slate-200 text-slate-800'
                       }`}
                     >
@@ -261,7 +261,7 @@ export default function TicketsPage() {
                   onClick={() => setTypeFilter(tab.key)}
                   className={`shrink-0 whitespace-nowrap rounded-md px-2 py-0.5 transition ${
                     typeFilter === tab.key
-                      ? 'border border-slate-200 bg-white font-bold text-slate-900 shadow-2xs'
+                      ? 'border border-slate-200 bg-white font-bold text-slate-900 shadow-subtle'
                       : 'hover:bg-slate-200'
                   }`}
                 >
@@ -296,7 +296,7 @@ export default function TicketsPage() {
                     key={ticket.id}
                     type="button"
                     onClick={() => setSelectedId(ticket.id)}
-                    className={`w-full rounded-xl p-3 text-left shadow-2xs transition ${
+                    className={`w-full rounded-xl p-3 text-left shadow-subtle transition ${
                       isSelected
                         ? 'border-2 border-[#70b928] bg-[#edf8e7]/70'
                         : 'border border-slate-200 bg-white hover:border-slate-300'
@@ -538,7 +538,7 @@ export default function TicketsPage() {
                   href={`/contacts/${selected.restaurant.id}`}
                   className="mt-1 inline-block rounded-lg bg-slate-100 px-3 py-1.5 text-[11px] font-semibold text-slate-700 transition hover:bg-slate-200"
                 >
-                  View 360° profile
+                  View 360Â° profile
                 </Link>
               </div>
             ) : (

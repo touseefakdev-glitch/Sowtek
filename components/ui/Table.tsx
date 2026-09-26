@@ -1,4 +1,4 @@
-import React from 'react';
+﻿import React from 'react';
 import { cn } from '@/lib/utils/cn';
 
 /**
@@ -7,7 +7,7 @@ import { cn } from '@/lib/utils/cn';
  */
 export function Table({ className, children, ...rest }: React.TableHTMLAttributes<HTMLTableElement>) {
   return (
-    <div className="w-full overflow-x-auto scrollbar-slim">
+    <div className="w-full overflow-x-auto">
       <table className={cn('w-full border-collapse text-sm', className)} {...rest}>
         {children}
       </table>

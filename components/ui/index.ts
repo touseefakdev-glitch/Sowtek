@@ -8,3 +8,4 @@ export { PageHeader, PageBody } from './PageHeader';
 export { StatCard } from './StatCard';
 export { Icon } from './Icon';
 export { OrderStatusBadge, TicketStatusBadge, PriorityBadge, StockBadge } from './StatusBadges';
+export { RefreshButton } from './RefreshButton';

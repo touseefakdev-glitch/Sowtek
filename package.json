@@ -5,9 +5,11 @@
   "main": "index.js",
   "scripts": {
     "dev": "next dev",
-    "build": "next build",
+    "build": "next build && npm run check:classes",
     "start": "next start",
-    "lint": "next lint"
+    "check:classes": "node scripts/check-classes.mjs",
+    "typecheck": "tsc --noEmit",
+    "lint": "npm run typecheck && npm run check:classes"
   },
   "keywords": [],
   "author": "",

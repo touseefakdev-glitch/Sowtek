@@ -1,4 +1,4 @@
-'use client';
+﻿'use client';
 
 import React, { useEffect, useState } from 'react';
 import Link from 'next/link';
@@ -181,7 +181,7 @@ export default function NotificationsPage() {
               <div className="flex flex-col">
                 <div className="flex items-center gap-1.5 text-slate-500 text-[11px] uppercase tracking-wider font-bold mb-1">
                   <span>Sowtek Operations</span>
-                  <span>•</span>
+                  <span>â€¢</span>
                   <span className="text-[#70b928]">Dispatch Hub</span>
                 </div>
                 <h1 className="text-2xl font-bold text-[#142340] tracking-tight">Activity & Notifications</h1>
@@ -222,7 +222,7 @@ export default function NotificationsPage() {
                     }`}
                   >
                     <span>All</span>
-                    <span className="px-1.5 py-0.2 rounded-full bg-white/20 text-white text-[10px]">
+                    <span className="px-1.5 py-0.5 rounded-full bg-white/20 text-white text-[10px]">
                       {notifications.length}
                     </span>
                   </button>
@@ -235,7 +235,7 @@ export default function NotificationsPage() {
                     }`}
                   >
                     <span>Orders</span>
-                    <span className="px-1.5 py-0.2 rounded-full bg-slate-200 text-slate-700 text-[10px]">
+                    <span className="px-1.5 py-0.5 rounded-full bg-slate-200 text-slate-700 text-[10px]">
                       {ordersCount}
                     </span>
                   </button>
@@ -248,7 +248,7 @@ export default function NotificationsPage() {
                     }`}
                   >
                     <span>Escalations</span>
-                    <span className="px-1.5 py-0.2 rounded-full bg-rose-100 text-rose-800 text-[10px] font-bold">
+                    <span className="px-1.5 py-0.5 rounded-full bg-rose-100 text-rose-800 text-[10px] font-bold">
                       {escalationsCount}
                     </span>
                   </button>
@@ -261,7 +261,7 @@ export default function NotificationsPage() {
                     }`}
                   >
                     <span>System</span>
-                    <span className="px-1.5 py-0.2 rounded-full bg-slate-200 text-slate-700 text-[10px]">
+                    <span className="px-1.5 py-0.5 rounded-full bg-slate-200 text-slate-700 text-[10px]">
                       {systemCount}
                     </span>
                   </button>
@@ -322,7 +322,7 @@ export default function NotificationsPage() {
 
                       <div className="flex items-start gap-4 min-w-0 flex-1">
                         <div
-                          className={`w-10 h-10 rounded-full flex items-center justify-center shrink-0 mt-0.5 shadow-xs ${view.iconBg}`}
+                          className={`w-10 h-10 rounded-full flex items-center justify-center shrink-0 mt-0.5 shadow-subtle ${view.iconBg}`}
                         >
                           <span className="material-symbols-outlined text-[20px]">{view.icon}</span>
                         </div>
@@ -361,7 +361,7 @@ export default function NotificationsPage() {
                         {n.link ? (
                           <Link
                             href={n.link}
-                            className="hidden sm:inline-flex items-center gap-1 px-3 py-1.5 rounded-lg bg-white border border-slate-200 text-slate-800 hover:bg-[#142340] hover:text-white text-xs font-bold transition-all shadow-xs"
+                            className="hidden sm:inline-flex items-center gap-1 px-3 py-1.5 rounded-lg bg-white border border-slate-200 text-slate-800 hover:bg-[#142340] hover:text-white text-xs font-bold transition-all shadow-subtle"
                           >
                             <span>Open</span>
                             <span className="material-symbols-outlined text-[15px]">

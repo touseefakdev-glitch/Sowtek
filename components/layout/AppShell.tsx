@@ -1,4 +1,4 @@
-'use client';
+﻿'use client';
 
 import React, { useEffect, useState } from 'react';
 import { usePathname } from 'next/navigation';
@@ -82,7 +82,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
           </span>
         </div>
 
-        <main className={cn('flex min-h-0 flex-1 flex-col overflow-y-auto scrollbar-slim')}>
+        <main className={cn('flex min-h-0 flex-1 flex-col overflow-y-auto')}>
           {children}
         </main>
       </div>

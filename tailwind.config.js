@@ -31,6 +31,9 @@ module.exports = {
     extend: {
       fontFamily: {
         sans: ['var(--font-jakarta)', 'system-ui', 'sans-serif'],
+        // Arabic restaurant and product names. Resolved from system fonts so
+        // no extra webfont is fetched for the few fields that need it.
+        arabic: ['"Noto Sans Arabic"', '"Segoe UI"', 'Tahoma', 'sans-serif'],
         display: ['var(--font-jakarta)', 'system-ui', 'sans-serif'],
       },
       colors: {

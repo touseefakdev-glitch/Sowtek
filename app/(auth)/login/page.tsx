@@ -1,4 +1,4 @@
-'use client';
+﻿'use client';
 
 import React, { useState } from 'react';
 import { useRouter } from 'next/navigation';
@@ -49,13 +49,13 @@ export default function LoginPage() {
       <div className="w-full px-8 py-6 flex justify-between items-center z-10">
         <div />
 
-        {/* Language toggle: EN | العربية */}
-        <div className="inline-flex items-center bg-white border border-slate-200/90 rounded-xl p-1 shadow-xs">
+        {/* Language toggle: EN | Ø§Ù„Ø¹Ø±Ø¨ÙŠØ© */}
+        <div className="inline-flex items-center bg-white border border-slate-200/90 rounded-xl p-1 shadow-subtle">
           <button
             type="button"
             onClick={() => setLang('en')}
             className={`px-3 py-1 rounded-lg text-xs font-bold transition-all ${
-              lang === 'en' ? 'bg-[#142340] text-white shadow-xs' : 'text-slate-600 hover:text-slate-900'
+              lang === 'en' ? 'bg-[#142340] text-white shadow-subtle' : 'text-slate-600 hover:text-slate-900'
             }`}
           >
             EN
@@ -64,10 +64,10 @@ export default function LoginPage() {
             type="button"
             onClick={() => setLang('ar')}
             className={`px-3 py-1 rounded-lg text-xs font-bold transition-all ${
-              lang === 'ar' ? 'bg-[#142340] text-white shadow-xs' : 'text-slate-600 hover:text-slate-900'
+              lang === 'ar' ? 'bg-[#142340] text-white shadow-subtle' : 'text-slate-600 hover:text-slate-900'
             }`}
           >
-            العربية
+            Ø§Ù„Ø¹Ø±Ø¨ÙŠØ©
           </button>
         </div>
       </div>
@@ -109,11 +109,11 @@ export default function LoginPage() {
             {/* Headline & Subtitle */}
             <div className="text-center mb-7">
               <h1 className="text-2xl font-black text-[#142340] tracking-tight">
-                {lang === 'ar' ? 'مرحباً بعودتك' : 'Welcome back'}
+                {lang === 'ar' ? 'Ù…Ø±Ø­Ø¨Ø§Ù‹ Ø¨Ø¹ÙˆØ¯ØªÙƒ' : 'Welcome back'}
               </h1>
               <p className="text-xs text-slate-500 mt-1.5">
                 {lang === 'ar'
-                  ? 'سجّل الدخول باستخدام بيانات وكيلك للوصول إلى صندوق الوارد الموحد'
+                  ? 'Ø³Ø¬Ù‘Ù„ Ø§Ù„Ø¯Ø®ÙˆÙ„ Ø¨Ø§Ø³ØªØ®Ø¯Ø§Ù… Ø¨ÙŠØ§Ù†Ø§Øª ÙˆÙƒÙŠÙ„Ùƒ Ù„Ù„ÙˆØµÙˆÙ„ Ø¥Ù„Ù‰ ØµÙ†Ø¯ÙˆÙ‚ Ø§Ù„ÙˆØ§Ø±Ø¯ Ø§Ù„Ù…ÙˆØ­Ø¯'
                   : 'Sign in with your agent credentials to access the Unified Inbox'}
               </p>
             </div>
@@ -123,7 +123,7 @@ export default function LoginPage() {
               {/* Email Input */}
               <div>
                 <label className="block text-xs font-semibold text-slate-700 mb-1.5">
-                  {lang === 'ar' ? 'البريد الإلكتروني للعمل' : 'Work Email Address'}
+                  {lang === 'ar' ? 'Ø§Ù„Ø¨Ø±ÙŠØ¯ Ø§Ù„Ø¥Ù„ÙƒØªØ±ÙˆÙ†ÙŠ Ù„Ù„Ø¹Ù…Ù„' : 'Work Email Address'}
                 </label>
                 <div className="relative">
                   <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-slate-400">
@@ -144,7 +144,7 @@ export default function LoginPage() {
               <div>
                 <div className="flex items-center justify-between mb-1.5">
                   <label className="block text-xs font-semibold text-slate-700">
-                    {lang === 'ar' ? 'كلمة المرور' : 'Password'}
+                    {lang === 'ar' ? 'ÙƒÙ„Ù…Ø© Ø§Ù„Ù…Ø±ÙˆØ±' : 'Password'}
                   </label>
                   <button
                     type="button"
@@ -220,11 +220,11 @@ export default function LoginPage() {
                   {loading ? (
                     <span className="inline-flex items-center gap-2">
                       <span className="animate-spin rounded-full h-4 w-4 border-2 border-white border-t-transparent" />
-                      {lang === 'ar' ? 'جاري التحقق من الهوية...' : 'Authenticating...'}
+                      {lang === 'ar' ? 'Ø¬Ø§Ø±ÙŠ Ø§Ù„ØªØ­Ù‚Ù‚ Ù…Ù† Ø§Ù„Ù‡ÙˆÙŠØ©...' : 'Authenticating...'}
                     </span>
                   ) : (
                     <>
-                      <span>{lang === 'ar' ? 'تسجيل الدخول إلى النظام' : 'Sign in to OrderFlow'}</span>
+                      <span>{lang === 'ar' ? 'ØªØ³Ø¬ÙŠÙ„ Ø§Ù„Ø¯Ø®ÙˆÙ„ Ø¥Ù„Ù‰ Ø§Ù„Ù†Ø¸Ø§Ù…' : 'Sign in to OrderFlow'}</span>
                       <span className="material-symbols-outlined text-[16px]">arrow_forward</span>
                     </>
                   )}
@@ -236,10 +236,10 @@ export default function LoginPage() {
       </main>
 
       {/* Clean Bottom Footer */}
-      <footer className="w-full px-8 py-5 flex flex-col sm:flex-row justify-between items-center text-[11px] text-slate-400 gap-2 border-t border-slate-200/60 bg-white/40 backdrop-blur-xs">
+      <footer className="w-full px-8 py-5 flex flex-col sm:flex-row justify-between items-center text-[11px] text-slate-400 gap-2 border-t border-slate-200/60 bg-white/40 backdrop-blur-sm">
         <div className="flex items-center gap-2">
           <span className="font-semibold text-slate-600">Sowtek OrderFlow</span>
-          <span>•</span>
+          <span>â€¢</span>
           <span>Restaurant Supply Logistics OS</span>
         </div>
       </footer>
