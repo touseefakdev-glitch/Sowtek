@@ -1,0 +1,1212 @@
+<!DOCTYPE html><html class="h-full bg-[#f4f6f9]" lang="en"><head>
+<meta charset="utf-8">
+<meta content="width=device-width, initial-scale=1.0" name="viewport">
+<title>Sowtek OrderFlow - Unified Order Inbox</title>
+<!-- Tailwind CSS v3 with Plugins -->
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<!-- Google Fonts & Material Symbols -->
+<link href="https://fonts.googleapis.com" rel="preconnect">
+<link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&amp;family=Plus+Jakarta+Sans:wght@500;600;700;800&amp;display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet">
+<!-- Tailwind Configuration matching Sowtek Design Tokens -->
+<script data-purpose="tailwind-config" id="tailwind-config">
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            sowtek: {
+              navy: '#142340',
+              deep: '#0b1426',
+              green: '#70b928',
+              greenDark: '#5da01f',
+              greenLight: '#eef8eb',
+              canvas: '#f1f3f7',
+              border: '#e2e8f0',
+              accentBlue: '#2563eb'
+            }
+          },
+          fontFamily: {
+            sans: ['Inter', 'system-ui', 'sans-serif'],
+            headline: ['Plus Jakarta Sans', 'Inter', 'sans-serif']
+          }
+        }
+      }
+    };
+  </script>
+<style data-purpose="custom-scrollbar">
+    /* Subtle custom scrollbar */
+    ::-webkit-scrollbar {
+      width: 5px;
+      height: 5px;
+    }
+    ::-webkit-scrollbar-track {
+      background: transparent;
+    }
+    ::-webkit-scrollbar-thumb {
+      background: #cbd5e1;
+      border-radius: 9999px;
+    }
+    ::-webkit-scrollbar-thumb:hover {
+      background: #94a3b8;
+    }
+    .chat-bubble-agent {
+      background-color: #eef8eb;
+      border: 1px solid #d4ecd0;
+    }
+    .chat-bubble-customer {
+      background-color: #ffffff;
+      border: 1px solid #e2e8f0;
+    }
+  </style>
+<meta content="web_dashboard" name="shell-type">
+</head>
+<body class="h-full text-slate-800 antialiased flex overflow-hidden font-sans select-none bg-[#f4f6f9]">
+<!-- BEGIN: Left Navigation Sidebar -->
+<aside class="w-60 bg-white border-r border-slate-200/90 flex flex-col justify-between flex-shrink-0 z-20">
+<!-- Top Branding & Navigation -->
+<div>
+<!-- Brand Logo -->
+<div class="h-16 flex items-center justify-between px-5 border-b border-slate-100">
+<div class="flex items-center space-x-2.5">
+<div class="w-8 h-8 rounded-lg bg-[#142340] flex items-center justify-center text-white shadow-xs font-bold text-base">
+<svg class="w-4 h-4 text-[#70b928]" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2.4" viewBox="0 0 24 24">
+<path d="M4 15s1-1 4-1 5 2 8 2 4-1 4-1V3s-1 1-4 1-5-2-8-2-4 1-4 1z"></path>
+<line x1="4" x2="4" y1="22" y2="15"></line>
+</svg>
+</div>
+<div>
+<span class="text-lg font-extrabold text-[#142340] tracking-tight font-headline">sowtek</span>
+<span class="block text-[9px] uppercase font-bold tracking-wider text-[#70b928] -mt-1 font-headline">OrderFlow</span>
+</div>
+</div>
+<button class="p-1.5 text-slate-400 hover:text-slate-600 rounded-lg hover:bg-slate-50 transition" title="Collapse Menu">
+<svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M11 19l-7-7 7-7m8 14l-7-7 7-7" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"></path></svg>
+</button>
+</div>
+<!-- Main Navigation Links -->
+<nav class="p-3 space-y-1 text-xs font-semibold">
+<!-- Unified Inbox (Active) -->
+<a class="flex items-center justify-between px-3 py-2 rounded-xl bg-[#eef8eb] text-[#142340] font-bold shadow-2xs border border-emerald-200/60" href="#">
+<div class="flex items-center space-x-2.5">
+<span class="material-symbols-outlined text-base text-[#70b928]">move_to_inbox</span>
+<span>Unified Inbox</span>
+</div>
+<span class="px-2 py-0.5 text-[10px] rounded-full bg-[#70b928] text-white font-bold">14</span>
+</a>
+<!-- Overview -->
+<a class="flex items-center space-x-2.5 px-3 py-2 rounded-xl text-slate-600 hover:bg-slate-50 hover:text-slate-900 transition" href="#">
+<span class="material-symbols-outlined text-base text-slate-400">grid_view</span>
+<span>Overview</span>
+</a>
+<!-- Orders -->
+<a class="flex items-center space-x-2.5 px-3 py-2 rounded-xl text-slate-600 hover:bg-slate-50 hover:text-slate-900 transition" href="#">
+<span class="material-symbols-outlined text-base text-slate-400">shopping_bag</span>
+<span>Orders</span>
+</a>
+<!-- Issues -->
+<a class="flex items-center justify-between px-3 py-2 rounded-xl text-slate-600 hover:bg-slate-50 hover:text-slate-900 transition" href="#">
+<div class="flex items-center space-x-2.5">
+<span class="material-symbols-outlined text-base text-slate-400">warning</span>
+<span>Issues</span>
+</div>
+<span class="px-1.5 py-0.5 text-[10px] rounded-md bg-amber-100 text-amber-800 font-bold">3 Escalated</span>
+</a>
+<!-- Restaurants -->
+<a class="flex items-center space-x-2.5 px-3 py-2 rounded-xl text-slate-600 hover:bg-slate-50 hover:text-slate-900 transition" href="#">
+<span class="material-symbols-outlined text-base text-slate-400">storefront</span>
+<span>Restaurants</span>
+</a>
+<!-- Products -->
+<a class="flex items-center space-x-2.5 px-3 py-2 rounded-xl text-slate-600 hover:bg-slate-50 hover:text-slate-900 transition" href="#">
+<span class="material-symbols-outlined text-base text-slate-400">inventory_2</span>
+<span>Products</span>
+</a>
+<!-- Reports -->
+<a class="flex items-center space-x-2.5 px-3 py-2 rounded-xl text-slate-600 hover:bg-slate-50 hover:text-slate-900 transition" href="#">
+<span class="material-symbols-outlined text-base text-slate-400">analytics</span>
+<span>Reports</span>
+</a>
+<!-- Settings -->
+<a class="flex items-center space-x-2.5 px-3 py-2 rounded-xl text-slate-600 hover:bg-slate-50 hover:text-slate-900 transition" href="#">
+<span class="material-symbols-outlined text-base text-slate-400">settings</span>
+<span>Settings</span>
+</a>
+<!-- Quick Action Pill Button -->
+<div class="pt-3 px-1">
+<button class="w-full flex items-center justify-center space-x-2 py-2 px-3 bg-sky-50 text-sky-700 font-bold text-xs rounded-xl border border-sky-200/80 hover:bg-sky-100 transition shadow-2xs" onclick="openDrawer('orderDrawer')">
+<span class="material-symbols-outlined text-sm">add</span>
+<span>Quick Action</span>
+</button>
+</div>
+</nav>
+</div>
+<!-- Bottom Account & Support Block -->
+<div class="p-3 border-t border-slate-100 space-y-1.5">
+<a class="flex items-center justify-between px-2.5 py-1.5 text-xs text-slate-600 hover:text-slate-900 rounded-lg hover:bg-slate-50 transition" href="#">
+<div class="flex items-center space-x-2">
+<span class="material-symbols-outlined text-sm text-slate-400">help</span>
+<span>Help Center</span>
+</div>
+</a>
+<a class="flex items-center justify-between px-2.5 py-1.5 text-xs text-slate-600 hover:text-slate-900 rounded-lg hover:bg-slate-50 transition" href="#">
+<div class="flex items-center space-x-2">
+<span class="material-symbols-outlined text-sm text-slate-400">notifications</span>
+<span>Notifications</span>
+</div>
+<span class="w-2 h-2 rounded-full bg-[#70b928]"></span>
+</a>
+<!-- Agent Profile Card -->
+<div class="pt-2">
+<div class="flex items-center justify-between p-2 rounded-xl bg-slate-50 border border-slate-200/80">
+<div class="flex items-center space-x-2.5">
+<div class="relative">
+<div class="w-8 h-8 rounded-full bg-[#142340] text-white flex items-center justify-center font-bold text-xs">
+                KO
+              </div>
+<span class="absolute bottom-0 right-0 w-2.5 h-2.5 rounded-full bg-[#70b928] border-2 border-white"></span>
+</div>
+<div>
+<p class="text-xs font-bold text-slate-900 leading-none">Kenneth Ofkeli</p>
+<div class="flex items-center space-x-1 mt-1 text-[10px] text-[#5da01f] font-semibold bg-emerald-50 px-1.5 py-0.5 rounded">
+<span class="w-1.5 h-1.5 rounded-full bg-[#70b928] animate-pulse"></span>
+<span>Available 00:10:22</span>
+</div>
+</div>
+</div>
+<span class="material-symbols-outlined text-slate-400 text-sm">chevron_right</span>
+</div>
+</div>
+</div>
+</aside>
+<!-- END: Left Navigation Sidebar -->
+<!-- BEGIN: Main Dashboard Content Area -->
+<main class="flex-1 flex flex-col h-full overflow-hidden bg-[#f4f6f9]">
+<!-- Toast Notification Overlay -->
+<div class="fixed top-5 right-6 z-50 transform transition-all duration-300 translate-y-[-120%] opacity-0 pointer-events-none flex items-center gap-3 px-4 py-3 rounded-xl bg-[#142340] text-white shadow-2xl border border-slate-700" id="toastNotification">
+<span class="material-symbols-outlined text-[#70b928] text-xl" style="font-variation-settings: 'FILL' 1;">check_circle</span>
+<div>
+<p class="text-xs text-white font-bold" id="toastMessage">Status updated successfully</p>
+<p class="text-[11px] text-slate-300">Synchronized with WhatsApp &amp; WMS Dispatch</p>
+</div>
+</div>
+<!-- Top Global Context Bar -->
+<header class="h-13 bg-white px-5 py-2.5 flex items-center justify-between border-b border-slate-200/80 z-10 flex-shrink-0">
+<div class="flex items-center gap-3">
+<div class="flex items-center gap-2">
+<span class="text-sm font-extrabold text-[#142340] font-headline">Unified Order Inbox</span>
+<span class="px-2 py-0.5 rounded-full bg-[#eef8eb] text-[#5da01f] text-[10px] font-extrabold uppercase tracking-wide">Live Hub</span>
+</div>
+<span class="text-slate-300 font-light">/</span>
+<div class="flex items-center gap-2 text-xs text-slate-500">
+<span>Riyadh Central Cluster</span>
+<span class="w-1.5 h-1.5 rounded-full bg-[#70b928]"></span>
+<span class="font-semibold text-slate-700">Route 14 Bay Sync Active</span>
+</div>
+</div>
+<div class="flex items-center gap-4">
+<div class="flex items-center gap-1.5 px-3 py-1 rounded-lg bg-amber-50 border border-amber-200/60 text-amber-900 text-xs font-semibold">
+<span class="material-symbols-outlined text-amber-600 text-sm animate-spin" style="font-variation-settings: 'FILL' 1;">sync</span>
+<span>WhatsApp Webhook: Latency 82ms</span>
+</div>
+<div class="text-xs text-slate-600">
+<span class="font-bold text-slate-900">14 Orders Pending Dispatch</span>
+</div>
+</div>
+</header>
+<!-- Main 3-Column Cockpit Canvas -->
+<div class="flex-1 flex overflow-hidden p-3 gap-3 bg-[#f1f3f7]">
+<!-- ================================================================= -->
+<!-- COLUMN 1: CONVERSATION LIST (w-[300px] to w-[320px]) -->
+<!-- ================================================================= -->
+<section class="w-72 xl:w-80 flex-shrink-0 bg-white rounded-2xl border border-slate-200/80 flex flex-col overflow-hidden shadow-xs">
+<!-- Search & Filters -->
+<div class="p-3 border-b border-slate-100 space-y-2.5 bg-white">
+<div class="relative flex items-center">
+<span class="material-symbols-outlined absolute left-3 text-slate-400 text-base">search</span>
+<input class="w-full pl-9 pr-8 py-1.5 bg-slate-50 rounded-xl text-xs text-slate-800 placeholder-slate-400 border border-slate-200/70 focus:outline-none focus:bg-white focus:border-[#142340] transition" placeholder="Search restaurant, order #, chef..." type="text">
+<button class="absolute right-2 text-slate-400 hover:text-slate-600 p-1" title="Filter attributes">
+<span class="material-symbols-outlined text-base">tune</span>
+</button>
+</div>
+<!-- Filter Pills -->
+<div class="flex items-center gap-1.5 overflow-x-auto pb-0.5 no-scrollbar text-xs">
+<button class="px-2.5 py-1 rounded-lg bg-[#142340] text-white font-bold text-[11px] flex-shrink-0">
+              All <span class="ml-1 opacity-80">14</span>
+</button>
+<button class="px-2.5 py-1 rounded-lg bg-slate-100 hover:bg-slate-200 text-slate-600 font-semibold text-[11px] flex-shrink-0 transition">
+              Unassigned <span class="ml-1 text-slate-400 font-normal">6</span>
+</button>
+<button class="px-2.5 py-1 rounded-lg bg-[#eef8eb] text-[#5da01f] font-bold text-[11px] flex-shrink-0 border border-emerald-200/60">
+              My Orders <span class="ml-1 font-semibold">5</span>
+</button>
+<button class="px-2.5 py-1 rounded-lg bg-amber-50 text-amber-800 font-semibold text-[11px] flex-shrink-0 border border-amber-200/60">
+              Waiting <span class="ml-1">4</span>
+</button>
+</div>
+</div>
+<!-- Feed Items List -->
+<div class="flex-1 overflow-y-auto p-2 space-y-1.5 divide-y divide-transparent">
+<!-- ITEM 1: Active Selected (Al Noor Restaurant) -->
+<div class="p-3 rounded-xl bg-[#eef4fd] border border-blue-200/70 shadow-2xs cursor-pointer transition relative">
+<div class="absolute left-0 top-2 bottom-2 w-1 bg-[#2563eb] rounded-r-md"></div>
+<div class="flex items-start justify-between gap-2 pl-1.5">
+<div class="flex items-center gap-2.5 min-w-0">
+<div class="relative flex-shrink-0">
+<div class="w-9 h-9 rounded-xl bg-[#142340] text-white flex items-center justify-center font-headline font-bold text-xs">
+                    AN
+                  </div>
+<div class="absolute -bottom-1 -right-1 w-4 h-4 rounded-full bg-[#25D366] text-white flex items-center justify-center text-[8px] ring-2 ring-white">
+<span class="material-symbols-outlined text-[10px]" style="font-variation-settings: 'FILL' 1;">chat</span>
+</div>
+</div>
+<div class="min-w-0">
+<h4 class="font-headline font-bold text-xs text-slate-900 truncate">Al Noor Restaurant</h4>
+<p class="text-[11px] text-slate-500 truncate">Bay 3 • King Fahd Rd</p>
+</div>
+</div>
+<span class="text-[11px] text-slate-400 font-medium flex-shrink-0">10:14 AM</span>
+</div>
+<div class="mt-2 pl-1.5 flex items-center justify-between">
+<span class="inline-flex items-center gap-1 px-1.5 py-0.5 rounded bg-blue-100 text-blue-800 text-[10px] font-bold">
+<span class="material-symbols-outlined text-[11px]">receipt_long</span>
+                #ORD-8821
+              </span>
+<span class="inline-flex items-center gap-1 px-1.5 py-0.5 rounded-full bg-amber-100 text-amber-900 text-[10px] font-bold">
+<span class="w-1.5 h-1.5 rounded-full bg-amber-500 animate-pulse"></span>
+                SLA 06:12
+              </span>
+</div>
+<p class="mt-1.5 pl-1.5 text-[11px] text-slate-600 line-clamp-1 italic">
+              "Chef Faisal: Confirmed the revised 10 bags of Basmati..."
+            </p>
+</div>
+<!-- ITEM 2: Sultan Grill Express -->
+<div class="p-3 rounded-xl bg-white hover:bg-slate-50 border border-slate-100 cursor-pointer transition">
+<div class="flex items-start justify-between gap-2">
+<div class="flex items-center gap-2.5 min-w-0">
+<div class="relative flex-shrink-0">
+<div class="w-9 h-9 rounded-xl bg-orange-600 text-white flex items-center justify-center font-headline font-bold text-xs">
+                    SG
+                  </div>
+<div class="absolute -bottom-1 -right-1 w-4 h-4 rounded-full bg-[#25D366] text-white flex items-center justify-center text-[8px] ring-2 ring-white">
+<span class="material-symbols-outlined text-[10px]" style="font-variation-settings: 'FILL' 1;">chat</span>
+</div>
+</div>
+<div class="min-w-0">
+<h4 class="font-headline font-bold text-xs text-slate-800 truncate">Sultan Grill Express</h4>
+<p class="text-[11px] text-slate-500 truncate">Chef Tariq • Olaya</p>
+</div>
+</div>
+<span class="text-[11px] text-slate-400">10:02 AM</span>
+</div>
+<div class="mt-2 flex items-center justify-between">
+<span class="px-1.5 py-0.5 rounded bg-slate-100 text-slate-700 text-[10px] font-semibold">
+                #ORD-8819
+              </span>
+<span class="px-2 py-0.5 rounded-full bg-emerald-50 text-[#5da01f] text-[10px] font-bold">
+                Dispatched
+              </span>
+</div>
+<p class="mt-1 text-[11px] text-slate-500 line-clamp-1">
+              "Driver arrived at back door, unloading 8 crates..."
+            </p>
+</div>
+<!-- ITEM 3: Bella Roma Bistro -->
+<div class="p-3 rounded-xl bg-white hover:bg-slate-50 border border-slate-100 cursor-pointer transition">
+<div class="flex items-start justify-between gap-2">
+<div class="flex items-center gap-2.5 min-w-0">
+<div class="relative flex-shrink-0">
+<div class="w-9 h-9 rounded-xl bg-emerald-800 text-white flex items-center justify-center font-headline font-bold text-xs">
+                    BR
+                  </div>
+<div class="absolute -bottom-1 -right-1 w-4 h-4 rounded-full bg-[#25D366] text-white flex items-center justify-center text-[8px] ring-2 ring-white">
+<span class="material-symbols-outlined text-[10px]" style="font-variation-settings: 'FILL' 1;">chat</span>
+</div>
+</div>
+<div class="min-w-0">
+<h4 class="font-headline font-bold text-xs text-slate-800 truncate">Bella Roma Bistro</h4>
+<p class="text-[11px] text-slate-500 truncate">Chef Marco • Diplomatic Qtr</p>
+</div>
+</div>
+<span class="text-[11px] text-slate-400">09:48 AM</span>
+</div>
+<div class="mt-2 flex items-center justify-between">
+<span class="px-1.5 py-0.5 rounded bg-slate-100 text-slate-700 text-[10px] font-semibold">
+                #ORD-8814
+              </span>
+<span class="px-2 py-0.5 rounded-full bg-rose-50 text-rose-700 text-[10px] font-bold">
+                Delayed Bay 1
+              </span>
+</div>
+<p class="mt-1 text-[11px] text-slate-500 line-clamp-1">
+              "Can we substitute the San Marzano cases?"
+            </p>
+</div>
+<!-- ITEM 4: Le Gourmet Bakery -->
+<div class="p-3 rounded-xl bg-white hover:bg-slate-50 border border-slate-100 cursor-pointer transition">
+<div class="flex items-start justify-between gap-2">
+<div class="flex items-center gap-2.5 min-w-0">
+<div class="relative flex-shrink-0">
+<div class="w-9 h-9 rounded-xl bg-purple-900 text-white flex items-center justify-center font-headline font-bold text-xs">
+                    LG
+                  </div>
+<div class="absolute -bottom-1 -right-1 w-4 h-4 rounded-full bg-[#25D366] text-white flex items-center justify-center text-[8px] ring-2 ring-white">
+<span class="material-symbols-outlined text-[10px]" style="font-variation-settings: 'FILL' 1;">chat</span>
+</div>
+</div>
+<div class="min-w-0">
+<h4 class="font-headline font-bold text-xs text-slate-800 truncate">Le Gourmet Bakery Hub</h4>
+<p class="text-[11px] text-slate-500 truncate">Sous Chef Dania • Nakheel</p>
+</div>
+</div>
+<span class="text-[11px] text-slate-400">09:15 AM</span>
+</div>
+<div class="mt-2 flex items-center justify-between">
+<span class="px-1.5 py-0.5 rounded bg-slate-100 text-slate-700 text-[10px] font-semibold">
+                #ORD-8809
+              </span>
+<span class="px-2 py-0.5 rounded-full bg-slate-100 text-slate-600 text-[10px] font-semibold">
+                Delivered
+              </span>
+</div>
+<p class="mt-1 text-[11px] text-slate-500 line-clamp-1">
+              "Signed receipt uploaded. Thanks Kenneth!"
+            </p>
+</div>
+</div>
+</section>
+<!-- ================================================================= -->
+<!-- COLUMN 2: ACTIVE WHATSAPP CHAT PANEL (Spacious, Polish, No Overlap) -->
+<!-- ================================================================= -->
+<section class="flex-1 min-w-0 bg-white rounded-2xl border border-slate-200/80 flex flex-col overflow-hidden shadow-xs">
+<!-- Header Bar: Crisp, spacious, proper flex layout -->
+<div class="px-5 py-3.5 bg-white border-b border-slate-200/80 flex items-center justify-between flex-shrink-0 gap-3">
+<div class="flex items-center gap-3 min-w-0">
+<div class="relative flex-shrink-0">
+<div class="w-10 h-10 rounded-xl bg-[#142340] text-white flex items-center justify-center font-headline font-bold text-sm shadow-2xs">
+                AN
+              </div>
+<div class="absolute -bottom-1 -right-1 w-4 h-4 rounded-full bg-[#25D366] text-white flex items-center justify-center text-[9px] ring-2 ring-white">
+<span class="material-symbols-outlined text-[10px]" style="font-variation-settings: 'FILL' 1;">chat</span>
+</div>
+</div>
+<div class="min-w-0">
+<div class="flex items-center gap-2 flex-wrap">
+<h3 class="font-headline font-bold text-sm text-slate-900 truncate">Al Noor Restaurant</h3>
+<span class="text-xs text-slate-400 font-normal">•</span>
+<span class="text-xs font-semibold text-slate-700">Chef Faisal Al-Qaisi</span>
+<span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-[#eef8eb] text-[#5da01f] text-[10px] font-bold whitespace-nowrap">
+<span class="w-1.5 h-1.5 rounded-full bg-[#25D366]"></span>
+                  WhatsApp Active
+                </span>
+</div>
+<p class="text-xs text-slate-500 mt-0.5 truncate">King Fahd Rd Branch • Bay 3 Delivery Bay • VIP Net-30</p>
+</div>
+</div>
+<!-- Header Actions: SLA Pill, Assign, Split View -->
+<div class="flex items-center gap-2 flex-shrink-0">
+<!-- SLA Countdown Pill -->
+<div class="px-2.5 py-1 rounded-full bg-amber-50 border border-amber-200/70 text-amber-900 text-xs font-bold flex items-center gap-1.5 shadow-2xs">
+<span class="material-symbols-outlined text-amber-600 text-sm animate-pulse">timer</span>
+<span>SLA: 06:12 min remaining</span>
+</div>
+<!-- Quick Action: Assign -->
+<button class="px-2.5 py-1.5 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-semibold flex items-center gap-1 transition" onclick="openModal('assignModal')" title="Assign Agent">
+<span class="material-symbols-outlined text-sm">person_add</span>
+<span>Assign</span>
+</button>
+<!-- Quick Action: View / Toggle -->
+<button class="p-1.5 rounded-xl text-slate-400 hover:text-slate-700 hover:bg-slate-100 transition" title="Open Split View">
+<span class="material-symbols-outlined text-base">vertical_split</span>
+</button>
+</div>
+</div>
+<!-- Clean Amber Alert Banner: Next Required Action -->
+<div class="px-5 py-2.5 bg-[#fefce8] border-b border-amber-200/60 flex items-center justify-between gap-3 flex-shrink-0">
+<div class="flex items-center gap-2 min-w-0">
+<span class="material-symbols-outlined text-amber-600 text-lg flex-shrink-0" style="font-variation-settings: 'FILL' 1;">error</span>
+<p class="text-xs text-amber-900 font-medium truncate">
+<span class="font-bold text-amber-950">Action Required:</span> Verify Bay 3 stock allocation and confirm delivery window.
+            </p>
+</div>
+<button class="px-2 py-0.5 rounded bg-amber-100 hover:bg-amber-200 text-amber-900 text-[11px] font-bold flex-shrink-0 transition" onclick="switchOrderTab('items')">
+            Review Stock
+          </button>
+</div>
+<!-- Inbound & Outbound WhatsApp Chat Thread -->
+<div class="flex-1 overflow-y-auto p-5 space-y-4 bg-[#f8fafc]" id="chatFeed">
+<!-- Date Separator -->
+<div class="flex justify-center">
+<span class="px-3 py-1 rounded-full bg-slate-200/70 text-slate-600 text-[11px] font-semibold">
+              Today • Riyadh Logistics Shift
+            </span>
+</div>
+<!-- Customer Message 1 -->
+<div class="flex items-start gap-3 max-w-lg">
+<div class="w-8 h-8 rounded-full bg-slate-800 text-white flex items-center justify-center font-headline text-xs font-bold flex-shrink-0 shadow-2xs">
+              FA
+            </div>
+<div class="space-y-1">
+<div class="chat-bubble-customer p-3.5 rounded-2xl rounded-tl-xs shadow-2xs text-xs text-slate-800 space-y-1 bg-white">
+<p class="font-bold text-[#142340] text-[11px]">Chef Faisal Al-Qaisi</p>
+<p class="leading-relaxed">Salam Kenneth! We need our regular kitchen supplies for tomorrow morning before lunch service. Especially the 20kg Basmati and San Marzano crushed tomatoes.</p>
+</div>
+<div class="flex items-center gap-1.5 pl-1 text-[10px] text-slate-400">
+<span>10:11 AM</span>
+<span>• Received via WhatsApp</span>
+</div>
+</div>
+</div>
+<!-- Customer Message 2: Attached Purchase Order PDF Card -->
+<div class="flex items-start gap-3 max-w-lg">
+<div class="w-8 h-8 rounded-full bg-slate-800 text-white flex items-center justify-center font-headline text-xs font-bold flex-shrink-0 shadow-2xs">
+              FA
+            </div>
+<div class="space-y-1">
+<div class="p-3.5 rounded-2xl rounded-tl-xs shadow-2xs bg-white border border-slate-200/80 space-y-2.5 max-w-sm">
+<p class="text-xs text-slate-800">Here is the signed internal requisition with our finance stamp:</p>
+<!-- PDF Attachment Card -->
+<div class="p-2.5 rounded-xl bg-slate-50 border border-slate-200/80 flex items-center justify-between gap-3">
+<div class="flex items-center gap-2.5 min-w-0">
+<div class="w-9 h-9 rounded-lg bg-rose-50 text-rose-600 flex items-center justify-center flex-shrink-0">
+<span class="material-symbols-outlined text-xl" style="font-variation-settings: 'FILL' 1;">picture_as_pdf</span>
+</div>
+<div class="min-w-0">
+<p class="font-bold text-xs text-slate-900 truncate">PO_AlNoor_ORD8821.pdf</p>
+<p class="text-[10px] text-slate-500">1.2 MB • 3 line items parsed</p>
+</div>
+</div>
+<div class="flex items-center gap-1 flex-shrink-0">
+<button class="px-2 py-1 rounded bg-white hover:bg-slate-100 text-slate-700 text-[11px] font-bold border border-slate-200 transition shadow-2xs" onclick="switchOrderTab('attachments')">
+                      View
+                    </button>
+<button class="p-1 rounded text-slate-400 hover:text-slate-700 transition" title="Download">
+<span class="material-symbols-outlined text-base">download</span>
+</button>
+</div>
+</div>
+</div>
+<div class="flex items-center gap-1.5 pl-1 text-[10px] text-slate-400">
+<span>10:14 AM</span>
+</div>
+</div>
+</div>
+<!-- Dispatcher Outbound Message -->
+<div class="flex items-end justify-end gap-2.5 max-w-lg ml-auto">
+<div class="space-y-1">
+<div class="chat-bubble-agent p-3.5 rounded-2xl rounded-br-xs shadow-2xs text-xs text-slate-900 space-y-1.5">
+<div class="flex items-center justify-between gap-2 border-b border-emerald-200/50 pb-1">
+<span class="font-bold text-[#5da01f] text-[11px]">Kenneth Ofkeli (Sowtek Dispatch)</span>
+<span class="text-[10px] text-slate-500">Bay 3 Logistics</span>
+</div>
+<p class="leading-relaxed">Wa alaykum as-salam Chef Faisal! I've reviewed your PO. Inventory is allocated at Riyadh Central DC: 10 bags Basmati (20kg), 15 cases tomatoes, and 5 tins EVOO.</p>
+<p class="font-bold text-slate-900 bg-white/70 p-2 rounded-lg border border-emerald-200/60">
+                  Total: SAR 4,820.00 (Excl. VAT) • Slot: Tomorrow 10:30 AM
+                </p>
+</div>
+<div class="flex items-center justify-end gap-1.5 pr-1 text-[10px] text-slate-400">
+<span>10:16 AM</span>
+<span class="text-[#70b928] flex items-center">
+<span class="material-symbols-outlined text-sm">done_all</span>
+</span>
+</div>
+</div>
+<div class="w-8 h-8 rounded-full bg-[#142340] text-white flex items-center justify-center font-headline text-xs font-bold flex-shrink-0 shadow-2xs">
+              KO
+            </div>
+</div>
+</div>
+<!-- Quick Canned Chips & Compose Bar -->
+<div class="p-3 bg-white border-t border-slate-200/80 space-y-2 flex-shrink-0">
+<!-- Canned Quick Templates -->
+<div class="flex items-center gap-1.5 overflow-x-auto pb-1 text-xs">
+<span class="text-[10px] uppercase font-bold text-slate-400 tracking-wider flex-shrink-0">Quick Reply:</span>
+<button class="px-2.5 py-1 rounded-lg bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs whitespace-nowrap transition" onclick="insertTemplate('Order confirmed for tomorrow 10:30 AM delivery at Bay 3.')">
+              Confirm Bay 3 Time
+            </button>
+<button class="px-2.5 py-1 rounded-lg bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs whitespace-nowrap transition" onclick="insertTemplate('Stock verified. Dispatch invoice #ORD-8821 ready.')">
+              Send Stock Update
+            </button>
+<button class="px-2.5 py-1 rounded-lg bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs whitespace-nowrap transition" onclick="insertTemplate('Gate code #4092 acknowledged for driver.')">
+              Acknowledge Gate Pass
+            </button>
+</div>
+<!-- Input Bar -->
+<div class="flex items-center gap-2 bg-slate-50 border border-slate-200/80 p-1.5 rounded-xl focus-within:border-[#142340] focus-within:bg-white transition">
+<button class="p-1.5 text-slate-400 hover:text-slate-600 rounded-lg hover:bg-slate-100 transition" title="Attach Document">
+<span class="material-symbols-outlined text-xl">attach_file</span>
+</button>
+<input class="flex-1 bg-transparent py-1.5 px-2 text-xs text-slate-800 placeholder-slate-400 focus:outline-none" id="chatInput" placeholder="Type WhatsApp message to Chef Faisal..." type="text">
+<button class="p-2 bg-[#70b928] hover:bg-[#5da01f] text-white rounded-lg shadow-xs transition flex items-center justify-center flex-shrink-0" onclick="sendChatMessage()">
+<span class="material-symbols-outlined text-base">send</span>
+</button>
+</div>
+</div>
+</section>
+<!-- ================================================================= -->
+<!-- COLUMN 3: ORDER DETAIL PANEL (#ORD-8821) -->
+<!-- Pristine, refined, beautiful typography & tables -->
+<!-- ================================================================= -->
+<aside class="w-[420px] xl:w-[470px] flex-shrink-0 rounded-2xl bg-white border border-slate-200/80 shadow-xs flex flex-col h-full overflow-hidden">
+<!-- Header Bar -->
+<div class="p-4 bg-white border-b border-slate-200/80 flex items-center justify-between flex-shrink-0">
+<div class="flex items-center gap-2.5 min-w-0">
+<button class="p-1.5 rounded-lg text-slate-400 hover:text-slate-700 hover:bg-slate-100 transition" onclick="resetProfileView()" title="Back to Customer 360">
+<span class="material-symbols-outlined text-base">arrow_back</span>
+</button>
+<div class="min-w-0">
+<div class="flex items-center gap-2">
+<h2 class="font-headline font-bold text-base text-[#142340] tracking-tight">#ORD-8821</h2>
+<span class="px-2 py-0.5 rounded-full bg-[#fef3c7] text-[#92400e] text-[11px] font-bold flex items-center gap-1 border border-amber-200/60" id="currentStatusBadge">
+<span class="w-1.5 h-1.5 rounded-full bg-amber-600 animate-pulse"></span>
+<span>Pending Confirm</span>
+</span>
+</div>
+<p class="text-xs text-slate-500 truncate mt-0.5">Al Noor Restaurant • Bay 3, King Fahd Rd</p>
+</div>
+</div>
+<div class="flex items-center gap-3">
+<div class="text-right">
+<span class="text-[10px] text-slate-400 uppercase font-bold tracking-wider block">Total</span>
+<span class="font-headline font-extrabold text-sm text-[#142340]">SAR 4,820.00</span>
+</div>
+<div class="relative" title="Assigned Agent: Kenneth Ofkeli">
+<div class="w-8 h-8 rounded-full bg-[#142340] text-white flex items-center justify-center font-headline text-xs font-bold shadow-xs">
+                KO
+              </div>
+<span class="absolute bottom-0 right-0 w-2 h-2 rounded-full bg-[#70b928] ring-2 ring-white"></span>
+</div>
+</div>
+</div>
+<!-- Clean Segmented Navigation Tabs -->
+<div class="bg-slate-50/80 px-4 flex gap-6 text-xs font-semibold border-b border-slate-200/80 flex-shrink-0">
+<button class="py-3 font-bold text-[#142340] transition relative flex items-center gap-1.5" id="tabBtn-items" onclick="switchOrderTab('items')">
+<span class="material-symbols-outlined text-base text-[#142340]">inventory</span>
+<span>Order Items</span>
+<span class="px-1.5 py-0.2 rounded-full bg-slate-200 text-slate-800 text-[10px] font-bold">3</span>
+<div class="absolute bottom-0 left-0 right-0 h-0.5 bg-[#142340]" id="tabIndicator-items"></div>
+</button>
+<button class="py-3 font-semibold text-slate-500 hover:text-slate-900 transition relative flex items-center gap-1.5" id="tabBtn-timeline" onclick="switchOrderTab('timeline')">
+<span class="material-symbols-outlined text-base">history</span>
+<span>Status Timeline</span>
+<div class="hidden absolute bottom-0 left-0 right-0 h-0.5 bg-[#142340]" id="tabIndicator-timeline"></div>
+</button>
+<button class="py-3 font-semibold text-slate-500 hover:text-slate-900 transition relative flex items-center gap-1.5" id="tabBtn-attachments" onclick="switchOrderTab('attachments')">
+<span class="material-symbols-outlined text-base">attachment</span>
+<span>Attachments</span>
+<span class="px-1.5 py-0.2 rounded-full bg-[#eef8eb] text-[#5da01f] text-[10px] font-bold">3</span>
+<div class="hidden absolute bottom-0 left-0 right-0 h-0.5 bg-[#142340]" id="tabIndicator-attachments"></div>
+</button>
+<button class="py-3 font-semibold text-slate-500 hover:text-slate-900 transition relative flex items-center gap-1.5" id="tabBtn-notes" onclick="switchOrderTab('notes')">
+<span class="material-symbols-outlined text-base">notes</span>
+<span>Internal Notes</span>
+<span class="px-1.5 py-0.2 rounded-full bg-amber-100 text-amber-800 text-[10px] font-bold">2</span>
+<div class="hidden absolute bottom-0 left-0 right-0 h-0.5 bg-[#142340]" id="tabIndicator-notes"></div>
+</button>
+</div>
+<!-- Scrollable Tab Content Body -->
+<div class="flex-1 overflow-y-auto p-4 space-y-4 bg-white">
+<!-- TAB 1: ORDER ITEMS -->
+<div class="space-y-4" id="orderTab-items">
+<!-- Logistics & Terms Summary Cards -->
+<div class="p-3.5 rounded-xl bg-slate-50 border border-slate-200/70 space-y-2.5">
+<div class="flex items-center justify-between text-xs">
+<span class="text-slate-500 font-medium">Delivery Destination:</span>
+<span class="font-bold text-slate-800 flex items-center gap-1">
+<span class="material-symbols-outlined text-[#70b928] text-sm" style="font-variation-settings: 'FILL' 1;">location_on</span>
+                  Bay 3, King Fahd Rd (Tomorrow 10:30 AM)
+                </span>
+</div>
+<div class="flex items-center justify-between text-xs">
+<span class="text-slate-500 font-medium">Payment Terms:</span>
+<span class="font-bold text-blue-900 px-2 py-0.5 rounded bg-blue-50 border border-blue-200/60 text-[11px]">
+                  VIP Net-30 Account (Credit Limit: SAR 45,000)
+                </span>
+</div>
+<div class="flex items-center justify-between text-xs">
+<span class="text-slate-500 font-medium">Logistics Gate Note:</span>
+<span class="font-mono text-[11px] bg-amber-100 text-amber-900 px-2 py-0.5 rounded font-bold border border-amber-200/60">
+                  Gate Code #4092
+                </span>
+</div>
+</div>
+<!-- SKU Items Table with generous padding -->
+<div class="overflow-hidden rounded-xl border border-slate-200/80">
+<table class="w-full text-left text-xs">
+<thead class="bg-slate-50 text-slate-500 uppercase font-bold text-[10px] tracking-wider border-b border-slate-200/80">
+<tr>
+<th class="py-2.5 px-3">Item / SKU</th>
+<th class="py-2.5 px-2 text-center">Qty</th>
+<th class="py-2.5 px-3 text-right">Unit Price</th>
+<th class="py-2.5 px-3 text-right">Total</th>
+</tr>
+</thead>
+<tbody class="divide-y divide-slate-100 text-slate-800">
+<!-- Row 1 -->
+<tr class="hover:bg-slate-50/50 transition">
+<td class="py-2.5 px-3">
+<p class="font-bold text-slate-900 leading-tight">Premium Basmati Rice (20kg)</p>
+<span class="text-[10px] text-slate-500 font-mono">SKU: GRN-402 • 20kg Bag</span>
+</td>
+<td class="py-2.5 px-2 text-center font-bold text-slate-900">10</td>
+<td class="py-2.5 px-3 text-right text-slate-600 font-mono">SAR 180.00</td>
+<td class="py-2.5 px-3 text-right font-bold text-slate-900 font-mono">SAR 1,800.00</td>
+</tr>
+<!-- Row 2 -->
+<tr class="hover:bg-slate-50/50 transition">
+<td class="py-2.5 px-3">
+<p class="font-bold text-slate-900 leading-tight">San Marzano Crushed Tomatoes</p>
+<span class="text-[10px] text-slate-500 font-mono">SKU: CAN-118 • 12×800g Case</span>
+</td>
+<td class="py-2.5 px-2 text-center font-bold text-slate-900">15</td>
+<td class="py-2.5 px-3 text-right text-slate-600 font-mono">SAR 118.00</td>
+<td class="py-2.5 px-3 text-right font-bold text-slate-900 font-mono">SAR 1,770.00</td>
+</tr>
+<!-- Row 3 -->
+<tr class="hover:bg-slate-50/50 transition">
+<td class="py-2.5 px-3">
+<p class="font-bold text-slate-900 leading-tight">Extra Virgin Olive Oil 5L</p>
+<span class="text-[10px] text-slate-500 font-mono">SKU: OIL-092 • 5L Tin</span>
+</td>
+<td class="py-2.5 px-2 text-center font-bold text-slate-900">5</td>
+<td class="py-2.5 px-3 text-right text-slate-600 font-mono">SAR 250.00</td>
+<td class="py-2.5 px-3 text-right font-bold text-slate-900 font-mono">SAR 1,250.00</td>
+</tr>
+</tbody>
+</table>
+</div>
+<!-- Financial Subtotals Summary Box -->
+<div class="p-3.5 rounded-xl bg-slate-50 border border-slate-200/80 space-y-2 text-xs">
+<div class="flex justify-between text-slate-600">
+<span>Subtotal (3 Line Items):</span>
+<span class="font-semibold text-slate-900 font-mono">SAR 4,820.00</span>
+</div>
+<div class="flex justify-between text-slate-600">
+<span>VAT (15% Standard Supply):</span>
+<span class="font-semibold text-slate-900 font-mono">SAR 723.00</span>
+</div>
+<div class="flex justify-between text-slate-600">
+<span>Scheduled Pallet Shipping:</span>
+<span class="font-bold text-[#5da01f]">FREE (Tier Benefit)</span>
+</div>
+<div class="pt-2.5 border-t border-slate-200/80 flex justify-between items-baseline">
+<span class="font-bold text-[#142340] text-xs">Grand Total (Incl. VAT):</span>
+<span class="font-headline font-extrabold text-[#142340] text-base font-mono">SAR 5,543.00</span>
+</div>
+</div>
+<!-- Inventory Hub Badge -->
+<div class="p-2.5 rounded-xl bg-[#eef8eb]/60 border border-emerald-200/60 flex items-center justify-between text-xs">
+<div class="flex items-center gap-2">
+<span class="material-symbols-outlined text-[#70b928] text-base" style="font-variation-settings: 'FILL' 1;">warehouse</span>
+<span class="font-semibold text-slate-800">Riyadh Central Distribution Center</span>
+</div>
+<span class="font-bold text-[#5da01f] bg-white px-2 py-0.5 rounded text-[10px] border border-emerald-200/60">Stock Reserved</span>
+</div>
+</div>
+<!-- TAB 2: STATUS TIMELINE -->
+<div class="hidden space-y-4" id="orderTab-timeline">
+<div class="relative pl-6 space-y-5 before:absolute before:left-2 before:top-2 before:bottom-2 before:w-0.5 before:bg-slate-200">
+<!-- Step 1: Created via WhatsApp -->
+<div class="relative">
+<span class="absolute -left-6 top-0.5 w-4 h-4 rounded-full bg-emerald-500 ring-4 ring-emerald-100 flex items-center justify-center text-white text-[9px]">
+<span class="material-symbols-outlined text-[10px]">check</span>
+</span>
+<div class="space-y-0.5">
+<div class="flex items-center justify-between">
+<h4 class="font-bold text-xs text-slate-900">Order Created via WhatsApp</h4>
+<span class="text-[10px] text-slate-400">10:11 AM</span>
+</div>
+<p class="text-xs text-slate-600">Parsed from customer text message &amp; Bay 3 requisition form.</p>
+<span class="inline-block px-2 py-0.5 rounded bg-emerald-50 text-[#5da01f] text-[10px] font-bold">Confirmed</span>
+</div>
+</div>
+<!-- Step 2: Agent Assignment -->
+<div class="relative">
+<span class="absolute -left-6 top-0.5 w-4 h-4 rounded-full bg-blue-500 ring-4 ring-blue-100 flex items-center justify-center text-white text-[9px]">
+<span class="material-symbols-outlined text-[10px]">person</span>
+</span>
+<div class="space-y-0.5">
+<div class="flex items-center justify-between">
+<h4 class="font-bold text-xs text-slate-900">Assigned to Kenneth O.</h4>
+<span class="text-[10px] text-slate-400">10:12 AM</span>
+</div>
+<p class="text-xs text-slate-600">Kenneth Ofkeli claimed ticket from Central Triage Queue.</p>
+<span class="inline-block px-2 py-0.5 rounded bg-blue-50 text-blue-700 text-[10px] font-bold">Claimed</span>
+</div>
+</div>
+<!-- Step 3: PDF Attached -->
+<div class="relative">
+<span class="absolute -left-6 top-0.5 w-4 h-4 rounded-full bg-blue-500 ring-4 ring-blue-100 flex items-center justify-center text-white text-[9px]">
+<span class="material-symbols-outlined text-[10px]">description</span>
+</span>
+<div class="space-y-0.5">
+<div class="flex items-center justify-between">
+<h4 class="font-bold text-xs text-slate-900">Invoice PDF Attached &amp; Parsed</h4>
+<span class="text-[10px] text-slate-400">10:14 AM</span>
+</div>
+<p class="text-xs text-slate-600">Customer uploaded signed PO document (3 items extracted).</p>
+<span class="inline-block px-2 py-0.5 rounded bg-blue-50 text-blue-700 text-[10px] font-bold">Auto-Matched</span>
+</div>
+</div>
+<!-- Step 4: Active Waiting -->
+<div class="relative">
+<span class="absolute -left-6 top-0.5 w-4 h-4 rounded-full bg-amber-500 ring-4 ring-amber-100 flex items-center justify-center text-white text-[9px]">
+<span class="material-symbols-outlined text-[10px]">pending</span>
+</span>
+<div class="space-y-0.5">
+<div class="flex items-center justify-between">
+<h4 class="font-bold text-xs text-amber-900">Awaiting Dispatch Confirmation</h4>
+<span class="text-[10px] text-amber-700 font-bold">Active Now</span>
+</div>
+<p class="text-xs text-slate-600">Ready to lock route and notify truck dispatcher for Bay 3 dock.</p>
+<span class="inline-block px-2 py-0.5 rounded bg-amber-200 text-amber-950 text-[10px] font-bold animate-pulse">Action Required</span>
+</div>
+</div>
+</div>
+</div>
+<!-- TAB 3: ATTACHMENTS -->
+<div class="hidden space-y-2.5" id="orderTab-attachments">
+<p class="text-[10px] text-slate-400 uppercase font-bold tracking-wider">Associated Documents</p>
+<!-- File 1 -->
+<div class="p-3 rounded-xl bg-slate-50 hover:bg-slate-100/80 border border-slate-200/80 transition flex items-center justify-between">
+<div class="flex items-center gap-2.5 min-w-0">
+<div class="w-9 h-9 rounded-lg bg-rose-50 text-rose-600 flex items-center justify-center flex-shrink-0">
+<span class="material-symbols-outlined text-xl" style="font-variation-settings: 'FILL' 1;">picture_as_pdf</span>
+</div>
+<div class="min-w-0">
+<p class="font-bold text-xs text-slate-900 truncate">PO_AlNoor_ORD8821.pdf</p>
+<span class="text-[10px] text-slate-500">1.2 MB • Uploaded 10:14 AM</span>
+</div>
+</div>
+<div class="flex items-center gap-1 flex-shrink-0">
+<button class="p-1 rounded text-slate-500 hover:text-slate-900 hover:bg-white transition" title="Preview">
+<span class="material-symbols-outlined text-base">visibility</span>
+</button>
+<button class="p-1 rounded text-slate-500 hover:text-slate-900 hover:bg-white transition" title="Download">
+<span class="material-symbols-outlined text-base">download</span>
+</button>
+</div>
+</div>
+<!-- File 2 -->
+<div class="p-3 rounded-xl bg-slate-50 hover:bg-slate-100/80 border border-slate-200/80 transition flex items-center justify-between">
+<div class="flex items-center gap-2.5 min-w-0">
+<div class="w-9 h-9 rounded-lg bg-blue-50 text-blue-600 flex items-center justify-center flex-shrink-0">
+<span class="material-symbols-outlined text-xl" style="font-variation-settings: 'FILL' 1;">badge</span>
+</div>
+<div class="min-w-0">
+<p class="font-bold text-xs text-slate-900 truncate">delivery_gate_pass_bay3.pdf</p>
+<span class="text-[10px] text-slate-500">450 KB • Auto-generated Gate Pass</span>
+</div>
+</div>
+<div class="flex items-center gap-1 flex-shrink-0">
+<button class="p-1 rounded text-slate-500 hover:text-slate-900 hover:bg-white transition" title="Preview">
+<span class="material-symbols-outlined text-base">visibility</span>
+</button>
+<button class="p-1 rounded text-slate-500 hover:text-slate-900 hover:bg-white transition" title="Download">
+<span class="material-symbols-outlined text-base">download</span>
+</button>
+</div>
+</div>
+<!-- File 3 -->
+<div class="p-3 rounded-xl bg-slate-50 hover:bg-slate-100/80 border border-slate-200/80 transition flex items-center justify-between">
+<div class="flex items-center gap-2.5 min-w-0">
+<div class="w-9 h-9 rounded-lg bg-emerald-50 text-[#5da01f] flex items-center justify-center flex-shrink-0">
+<span class="material-symbols-outlined text-xl" style="font-variation-settings: 'FILL' 1;">verified</span>
+</div>
+<div class="min-w-0">
+<p class="font-bold text-xs text-slate-900 truncate">restaurant_vat_certificate.pdf</p>
+<span class="text-[10px] text-slate-500">820 KB • On File (Zakat &amp; Tax)</span>
+</div>
+</div>
+<div class="flex items-center gap-1 flex-shrink-0">
+<button class="p-1 rounded text-slate-500 hover:text-slate-900 hover:bg-white transition" title="Preview">
+<span class="material-symbols-outlined text-base">visibility</span>
+</button>
+<button class="p-1 rounded text-slate-500 hover:text-slate-900 hover:bg-white transition" title="Download">
+<span class="material-symbols-outlined text-base">download</span>
+</button>
+</div>
+</div>
+</div>
+<!-- TAB 4: INTERNAL NOTES -->
+<div class="hidden space-y-3" id="orderTab-notes">
+<p class="text-[10px] text-slate-400 uppercase font-bold tracking-wider">Internal Notes (Private to Team)</p>
+<!-- Note 1 -->
+<div class="p-3 rounded-xl bg-slate-50 border border-slate-200/70 space-y-1.5">
+<div class="flex items-center justify-between">
+<div class="flex items-center gap-2">
+<div class="w-5 h-5 rounded-full bg-[#142340] text-white flex items-center justify-center font-bold text-[9px]">
+                    KO
+                  </div>
+<span class="text-xs font-bold text-slate-900">Kenneth Ofkeli</span>
+</div>
+<span class="text-[10px] text-slate-400">10:15 AM</span>
+</div>
+<p class="text-xs text-slate-700 leading-relaxed">
+                "Chef Faisal requested delivery prior to 11:00 AM due to lunch prep rush at Bay 3. Fleet dispatcher scheduled for 10:30 AM arrival."
+              </p>
+</div>
+<!-- Note 2 -->
+<div class="p-3 rounded-xl bg-slate-50 border border-slate-200/70 space-y-1.5">
+<div class="flex items-center justify-between">
+<div class="flex items-center gap-2">
+<div class="w-5 h-5 rounded-full bg-amber-700 text-white flex items-center justify-center font-bold text-[9px]">
+                    TM
+                  </div>
+<span class="text-xs font-bold text-slate-900">Tariq Mansoor</span>
+</div>
+<span class="text-[10px] text-slate-400">09:40 AM</span>
+</div>
+<p class="text-xs text-slate-700 leading-relaxed">
+                "Net-30 limit verified (SAR 45,000 available). No outstanding disputes on previous billing cycle."
+              </p>
+</div>
+<!-- Add Note Box -->
+<div class="pt-2 space-y-2">
+<textarea class="w-full p-2.5 bg-slate-50 rounded-xl text-xs text-slate-800 placeholder-slate-400 border border-slate-200/80 focus:outline-none focus:bg-white focus:border-[#142340] transition" id="internalNoteInput" placeholder="Write internal team note (hidden from customer)..." rows="2"></textarea>
+<button class="w-full py-2 bg-slate-100 hover:bg-slate-200 text-slate-800 text-xs font-bold rounded-xl transition flex items-center justify-center gap-1.5" onclick="addInternalNote()">
+<span class="material-symbols-outlined text-sm">add_comment</span>
+<span>+ Add Internal Note</span>
+</button>
+</div>
+</div>
+</div>
+<!-- Bottom Sticky Action Bar -->
+<div class="p-3.5 bg-slate-50 border-t border-slate-200/80 flex-shrink-0 space-y-2.5">
+<div class="flex items-center gap-2">
+<!-- Status Select Dropdown -->
+<div class="flex-1">
+<label class="sr-only" for="orderStatusSelect">Change Status</label>
+<select class="w-full py-2 px-3 bg-white rounded-xl text-xs font-bold text-slate-800 border border-slate-200 shadow-2xs focus:outline-none focus:border-[#142340]" id="orderStatusSelect">
+<option selected="" value="Pending Confirm">Status: Pending Confirm</option>
+<option value="Confirmed &amp; Processing">Status: Confirmed &amp; Processing</option>
+<option value="Stock Allocated">Status: Stock Allocated</option>
+<option value="Dispatched / Out for Delivery">Status: Dispatched / Out for Delivery</option>
+<option value="Delivered">Status: Delivered</option>
+<option value="Cancelled">Status: Cancelled</option>
+</select>
+</div>
+<!-- Primary Update Status Button -->
+<button class="px-4 py-2 bg-[#142340] hover:bg-slate-900 text-white rounded-xl text-xs font-bold transition shadow-xs flex items-center gap-1.5 whitespace-nowrap" onclick="updateOrderStatusAction()">
+<span class="material-symbols-outlined text-sm">sync_alt</span>
+<span>Update Status</span>
+</button>
+</div>
+<!-- Secondary Actions -->
+<div class="flex items-center justify-between pt-1 text-xs">
+<button class="text-slate-600 hover:text-slate-900 font-semibold flex items-center gap-1 transition" onclick="showToast('Dispatch slip generated. Sending to Bay 3 logistics printer...')">
+<span class="material-symbols-outlined text-base text-slate-500">print</span>
+<span>Print PO / Dispatch Slip</span>
+</button>
+<button class="text-rose-600 hover:text-rose-800 font-semibold transition flex items-center gap-1" onclick="confirmCancelOrder()">
+<span class="material-symbols-outlined text-base">cancel</span>
+<span>Cancel Order</span>
+</button>
+</div>
+</div>
+</aside>
+</div>
+</main>
+<!-- END: Main Dashboard Content Area -->
+<!-- MODAL: Claim & Assign Agent Modal -->
+<div class="hidden fixed inset-0 bg-slate-900/50 backdrop-blur-xs z-50 flex items-center justify-center p-4" id="assignModal">
+<div class="bg-white rounded-2xl max-w-md w-full p-5 shadow-2xl border border-slate-200 space-y-4">
+<div class="flex items-center justify-between border-b border-slate-100 pb-3">
+<div>
+<h3 class="text-sm font-bold text-slate-900 font-headline">Claim or Assign Order Conversation</h3>
+<p class="text-xs text-slate-500">Order #ORD-8821 • Al Noor Restaurant</p>
+</div>
+<button class="p-1 rounded-lg text-slate-400 hover:text-slate-600 hover:bg-slate-100" onclick="closeModal('assignModal')">
+<span class="material-symbols-outlined text-lg">close</span>
+</button>
+</div>
+<div class="space-y-2">
+<label class="text-xs font-bold text-slate-700">Select Responsible Agent:</label>
+<!-- Agent 1: Kenneth Ofkeli -->
+<label class="flex items-center justify-between p-3 rounded-xl border border-slate-200 hover:bg-emerald-50/50 hover:border-emerald-300 cursor-pointer transition">
+<div class="flex items-center space-x-3">
+<input checked="" class="text-[#70b928] focus:ring-[#70b928]" name="agent_select" type="radio">
+<div class="w-8 h-8 rounded-full bg-[#142340] text-white flex items-center justify-center font-bold text-xs">KO</div>
+<div>
+<p class="text-xs font-bold text-slate-900">Kenneth Ofkeli (You)</p>
+<span class="text-[10px] text-[#5da01f] font-semibold">Available • 4 active orders</span>
+</div>
+</div>
+<span class="text-[10px] font-bold px-2 py-0.5 rounded bg-emerald-100 text-emerald-800">Low Load</span>
+</label>
+<!-- Agent 2: Tariq Mansoor -->
+<label class="flex items-center justify-between p-3 rounded-xl border border-slate-200 hover:bg-slate-50 cursor-pointer transition">
+<div class="flex items-center space-x-3">
+<input class="text-[#70b928] focus:ring-[#70b928]" name="agent_select" type="radio">
+<div class="w-8 h-8 rounded-full bg-amber-700 text-white flex items-center justify-center font-bold text-xs">TM</div>
+<div>
+<p class="text-xs font-bold text-slate-900">Tariq Mansoor</p>
+<span class="text-[10px] text-slate-500">In Dispatch Call • 7 active</span>
+</div>
+</div>
+<span class="text-[10px] font-semibold px-2 py-0.5 rounded bg-slate-100 text-slate-700">Medium</span>
+</label>
+</div>
+<div class="pt-3 border-t border-slate-100 flex items-center justify-end space-x-2">
+<button class="px-4 py-2 text-xs font-semibold text-slate-600 hover:bg-slate-100 rounded-xl transition" onclick="closeModal('assignModal')">
+          Cancel
+        </button>
+<button class="px-4 py-2 text-xs font-bold bg-[#142340] hover:bg-slate-800 text-white rounded-xl shadow-xs transition" onclick="confirmAssignment()">
+          Confirm &amp; Claim
+        </button>
+</div>
+</div>
+</div>
+<!-- DRAWER: Create / Review Order Drawer -->
+<div class="hidden fixed inset-0 z-50 overflow-hidden bg-slate-900/50 backdrop-blur-xs flex justify-end" id="orderDrawer">
+<div class="w-full max-w-xl bg-white h-full shadow-2xl flex flex-col justify-between">
+<div class="p-5 border-b border-slate-200 flex items-center justify-between">
+<div>
+<h2 class="text-sm font-bold text-slate-900 font-headline">Order Creation &amp; Inventory Verification</h2>
+<p class="text-xs text-slate-500">Al Noor Restaurant • Bay 3 • Reference #ORD-8821</p>
+</div>
+<button class="p-1 rounded-lg text-slate-400 hover:text-slate-600 hover:bg-slate-100" onclick="closeDrawer('orderDrawer')">
+<span class="material-symbols-outlined text-lg">close</span>
+</button>
+</div>
+<div class="p-5 overflow-y-auto space-y-4 flex-1">
+<div class="flex items-center justify-between">
+<span class="text-xs font-bold uppercase tracking-wider text-slate-500">Order Line Items</span>
+<button class="text-xs font-bold text-[#5da01f] hover:underline">+ Add SKU</button>
+</div>
+<div class="p-3 bg-slate-50 border border-slate-200 rounded-xl flex items-center justify-between">
+<div>
+<p class="text-xs font-bold text-slate-900">Premium Basmati Rice (20kg Bag)</p>
+<span class="text-[11px] text-slate-500 font-mono">SKU: GRN-402 • Stock: 142 in Riyadh Hub</span>
+</div>
+<div class="text-right">
+<span class="text-xs font-bold text-slate-700 block">10 bags</span>
+<span class="text-xs font-extrabold text-slate-900">SAR 1,800.00</span>
+</div>
+</div>
+<div class="p-3 bg-slate-50 border border-slate-200 rounded-xl flex items-center justify-between">
+<div>
+<p class="text-xs font-bold text-slate-900">San Marzano Crushed Tomatoes 12x800g</p>
+<span class="text-[11px] text-slate-500 font-mono">SKU: CAN-118 • Stock: 64 in Riyadh Hub</span>
+</div>
+<div class="text-right">
+<span class="text-xs font-bold text-slate-700 block">15 cases</span>
+<span class="text-xs font-extrabold text-slate-900">SAR 1,770.00</span>
+</div>
+</div>
+<div class="p-3 bg-slate-50 border border-slate-200 rounded-xl flex items-center justify-between">
+<div>
+<p class="text-xs font-bold text-slate-900">Extra Virgin Olive Oil (5L Tin)</p>
+<span class="text-[11px] text-slate-500 font-mono">SKU: OIL-092 • Stock: 39 in Riyadh Hub</span>
+</div>
+<div class="text-right">
+<span class="text-xs font-bold text-slate-700 block">5 tins</span>
+<span class="text-xs font-extrabold text-slate-900">SAR 1,250.00</span>
+</div>
+</div>
+</div>
+<div class="p-4 border-t border-slate-200 flex items-center justify-between bg-slate-50">
+<button class="px-4 py-2 text-xs font-bold text-slate-600 hover:bg-slate-200 rounded-xl transition" onclick="closeDrawer('orderDrawer')">
+          Close
+        </button>
+<button class="px-4 py-2 bg-[#70b928] hover:bg-[#5da01f] text-white font-bold text-xs rounded-xl shadow-xs transition" onclick="confirmOrderGeneration()">
+          Send Confirmation to WhatsApp
+        </button>
+</div>
+</div>
+</div>
+<!-- Interactive JavaScript Logic -->
+<script>
+    // Tab Switcher
+    function switchOrderTab(tabKey) {
+      const tabs = ['items', 'timeline', 'attachments', 'notes'];
+      
+      tabs.forEach(key => {
+        const tabContent = document.getElementById('orderTab-' + key);
+        const tabBtn = document.getElementById('tabBtn-' + key);
+        const tabIndicator = document.getElementById('tabIndicator-' + key);
+
+        if (key === tabKey) {
+          tabContent.classList.remove('hidden');
+          tabBtn.classList.add('font-bold', 'text-[#142340]');
+          tabBtn.classList.remove('font-semibold', 'text-slate-500');
+          tabIndicator.classList.remove('hidden');
+        } else {
+          tabContent.classList.add('hidden');
+          tabBtn.classList.remove('font-bold', 'text-[#142340]');
+          tabBtn.classList.add('font-semibold', 'text-slate-500');
+          tabIndicator.classList.add('hidden');
+        }
+      });
+    }
+
+    // Toast Notifier
+    function showToast(message) {
+      const toast = document.getElementById('toastNotification');
+      const toastMsg = document.getElementById('toastMessage');
+      toastMsg.innerText = message;
+      
+      toast.classList.remove('translate-y-[-120%]', 'opacity-0', 'pointer-events-none');
+      toast.classList.add('translate-y-0', 'opacity-100');
+
+      setTimeout(() => {
+        toast.classList.remove('translate-y-0', 'opacity-100');
+        toast.classList.add('translate-y-[-120%]', 'opacity-0', 'pointer-events-none');
+      }, 3000);
+    }
+
+    // Update Status Action
+    function updateOrderStatusAction() {
+      const select = document.getElementById('orderStatusSelect');
+      const newStatus = select.value;
+      const badge = document.getElementById('currentStatusBadge');
+
+      let badgeHTML = '';
+      if (newStatus === 'Confirmed & Processing') {
+        badgeHTML = `<span class="w-1.5 h-1.5 rounded-full bg-blue-600"></span><span>Confirmed</span>`;
+        badge.className = "px-2 py-0.5 rounded-full bg-blue-100 text-blue-900 text-[11px] font-bold flex items-center gap-1 border border-blue-200/60";
+      } else if (newStatus === 'Stock Allocated') {
+        badgeHTML = `<span class="w-1.5 h-1.5 rounded-full bg-purple-600"></span><span>Allocated</span>`;
+        badge.className = "px-2 py-0.5 rounded-full bg-purple-100 text-purple-900 text-[11px] font-bold flex items-center gap-1 border border-purple-200/60";
+      } else if (newStatus === 'Dispatched / Out for Delivery') {
+        badgeHTML = `<span class="w-1.5 h-1.5 rounded-full bg-emerald-600"></span><span>Dispatched</span>`;
+        badge.className = "px-2 py-0.5 rounded-full bg-[#eef8eb] text-[#5da01f] text-[11px] font-bold flex items-center gap-1 border border-emerald-200/60";
+      } else if (newStatus === 'Delivered') {
+        badgeHTML = `<span class="w-1.5 h-1.5 rounded-full bg-emerald-700"></span><span>Delivered</span>`;
+        badge.className = "px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-900 text-[11px] font-bold flex items-center gap-1 border border-emerald-200/60";
+      } else if (newStatus === 'Cancelled') {
+        badgeHTML = `<span class="w-1.5 h-1.5 rounded-full bg-rose-600"></span><span>Cancelled</span>`;
+        badge.className = "px-2 py-0.5 rounded-full bg-rose-100 text-rose-900 text-[11px] font-bold flex items-center gap-1 border border-rose-200/60";
+      } else {
+        badgeHTML = `<span class="w-1.5 h-1.5 rounded-full bg-amber-600 animate-pulse"></span><span>Pending Confirm</span>`;
+        badge.className = "px-2 py-0.5 rounded-full bg-[#fef3c7] text-[#92400e] text-[11px] font-bold flex items-center gap-1 border border-amber-200/60";
+      }
+
+      badge.innerHTML = badgeHTML;
+      showToast(`Order #ORD-8821 updated to "${newStatus}"`);
+    }
+
+    // Insert quick template into input
+    function insertTemplate(text) {
+      const input = document.getElementById('chatInput');
+      input.value = text;
+      input.focus();
+    }
+
+    // Send chat message
+    function sendChatMessage() {
+      const input = document.getElementById('chatInput');
+      const text = input.value.trim();
+      if (!text) return;
+
+      const chatFeed = document.getElementById('chatFeed');
+      const now = new Date();
+      const timeStr = now.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+
+      const messageHTML = `
+        <div class="flex items-end justify-end gap-2.5 max-w-lg ml-auto animate-fade-in">
+          <div class="space-y-1">
+            <div class="chat-bubble-agent p-3 rounded-2xl rounded-br-xs shadow-2xs text-xs text-slate-900 space-y-1">
+              <p class="leading-relaxed">${escapeHTML(text)}</p>
+            </div>
+            <div class="flex items-center justify-end gap-1 pr-1 text-[10px] text-slate-400">
+              <span>${timeStr}</span>
+              <span class="text-[#70b928]">
+                <span class="material-symbols-outlined text-sm inline-block">done_all</span>
+              </span>
+            </div>
+          </div>
+          <div class="w-8 h-8 rounded-full bg-[#142340] text-white flex items-center justify-center font-headline text-xs font-bold flex-shrink-0 shadow-2xs">
+            KO
+          </div>
+        </div>
+      `;
+
+      chatFeed.insertAdjacentHTML('beforeend', messageHTML);
+      input.value = '';
+      chatFeed.scrollTop = chatFeed.scrollHeight;
+    }
+
+    // Add internal note
+    function addInternalNote() {
+      const input = document.getElementById('internalNoteInput');
+      const noteText = input.value.trim();
+      if (!noteText) return;
+
+      const notesContainer = document.getElementById('orderTab-notes');
+      const newNoteHTML = `
+        <div class="p-3 rounded-xl bg-slate-50 border border-slate-200/70 space-y-1.5">
+          <div class="flex items-center justify-between">
+            <div class="flex items-center gap-2">
+              <div class="w-5 h-5 rounded-full bg-[#142340] text-white flex items-center justify-center font-bold text-[9px]">
+                KO
+              </div>
+              <span class="text-xs font-bold text-slate-900">Kenneth Ofkeli (You)</span>
+            </div>
+            <span class="text-[10px] text-slate-400">Just now</span>
+          </div>
+          <p class="text-xs text-slate-700 leading-relaxed">
+            "${escapeHTML(noteText)}"
+          </p>
+        </div>
+      `;
+
+      const inputBox = notesContainer.querySelector('.pt-2');
+      inputBox.insertAdjacentHTML('beforebegin', newNoteHTML);
+      input.value = '';
+      showToast('Internal note saved for Order #ORD-8821');
+    }
+
+    function confirmCancelOrder() {
+      if (confirm('Are you sure you want to cancel Order #ORD-8821?')) {
+        document.getElementById('orderStatusSelect').value = 'Cancelled';
+        updateOrderStatusAction();
+      }
+    }
+
+    function resetProfileView() {
+      showToast('Returned to customer 360 profile.');
+    }
+
+    function openModal(id) {
+      document.getElementById(id).classList.remove('hidden');
+    }
+
+    function closeModal(id) {
+      document.getElementById(id).classList.add('hidden');
+    }
+
+    function openDrawer(id) {
+      document.getElementById(id).classList.remove('hidden');
+    }
+
+    function closeDrawer(id) {
+      document.getElementById(id).classList.add('hidden');
+    }
+
+    function confirmAssignment() {
+      closeModal('assignModal');
+      showToast('Assigned to Kenneth Ofkeli');
+    }
+
+    function confirmOrderGeneration() {
+      closeDrawer('orderDrawer');
+      const input = document.getElementById('chatInput');
+      input.value = "Order #ORD-8821 verified & scheduled for Bay 3 tomorrow 10:30 AM.";
+      sendChatMessage();
+    }
+
+    function escapeHTML(str) {
+      return str.replace(/[&<>'"]/g, 
+        tag => ({
+          '&': '&amp;',
+          '<': '&lt;',
+          '>': '&gt;',
+          "'": '&#39;',
+          '"': '&quot;'
+        }[tag] || tag)
+      );
+    }
+  </script>
+</body></html>

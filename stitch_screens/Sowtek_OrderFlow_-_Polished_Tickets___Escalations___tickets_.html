@@ -1,0 +1,1061 @@
+<!DOCTYPE html>
+
+<html class="h-full bg-[#f4f6f9]" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Sowtek OrderFlow - Unified Inbox</title>
+<!-- Tailwind CSS v3 with Plugins -->
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<!-- Tailwind Configuration -->
+<script data-purpose="tailwind-config" id="tailwind-config">
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            brand: {
+              50: '#ecfdf5',
+              100: '#d1fae5',
+              500: '#10b981',
+              600: '#059669',
+              700: '#047857',
+              navy: '#0f172a',
+              slate: '#1e293b'
+            }
+          },
+          fontFamily: {
+            sans: ['Inter', 'Plus Jakarta Sans', 'system-ui', 'sans-serif']
+          }
+        }
+      }
+    };
+  </script>
+<!-- Google Fonts -->
+<link href="https://fonts.googleapis.com" rel="preconnect"/>
+<link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect"/>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<!-- Custom Styles for Scrollbars & UI Finishes -->
+<style data-purpose="custom-scrollbar">
+    /* Custom subtle scrollbar */
+    ::-webkit-scrollbar {
+      width: 5px;
+      height: 5px;
+    }
+    ::-webkit-scrollbar-track {
+      background: transparent;
+    }
+    ::-webkit-scrollbar-thumb {
+      background: #cbd5e1;
+      border-radius: 9999px;
+    }
+    ::-webkit-scrollbar-thumb:hover {
+      background: #94a3b8;
+    }
+  </style>
+<style data-purpose="chat-speech-bubbles">
+    .chat-bubble-agent {
+      background-color: #dcf8c6;
+      border: 1px solid #c9ebb0;
+    }
+    .chat-bubble-customer {
+      background-color: #ffffff;
+      border: 1px solid #e2e8f0;
+    }
+  </style>
+<meta content="web_dashboard" name="shell-type"/></head>
+<body class="h-full text-slate-800 antialiased flex overflow-hidden font-sans select-none">
+<!-- BEGIN: LeftNavigationSidebar -->
+<aside class="w-64 bg-white border-r border-slate-200 flex flex-col justify-between flex-shrink-0 z-20">
+<!-- Top Branding & Navigation -->
+<div>
+<!-- Brand Logo -->
+<div class="h-16 flex items-center justify-between px-6 border-b border-slate-100">
+<div class="flex items-center space-x-2.5">
+<!-- Sowtek Geometric Logo -->
+<div class="w-9 h-9 rounded-xl bg-slate-900 flex items-center justify-center text-white shadow-sm font-bold text-lg tracking-tighter">
+<svg class="w-5 h-5 text-emerald-400" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2.2" viewbox="0 0 24 24">
+<path d="M4 15s1-1 4-1 5 2 8 2 4-1 4-1V3s-1 1-4 1-5-2-8-2-4 1-4 1z"></path>
+<line x1="4" x2="4" y1="22" y2="15"></line>
+</svg>
+</div>
+<div>
+<span class="text-xl font-extrabold text-slate-900 tracking-tight">sowtek</span>
+<span class="block text-[10px] uppercase font-semibold tracking-wider text-emerald-600 -mt-1">OrderFlow</span>
+</div>
+</div>
+<!-- Collapse Sidebar Icon -->
+<button class="p-1.5 text-slate-400 hover:text-slate-600 rounded-lg hover:bg-slate-50 transition" title="Collapse Menu">
+<svg class="w-4 h-4" fill="none" stroke="currentColor" viewbox="0 0 24 24"><path d="M11 19l-7-7 7-7m8 14l-7-7 7-7" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"></path></svg>
+</button>
+</div>
+<!-- Main Navigation Links -->
+<nav class="p-3.5 space-y-1 text-sm font-medium">
+<!-- Unified Inbox (Active) -->
+<a class="flex items-center justify-between px-3.5 py-2.5 rounded-xl bg-emerald-50 text-emerald-800 font-semibold shadow-xs border border-emerald-100" href="#">
+<div class="flex items-center space-x-3">
+<svg class="w-5 h-5 text-emerald-600" fill="none" stroke="currentColor" viewbox="0 0 24 24"><path d="M20 13V6a2 2 0 00-2-2H6a2 2 0 00-2 2v7m16 0v5a2 2 0 01-2 2H6a2 2 0 01-2-2v-5m16 0h-2.586a1 1 0 00-.707.293l-2.414 2.414a1 1 0 01-.707.293h-3.172a1 1 0 01-.707-.293l-2.414-2.414A1 1 0 006.586 13H4" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"></path></svg>
+<span>Unified Inbox</span>
+</div>
+<span class="px-2 py-0.5 text-xs rounded-full bg-emerald-600 text-white font-bold">14</span>
+</a>
+<!-- Overview -->
+<a class="flex items-center space-x-3 px-3.5 py-2 rounded-xl text-slate-600 hover:bg-slate-50 hover:text-slate-900 transition" href="#">
+<svg class="w-5 h-5 text-slate-400" fill="none" stroke="currentColor" viewbox="0 0 24 24"><path d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zM14 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"></path></svg>
+<span>Overview</span>
+</a>
+<!-- Orders -->
+<a class="flex items-center space-x-3 px-3.5 py-2 rounded-xl text-slate-600 hover:bg-slate-50 hover:text-slate-900 transition" href="#">
+<svg class="w-5 h-5 text-slate-400" fill="none" stroke="currentColor" viewbox="0 0 24 24"><path d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"></path></svg>
+<span>Orders</span>
+</a>
+<!-- Issues -->
+<a class="flex items-center justify-between px-3.5 py-2 rounded-xl text-slate-600 hover:bg-slate-50 hover:text-slate-900 transition" href="#">
+<div class="flex items-center space-x-3">
+<svg class="w-5 h-5 text-slate-400" fill="none" stroke="currentColor" viewbox="0 0 24 24"><path d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"></path></svg>
+<span>Issues</span>
+</div>
+<span class="px-1.5 py-0.5 text-[10px] rounded-md bg-amber-100 text-amber-800 font-semibold">3 Escalated</span>
+</a>
+<!-- Restaurants -->
+<a class="flex items-center space-x-3 px-3.5 py-2 rounded-xl text-slate-600 hover:bg-slate-50 hover:text-slate-900 transition" href="#">
+<svg class="w-5 h-5 text-slate-400" fill="none" stroke="currentColor" viewbox="0 0 24 24"><path d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"></path></svg>
+<span>Restaurants</span>
+</a>
+<!-- Products -->
+<a class="flex items-center space-x-3 px-3.5 py-2 rounded-xl text-slate-600 hover:bg-slate-50 hover:text-slate-900 transition" href="#">
+<svg class="w-5 h-5 text-slate-400" fill="none" stroke="currentColor" viewbox="0 0 24 24"><path d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"></path></svg>
+<span>Products</span>
+</a>
+<!-- Reports -->
+<a class="flex items-center space-x-3 px-3.5 py-2 rounded-xl text-slate-600 hover:bg-slate-50 hover:text-slate-900 transition" href="#">
+<svg class="w-5 h-5 text-slate-400" fill="none" stroke="currentColor" viewbox="0 0 24 24"><path d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"></path></svg>
+<span>Reports</span>
+</a>
+<!-- Settings -->
+<a class="flex items-center space-x-3 px-3.5 py-2 rounded-xl text-slate-600 hover:bg-slate-50 hover:text-slate-900 transition" href="#">
+<svg class="w-5 h-5 text-slate-400" fill="none" stroke="currentColor" viewbox="0 0 24 24"><path d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"></path><path d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"></path></svg>
+<span>Settings</span>
+</a>
+<!-- Quick Action Pill Button -->
+<div class="pt-4 px-1">
+<button class="w-full flex items-center justify-center space-x-2 py-2.5 px-4 bg-sky-50 text-sky-700 font-semibold rounded-xl border border-sky-200 hover:bg-sky-100 hover:border-sky-300 transition shadow-xs" onclick="openDrawer('orderDrawer')">
+<svg class="w-4 h-4" fill="none" stroke="currentColor" viewbox="0 0 24 24"><path d="M12 4v16m8-8H4" stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5"></path></svg>
+<span>Actions</span>
+</button>
+</div>
+</nav>
+</div>
+<!-- Bottom Account & Support Block -->
+<div class="p-3.5 border-t border-slate-100 space-y-2">
+<a class="flex items-center justify-between px-3 py-1.5 text-xs text-slate-600 hover:text-slate-900 rounded-lg hover:bg-slate-50 transition" href="#">
+<div class="flex items-center space-x-2.5">
+<svg class="w-4 h-4 text-slate-400" fill="none" stroke="currentColor" viewbox="0 0 24 24"><path d="M8.228 9c.549-1.165 2.03-2 3.772-2 2.21 0 4 1.343 4 3 0 1.4-1.278 2.575-3.006 2.907-.542.104-.994.54-.994 1.093m0 3h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"></path></svg>
+<span>Help Center</span>
+</div>
+</a>
+<a class="flex items-center justify-between px-3 py-1.5 text-xs text-slate-600 hover:text-slate-900 rounded-lg hover:bg-slate-50 transition" href="#">
+<div class="flex items-center space-x-2.5">
+<svg class="w-4 h-4 text-slate-400" fill="none" stroke="currentColor" viewbox="0 0 24 24"><path d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"></path></svg>
+<span>Notifications</span>
+</div>
+<span class="w-2 h-2 rounded-full bg-emerald-500"></span>
+</a>
+<!-- Agent Profile Card -->
+<div class="pt-2">
+<div class="flex items-center justify-between p-2.5 rounded-xl bg-slate-50 border border-slate-200">
+<div class="flex items-center space-x-2.5">
+<div class="relative">
+<div class="w-9 h-9 rounded-full bg-slate-800 text-white flex items-center justify-center font-bold text-xs">
+                KO
+              </div>
+<span class="absolute bottom-0 right-0 w-2.5 h-2.5 rounded-full bg-emerald-500 border-2 border-white"></span>
+</div>
+<div>
+<p class="text-xs font-bold text-slate-900 leading-none">Kenneth Ofkeli</p>
+<div class="flex items-center space-x-1 mt-1 text-[10px] text-emerald-700 font-semibold bg-emerald-100/60 px-1.5 py-0.5 rounded-md">
+<span class="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"></span>
+<span>Available 00:10:22</span>
+</div>
+</div>
+</div>
+<svg class="w-4 h-4 text-slate-400" fill="none" stroke="currentColor" viewbox="0 0 24 24"><path d="M9 5l7 7-7 7" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"></path></svg>
+</div>
+</div>
+</div>
+</aside>
+<!-- END: LeftNavigationSidebar -->
+<!-- BEGIN: MainContentArea -->
+<main class="flex-1 flex flex-col h-full overflow-hidden bg-[#f4f6f9]"><div class="flex flex-col w-full h-full overflow-hidden"><!-- TOP CONTEXT METRICS STRIP -->
+<header class="px-6 py-3.5 bg-white border-b border-slate-200 flex items-center justify-between shadow-xs z-10 flex-shrink-0">
+<div class="flex items-center space-x-3.5 min-w-0">
+<div class="flex items-center space-x-2 flex-shrink-0">
+<span class="w-2.5 h-2.5 rounded-full bg-error animate-pulse"></span>
+<h1 class="text-lg font-bold text-slate-900 tracking-tight whitespace-nowrap">Tickets &amp; Escalations Hub</h1>
+</div>
+<span class="text-slate-300">•</span>
+<span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-slate-100 text-slate-700 whitespace-nowrap">
+      Live Queue · Riyadh DC Hub
+    </span>
+</div>
+<!-- Live Performance KPIs -->
+<div class="flex items-center space-x-5 flex-shrink-0 text-xs">
+<div class="flex items-center space-x-2">
+<span class="material-symbols-outlined text-slate-400 text-base">confirmation_number</span>
+<div class="leading-tight">
+<span class="block text-[10px] uppercase font-bold text-slate-400 tracking-wider">Open Tickets</span>
+<span class="font-bold text-slate-900">8 active</span>
+</div>
+</div>
+<div class="w-px h-6 bg-slate-200"></div>
+<div class="flex items-center space-x-2">
+<span class="material-symbols-outlined text-rose-600 text-base" style="font-variation-settings: 'FILL' 1;">warning</span>
+<div class="leading-tight">
+<span class="block text-[10px] uppercase font-bold text-slate-400 tracking-wider">High Severity</span>
+<span class="font-bold text-rose-600">2 critical</span>
+</div>
+</div>
+<div class="w-px h-6 bg-slate-200"></div>
+<div class="flex items-center space-x-2">
+<span class="material-symbols-outlined text-slate-400 text-base">timelapse</span>
+<div class="leading-tight">
+<span class="block text-[10px] uppercase font-bold text-slate-400 tracking-wider">Avg Resolution</span>
+<span class="font-bold text-slate-900">24m</span>
+</div>
+</div>
+<div class="w-px h-6 bg-slate-200"></div>
+<div class="flex items-center space-x-2">
+<span class="material-symbols-outlined text-emerald-600 text-base" style="font-variation-settings: 'FILL' 1;">verified</span>
+<div class="leading-tight">
+<span class="block text-[10px] uppercase font-bold text-slate-400 tracking-wider">SLA Compliance</span>
+<span class="font-bold text-emerald-700">98.4% On-Track</span>
+</div>
+</div>
+</div>
+</header>
+<!-- 3-COLUMN WORKSPACE CANVAS -->
+<div class="flex-1 flex overflow-hidden p-4 space-x-4 bg-slate-100/70">
+<!-- ========================================================================= -->
+<!-- COLUMN 1: Ticket Triage Feed (~320px) -->
+<!-- ========================================================================= -->
+<aside class="w-80 flex-shrink-0 flex flex-col bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden">
+<!-- Search Box -->
+<div class="p-3 border-b border-slate-100">
+<div class="relative flex items-center">
+<span class="material-symbols-outlined absolute left-3 text-slate-400 text-lg">search</span>
+<input class="w-full bg-slate-50 border border-slate-200 text-slate-900 placeholder:text-slate-400 text-xs pl-9 pr-8 py-2 rounded-xl focus:outline-none focus:bg-white focus:ring-1 focus:ring-emerald-500" placeholder="Search ticket #, restaurant, SKU..." type="text"/>
+<button class="absolute right-2.5 text-slate-400 hover:text-slate-700 p-0.5">
+<span class="material-symbols-outlined text-base">filter_list</span>
+</button>
+</div>
+</div>
+<!-- Status Segmented Pills -->
+<div class="px-3 py-2 flex items-center space-x-1 border-b border-slate-100 overflow-x-auto text-xs">
+<button class="px-2.5 py-1 rounded-lg bg-slate-900 text-white font-semibold whitespace-nowrap shadow-xs">All</button>
+<button class="px-2.5 py-1 rounded-lg bg-slate-100 text-slate-700 hover:bg-slate-200 font-semibold whitespace-nowrap flex items-center space-x-1">
+<span>New</span>
+<span class="px-1.5 py-0.2 rounded-full bg-slate-200 text-slate-800 text-[10px]">3</span>
+</button>
+<button class="px-2.5 py-1 rounded-lg bg-emerald-50 text-emerald-800 border border-emerald-200 font-semibold whitespace-nowrap flex items-center space-x-1">
+<span>Investigating</span>
+<span class="px-1.5 py-0.2 rounded-full bg-emerald-200 text-emerald-900 text-[10px]">3</span>
+</button>
+<button class="px-2.5 py-1 rounded-lg text-rose-700 hover:bg-rose-50 font-semibold whitespace-nowrap flex items-center space-x-1">
+<span>Escalated</span>
+<span class="px-1.5 py-0.2 rounded-full bg-rose-100 text-rose-800 text-[10px]">2</span>
+</button>
+<button class="px-2 py-1 rounded-lg text-slate-500 hover:text-slate-800 whitespace-nowrap">Resolved (12)</button>
+</div>
+<!-- Category Tag Filters -->
+<div class="px-3 py-1.5 flex items-center space-x-1.5 overflow-x-auto bg-slate-50 border-b border-slate-100 text-[11px] text-slate-600">
+<span class="px-2 py-0.5 rounded-md bg-white border border-slate-200 text-slate-900 font-semibold shadow-2xs whitespace-nowrap">All</span>
+<span class="px-2 py-0.5 rounded-md hover:bg-slate-200 transition cursor-pointer whitespace-nowrap">Quality/Damage</span>
+<span class="px-2 py-0.5 rounded-md hover:bg-slate-200 transition cursor-pointer whitespace-nowrap">Late Van</span>
+<span class="px-2 py-0.5 rounded-md hover:bg-slate-200 transition cursor-pointer whitespace-nowrap">Missing SKU</span>
+</div>
+<!-- Scrollable Feed -->
+<div class="flex-1 overflow-y-auto p-2.5 space-y-2">
+<!-- Item 1: Selected / Active -->
+<div class="p-3 rounded-xl bg-emerald-50/60 border-2 border-emerald-500 cursor-pointer shadow-xs transition">
+<div class="flex items-center justify-between">
+<div class="flex items-center space-x-1.5">
+<span class="px-1.5 py-0.5 rounded bg-rose-100 text-rose-800 text-[10px] font-bold tracking-wide">#TCK-1042</span>
+<span class="text-[10px] font-extrabold uppercase text-rose-700 tracking-wider">High Priority</span>
+</div>
+<span class="text-[11px] text-slate-500 font-medium">10:42 AM</span>
+</div>
+<div class="mt-1.5 flex items-baseline justify-between">
+<h4 class="text-xs font-bold text-slate-900 truncate">Al Noor Restaurant</h4>
+<span class="inline-flex items-center space-x-0.5 text-[10px] font-semibold text-emerald-800 bg-emerald-100 px-1.5 py-0.2 rounded">
+<span class="material-symbols-outlined text-[11px]">chat</span>
+<span>WhatsApp</span>
+</span>
+</div>
+<p class="text-[11px] font-semibold text-slate-800 mt-1 flex items-center space-x-1">
+<span class="material-symbols-outlined text-rose-600 text-[14px]">broken_image</span>
+<span>Damaged Goods (Crushed Cans)</span>
+</p>
+<p class="text-[11px] text-slate-600 mt-1 line-clamp-2 leading-relaxed">
+          Chef Faisal: "4 crates of San Marzano tomatoes arrived dented and leaked during dock delivery..."
+        </p>
+<div class="mt-2 pt-2 border-t border-emerald-100 flex items-center justify-between text-[11px]">
+<div class="flex items-center space-x-1 text-rose-700 font-bold">
+<span class="material-symbols-outlined text-[13px]">timer</span>
+<span>SLA: 14m left</span>
+</div>
+<div class="flex items-center space-x-1.5 text-slate-600">
+<span class="w-4 h-4 rounded-full bg-slate-900 text-white flex items-center justify-center text-[9px] font-bold">KO</span>
+<span>Kenneth O.</span>
+</div>
+</div>
+</div>
+<!-- Item 2 -->
+<div class="p-3 rounded-xl bg-white border border-slate-200 hover:border-slate-300 transition cursor-pointer shadow-2xs">
+<div class="flex items-center justify-between">
+<div class="flex items-center space-x-1.5">
+<span class="px-1.5 py-0.5 rounded bg-slate-100 text-slate-700 text-[10px] font-bold">#TCK-1039</span>
+<span class="text-[10px] font-bold text-amber-800 bg-amber-100 px-1.5 py-0.2 rounded">Investigating</span>
+</div>
+<span class="text-[11px] text-slate-400">09:55 AM</span>
+</div>
+<div class="mt-1.5">
+<h4 class="text-xs font-bold text-slate-900 truncate">Sultan Grill Express</h4>
+<p class="text-[11px] text-slate-600 mt-0.5">Delivery Delay • Fleet Van #04</p>
+</div>
+<p class="text-[11px] text-slate-500 mt-1 line-clamp-2 leading-relaxed">
+          Driver caught in heavy road closure near Kingdom Tower corridor. ETA push requested.
+        </p>
+<div class="mt-2 pt-2 border-t border-slate-100 flex items-center justify-between text-[11px] text-slate-500">
+<span class="text-emerald-700 font-semibold">Ref: #ORD-8819</span>
+<span>Tariq M.</span>
+</div>
+</div>
+<!-- Item 3 -->
+<div class="p-3 rounded-xl bg-white border border-slate-200 hover:border-slate-300 transition cursor-pointer shadow-2xs">
+<div class="flex items-center justify-between">
+<div class="flex items-center space-x-1.5">
+<span class="px-1.5 py-0.5 rounded bg-rose-100 text-rose-800 text-[10px] font-bold">#TCK-1035</span>
+<span class="text-[10px] font-bold text-rose-700 bg-rose-50 px-1.5 py-0.2 rounded uppercase">Escalated</span>
+</div>
+<span class="text-[11px] text-slate-400">09:12 AM</span>
+</div>
+<div class="mt-1.5">
+<h4 class="text-xs font-bold text-slate-900 truncate">Bella Roma Bistro</h4>
+<p class="text-[11px] text-slate-600 mt-0.5">Wrong SKU Delivered (Olive Oil Discrepancy)</p>
+</div>
+<div class="mt-2 pt-2 border-t border-slate-100 flex items-center justify-between text-[11px] text-slate-500">
+<span class="text-emerald-700 font-semibold">Ref: #ORD-8814</span>
+<span class="text-rose-700 font-bold">Manager Review</span>
+</div>
+</div>
+</div>
+</aside>
+<!-- ========================================================================= -->
+<!-- COLUMN 2: Ticket Detail, Evidence & Hotshot Dispatch (Center Column) -->
+<!-- ========================================================================= -->
+<section class="flex-1 flex flex-col bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden min-w-0">
+<!-- Ticket Detail Header -->
+<div class="px-5 py-3.5 border-b border-slate-200 flex items-center justify-between flex-shrink-0 bg-white">
+<div class="flex items-center space-x-3 min-w-0">
+<div class="space-y-1">
+<div class="flex items-center space-x-2">
+<span class="text-base font-extrabold text-slate-900">#TCK-1042</span>
+<span class="px-2 py-0.5 rounded-full text-[10px] font-bold bg-rose-100 text-rose-800 tracking-wide uppercase">
+              CRITICAL SLA
+            </span>
+<span class="px-2 py-0.5 rounded text-[11px] font-medium bg-slate-100 text-slate-700">
+              Damaged Inventory
+            </span>
+</div>
+<div class="flex items-center space-x-2 text-xs text-slate-500">
+<span>Origin: Bay 3 Dock Inbound</span>
+<span>•</span>
+<span class="inline-flex items-center space-x-1 text-emerald-700 font-semibold">
+<span class="material-symbols-outlined text-[13px]">receipt_long</span>
+<span>Linked Order #ORD-8821 (SAR 4,820.00)</span>
+</span>
+</div>
+</div>
+</div>
+<!-- Action Controls -->
+<div class="flex items-center space-x-2 flex-shrink-0">
+<button class="px-3 py-1.5 rounded-xl border border-slate-200 text-slate-700 text-xs font-semibold hover:bg-slate-50 transition flex items-center space-x-1 shadow-2xs">
+<span class="material-symbols-outlined text-sm">record_voice_over</span>
+<span>Escalate to Supervisor</span>
+</button>
+<button class="px-3.5 py-1.5 rounded-xl bg-emerald-600 text-white text-xs font-bold shadow-xs hover:bg-emerald-700 transition flex items-center space-x-1.5">
+<span class="material-symbols-outlined text-sm">local_shipping</span>
+<span>Re-dispatch Hotshot</span>
+</button>
+<button class="px-3 py-1.5 rounded-xl bg-slate-900 text-white text-xs font-semibold hover:bg-slate-800 transition flex items-center space-x-1">
+<span class="material-symbols-outlined text-sm">check_circle</span>
+<span>Mark Resolved</span>
+</button>
+</div>
+</div>
+<!-- Incident Overview Card -->
+<div class="p-4 border-b border-slate-100 bg-slate-50/50">
+<div class="p-4 rounded-xl bg-white border border-slate-200 shadow-2xs space-y-3">
+<div class="flex items-start justify-between">
+<div class="flex items-start space-x-3 min-w-0">
+<div class="w-9 h-9 rounded-xl bg-rose-100 text-rose-700 flex items-center justify-center flex-shrink-0">
+<span class="material-symbols-outlined text-xl" style="font-variation-settings: 'FILL' 1;">broken_image</span>
+</div>
+<div>
+<h3 class="text-sm font-bold text-slate-900 leading-snug">Issue Description &amp; Warehouse Triage</h3>
+<p class="text-xs text-slate-700 mt-1 leading-relaxed">
+                Chef Faisal Al-Qaisi reported that <span class="font-bold text-slate-900">4 out of 15 cases</span> of San Marzano Crushed Tomatoes (SKU: CAN-118) arrived punctured with outer seal compromise during 10:30 AM pallet delivery at Bay 3 dock.
+                <span class="block text-rose-700 font-semibold mt-1">Immediate replacement mandatory for lunch prep rush prior to 12:30 PM.</span>
+</p>
+</div>
+</div>
+<span class="px-2 py-0.5 rounded bg-slate-100 text-[10px] font-medium text-slate-600 whitespace-nowrap ml-2">
+            Dock Log: Recvd 10:38 AM
+          </span>
+</div>
+<!-- Evidence Attachments Row -->
+<div class="pt-2 border-t border-slate-100 flex items-center space-x-3 text-xs">
+<span class="font-bold text-slate-400 text-[10px] uppercase tracking-wider flex-shrink-0">Evidence (2):</span>
+<div class="flex items-center space-x-2 bg-slate-50 border border-slate-200 px-2.5 py-1.5 rounded-lg hover:bg-slate-100 transition cursor-pointer">
+<img class="w-7 h-7 rounded object-cover flex-shrink-0" data-alt="Close up photograph of four dented and leaking industrial wholesale cans of crushed tomatoes inside a damp corrugated cardboard crate on a stainless steel commercial kitchen pallet." src="https://lh3.googleusercontent.com/aida-public/AB6AXuA5PFPUlJ95XSnLSzPF0KERs-wT78tBGcIdb8Wbd9msNSoSeAfmH-7ijsahMwHgmVrUUduC5SfsvIMnqjgEAZaeyncLa0koED2Q_Avsk6yMifflJNrO5KaAAm7ig9vnlA--aOXgnwhubbAbQLYFmPp75BFgwKGrhQtH8YaR-KSSx9zIBPkRWUMF8O0Kk__Ll4ZW9rjd4VlH1EMyhFTdBgCfegfMx3Fp3BbmGVmz4p5AuPlu8yWIlBFEYA"/>
+<div class="leading-tight">
+<span class="block text-[11px] font-semibold text-slate-800 truncate max-w-[140px]">IMG_CanDamage_01.jpg</span>
+<span class="text-[10px] text-slate-400">1.4 MB • Received via WhatsApp</span>
+</div>
+</div>
+<div class="flex items-center space-x-2 bg-slate-50 border border-slate-200 px-2.5 py-1.5 rounded-lg hover:bg-slate-100 transition cursor-pointer">
+<div class="w-7 h-7 rounded bg-rose-100 text-rose-700 flex items-center justify-center flex-shrink-0">
+<span class="material-symbols-outlined text-sm">description</span>
+</div>
+<div class="leading-tight">
+<span class="block text-[11px] font-semibold text-slate-800 truncate max-w-[150px]">DeliverySlip_Signed_Note.pdf</span>
+<span class="text-[10px] text-slate-400">480 KB • Receiving Clerk Stamped</span>
+</div>
+</div>
+</div>
+</div>
+</div>
+<!-- Scrollable Center Body: Resolution Pathways & Timeline -->
+<div class="flex-1 overflow-y-auto p-4 space-y-4">
+<!-- Remediation Pathway Cards -->
+<div>
+<span class="text-[10px] font-bold uppercase tracking-wider text-slate-400 block mb-2">Immediate Remediation Pathways</span>
+<div class="grid grid-cols-2 gap-3">
+<!-- Option 1 -->
+<div class="p-3.5 rounded-xl bg-slate-50 border border-slate-200 flex flex-col justify-between">
+<div>
+<div class="flex items-center justify-between">
+<span class="text-xs font-bold text-slate-900">Hotshot Replacement Dispatch</span>
+<span class="text-[10px] font-bold px-1.5 py-0.2 rounded bg-emerald-100 text-emerald-800">FAST-TRACK</span>
+</div>
+<div class="mt-2 bg-white border border-slate-200 p-2.5 rounded-lg space-y-1 text-xs">
+<div class="flex justify-between text-slate-800">
+<span>4× Cases San Marzano (CAN-118)</span>
+<span class="font-bold">SAR 472.00</span>
+</div>
+<div class="flex justify-between text-[11px] text-slate-500">
+<span>Riyadh Central Hub • Bay 4 Rack 12</span>
+<span class="text-emerald-700 font-bold">In Stock (64 cases)</span>
+</div>
+</div>
+<p class="text-[11px] text-slate-600 mt-2 leading-relaxed">
+                Auto-generates emergency pickup order for Van #02 with targeted dock drop within 45 mins.
+              </p>
+</div>
+<button class="mt-3 w-full py-2 px-3 rounded-lg bg-emerald-600 text-white text-xs font-bold hover:bg-emerald-700 transition flex items-center justify-center space-x-1.5 shadow-2xs">
+<span class="material-symbols-outlined text-sm">fire_truck</span>
+<span>Create Replacement Dispatch Slip</span>
+</button>
+</div>
+<!-- Option 2 -->
+<div class="p-3.5 rounded-xl bg-slate-50 border border-slate-200 flex flex-col justify-between">
+<div>
+<div class="flex items-center justify-between">
+<span class="text-xs font-bold text-slate-900">Immediate Ledger Credit Memo</span>
+<span class="text-[10px] font-semibold px-1.5 py-0.2 rounded bg-slate-200 text-slate-800">NET-30 LEDGER</span>
+</div>
+<div class="mt-2 bg-white border border-slate-200 p-2.5 rounded-lg space-y-1 text-xs">
+<div class="flex justify-between text-slate-800">
+<span>Damaged Goods Total (4 Cases):</span>
+<span class="font-bold">SAR 472.00</span>
+</div>
+<div class="flex justify-between text-[11px] text-slate-500">
+<span>Applicable VAT Adjustment (15%):</span>
+<span>SAR 70.80</span>
+</div>
+</div>
+<p class="text-[11px] text-slate-600 mt-2 leading-relaxed">
+                Credit instantly posts to Al Noor Restaurant account balance without holding deliveries.
+              </p>
+</div>
+<button class="mt-3 w-full py-2 px-3 rounded-lg bg-white border border-slate-200 text-slate-800 text-xs font-bold hover:bg-slate-100 transition flex items-center justify-center space-x-1.5 shadow-2xs">
+<span class="material-symbols-outlined text-sm">request_quote</span>
+<span>Issue SAR 542.80 Credit Note</span>
+</button>
+</div>
+</div>
+</div>
+<!-- Chain of Custody Timeline -->
+<div>
+<span class="text-[10px] font-bold uppercase tracking-wider text-slate-400 block mb-2.5">Resolution Progress &amp; Chain of Custody</span>
+<div class="relative pl-5 space-y-3 before:absolute before:left-2 before:top-1.5 before:bottom-1.5 before:w-0.5 before:bg-slate-200">
+<!-- Step 1 -->
+<div class="relative flex items-start space-x-2.5">
+<div class="absolute -left-5 top-0.5 w-3.5 h-3.5 rounded-full bg-emerald-600 text-white flex items-center justify-center text-[9px]">
+<span class="material-symbols-outlined text-[10px]">check</span>
+</div>
+<div>
+<div class="flex items-center space-x-2">
+<span class="text-xs font-bold text-slate-900">10:42 AM • Incident Logged</span>
+<span class="px-1.5 py-0.2 rounded bg-slate-100 text-[10px] text-slate-600">Inbound WhatsApp Bot</span>
+</div>
+<p class="text-[11px] text-slate-500 mt-0.5 leading-relaxed">
+                Ticket triggered from live chat during driver sign-off with damaged packaging photo.
+              </p>
+</div>
+</div>
+<!-- Step 2 -->
+<div class="relative flex items-start space-x-2.5">
+<div class="absolute -left-5 top-0.5 w-3.5 h-3.5 rounded-full bg-emerald-600 text-white flex items-center justify-center text-[9px]">
+<span class="material-symbols-outlined text-[10px]">check</span>
+</div>
+<div>
+<div class="flex items-center space-x-2">
+<span class="text-xs font-bold text-slate-900">10:44 AM • Agent Assigned</span>
+<span class="px-1.5 py-0.2 rounded bg-slate-100 text-[10px] text-slate-600">Kenneth Ofkeli</span>
+</div>
+<p class="text-[11px] text-slate-500 mt-0.5 leading-relaxed">
+                Agent confirmed verification with receiving lead Sous Chef Omar.
+              </p>
+</div>
+</div>
+<!-- Step 3: In progress -->
+<div class="relative flex items-start space-x-2.5">
+<div class="absolute -left-5 top-0.5 w-3.5 h-3.5 rounded-full bg-white border-2 border-emerald-600 flex items-center justify-center">
+<span class="w-1.5 h-1.5 rounded-full bg-emerald-600 animate-pulse"></span>
+</div>
+<div>
+<div class="flex items-center space-x-2">
+<span class="text-xs font-bold text-slate-900">10:52 AM • Hotshot Driver Allocation</span>
+<span class="px-1.5 py-0.2 rounded bg-emerald-100 text-emerald-800 text-[10px] font-bold">In Progress</span>
+</div>
+<p class="text-[11px] text-slate-500 mt-0.5 leading-relaxed">
+                Van #02 notified for priority dispatch sequence to Bay 3 dock.
+              </p>
+</div>
+</div>
+</div>
+</div>
+</div>
+<!-- Quick Action / Composer Footer -->
+<div class="p-3.5 border-t border-slate-200 bg-white flex-shrink-0 space-y-2">
+<div class="flex items-center space-x-2 text-xs text-slate-500">
+<span class="font-bold text-slate-700 text-[11px]">Quick Templates:</span>
+<button class="px-2 py-0.5 rounded bg-slate-100 hover:bg-slate-200 text-slate-700 text-[11px] transition" onclick="document.getElementById('ticketComposer').value='Hotshot replacement dispatched under priority slip #HSD-104. ETA: 35 minutes directly to Bay 3 dock.'">
+          Hotshot Dispatched
+        </button>
+<button class="px-2 py-0.5 rounded bg-slate-100 hover:bg-slate-200 text-slate-700 text-[11px] transition" onclick="document.getElementById('ticketComposer').value='Credit note #CR-8821 for SAR 542.80 has been applied to your Net-30 statement with full VAT adjustment.'">
+          Credit Memo Issued
+        </button>
+</div>
+<div class="flex items-center space-x-2">
+<div class="relative flex-1">
+<textarea class="w-full bg-slate-50 border border-slate-200 text-xs text-slate-800 rounded-xl pl-3 pr-16 py-2 resize-none focus:outline-none focus:bg-white focus:ring-1 focus:ring-emerald-500" id="ticketComposer" placeholder="Type internal note or reply to Chef Faisal..." rows="1"></textarea>
+<div class="absolute right-2 top-2 flex items-center space-x-1 text-slate-400">
+<button class="p-0.5 hover:text-slate-700"><span class="material-symbols-outlined text-base">alternate_email</span></button>
+<button class="p-0.5 hover:text-slate-700"><span class="material-symbols-outlined text-base">attach_file</span></button>
+</div>
+</div>
+<button class="px-3.5 py-2 rounded-xl bg-emerald-600 text-white text-xs font-bold hover:bg-emerald-700 transition flex items-center space-x-1 shadow-xs">
+<span>Send</span>
+<span class="material-symbols-outlined text-sm">send</span>
+</button>
+</div>
+</div>
+</section>
+<!-- ========================================================================= -->
+<!-- COLUMN 3: Linked Restaurant 360° Profile (~340px) -->
+<!-- ========================================================================= -->
+<aside class="w-88 flex-shrink-0 flex flex-col bg-white rounded-2xl shadow-sm border border-slate-200 overflow-y-auto">
+<!-- Account Header Banner -->
+<div class="p-4 border-b border-slate-100 bg-slate-50/70 flex items-center space-x-3">
+<div class="w-11 h-11 rounded-xl bg-slate-900 text-white flex items-center justify-center font-bold text-sm shadow-xs flex-shrink-0">
+        AN
+      </div>
+<div class="min-w-0">
+<div class="flex items-center space-x-1">
+<h3 class="text-xs font-extrabold text-slate-900 truncate">Al Noor Restaurant</h3>
+<span class="material-symbols-outlined text-emerald-600 text-sm" style="font-variation-settings: 'FILL' 1;">verified</span>
+</div>
+<p class="text-[11px] text-slate-500 truncate mt-0.5">King Fahd Rd, Riyadh • Bay 3 Dock</p>
+</div>
+</div>
+<div class="p-4 space-y-4">
+<!-- Primary Contact Card -->
+<div class="p-3 bg-slate-50 border border-slate-200 rounded-xl space-y-2.5">
+<div class="flex items-center justify-between text-xs">
+<span class="text-[10px] font-bold uppercase tracking-wider text-slate-400">Primary Contact</span>
+<span class="text-[10px] font-bold text-emerald-800 bg-emerald-100 px-1.5 py-0.2 rounded">Authorized Buyer</span>
+</div>
+<div class="flex items-center space-x-2.5">
+<img class="w-10 h-10 rounded-full object-cover shadow-xs flex-shrink-0" data-alt="Professional portrait headshot of Chef Faisal Al-Qaisi, a Saudi head chef wearing a modern chef jacket against a neutral studio backdrop with soft warm lighting." src="https://lh3.googleusercontent.com/aida-public/AB6AXuABsy5mNYFZZG871vzA2xn4t-3ImN5q64KcaWkaqogRMekczTnzy9M1zjDFhhVbP3oNu8gYp4jcAqep-6M21HptSm4dHhGyjXwzgVHA341QStcRUg5g8fwb-6Mtk_v7RW2eICgdrJmVGnsH814-WMazB7ti3wXv7F_sP-KMglt64F_1Ya0-mVCsLs0P7p3ReMj4l5MYn3E8oZzApwbPy1vRpxkxqQUqdQAwKOsmPL2pRfBH0CgeJPJLWg"/>
+<div class="min-w-0">
+<h4 class="text-xs font-bold text-slate-900 truncate">Chef Faisal Al-Qaisi</h4>
+<p class="text-[11px] text-slate-500 truncate">Executive Head Chef &amp; Procurement</p>
+</div>
+</div>
+<!-- Contact Actions -->
+<div class="grid grid-cols-3 gap-1.5 pt-1 text-xs">
+<button class="py-1.5 rounded-lg bg-white border border-slate-200 hover:bg-slate-100 text-emerald-700 font-bold flex items-center justify-center space-x-1 shadow-2xs transition">
+<span class="material-symbols-outlined text-sm">chat</span>
+<span>WhatsApp</span>
+</button>
+<button class="py-1.5 rounded-lg bg-white border border-slate-200 hover:bg-slate-100 text-slate-700 font-semibold flex items-center justify-center space-x-1 shadow-2xs transition">
+<span class="material-symbols-outlined text-sm">call</span>
+<span>Call</span>
+</button>
+<button class="py-1.5 rounded-lg bg-white border border-slate-200 hover:bg-slate-100 text-slate-700 font-semibold flex items-center justify-center space-x-1 shadow-2xs transition">
+<span class="material-symbols-outlined text-sm">mail</span>
+<span>Email</span>
+</button>
+</div>
+</div>
+<!-- Commercial Standing -->
+<div class="p-3 bg-slate-50 border border-slate-200 rounded-xl space-y-2 text-xs">
+<span class="text-[10px] font-bold uppercase tracking-wider text-slate-400 block">Wholesale Account Standing</span>
+<div class="flex justify-between items-center text-slate-600">
+<span>Credit Terms:</span>
+<span class="font-bold text-slate-900 bg-white border border-slate-200 px-1.5 py-0.5 rounded shadow-2xs text-[11px]">VIP Net-30 Tier</span>
+</div>
+<div class="flex justify-between items-center text-slate-600">
+<span>Credit Limit:</span>
+<span class="font-semibold text-slate-900">SAR 45,000.00</span>
+</div>
+<div class="flex justify-between items-center text-slate-600">
+<span>Available Balance:</span>
+<span class="font-bold text-emerald-700">SAR 28,400.00</span>
+</div>
+<div class="flex justify-between items-center text-slate-600 pt-1 border-t border-slate-200">
+<span>Quality Incident Rate:</span>
+<span class="font-bold text-emerald-700 flex items-center space-x-1">
+<span>0.8%</span>
+<span class="text-[10px] text-slate-400 font-normal">(Low risk)</span>
+</span>
+</div>
+</div>
+<!-- Associated Order Summary -->
+<div class="p-3 bg-slate-50 border border-slate-200 rounded-xl space-y-2 text-xs">
+<div class="flex items-center justify-between">
+<span class="text-[10px] font-bold uppercase tracking-wider text-slate-400">Associated Order</span>
+<span class="text-[11px] font-bold text-emerald-700">Delivered Today</span>
+</div>
+<div class="bg-white border border-slate-200 p-2.5 rounded-lg space-y-2 shadow-2xs">
+<div class="flex justify-between font-bold text-slate-900">
+<span>#ORD-8821</span>
+<span>SAR 4,820.00</span>
+</div>
+<!-- Affected Item -->
+<div class="p-2 rounded bg-rose-50 border border-rose-100 space-y-0.5">
+<div class="flex justify-between text-xs">
+<span class="font-bold text-slate-900 truncate max-w-[160px]">San Marzano Tomatoes</span>
+<span class="text-rose-700 font-extrabold text-[11px]">4 DAMAGED</span>
+</div>
+<div class="flex justify-between text-[10px] text-slate-500">
+<span>SKU: CAN-118 • 12×800g</span>
+<span>15 ordered</span>
+</div>
+</div>
+<!-- Clean Items -->
+<div class="flex justify-between text-[11px] text-slate-600 pt-0.5">
+<span>Basmati Rice 20kg (10 bags)</span>
+<span class="text-emerald-700 font-semibold">Accepted ✓</span>
+</div>
+<div class="flex justify-between text-[11px] text-slate-600">
+<span>Extra Virgin Olive Oil 5L (5 tins)</span>
+<span class="text-emerald-700 font-semibold">Accepted ✓</span>
+</div>
+</div>
+</div>
+<!-- Sowtek Ticket Log -->
+<div class="p-3 bg-slate-50 border border-slate-200 rounded-xl space-y-2 text-xs">
+<div class="flex items-center justify-between">
+<span class="text-[10px] font-bold uppercase tracking-wider text-slate-400">Sowtek Ticket Log</span>
+<span class="text-[11px] font-medium text-slate-500">3 Lifetime</span>
+</div>
+<div class="space-y-1.5">
+<div class="p-2 bg-white border border-slate-200 rounded-lg flex items-center justify-between shadow-2xs">
+<div>
+<span class="font-bold text-slate-900 block text-[11px]">#TCK-1042 (Current)</span>
+<span class="text-[10px] text-slate-400">Damaged Cans • Open</span>
+</div>
+<span class="px-1.5 py-0.5 rounded bg-rose-100 text-rose-800 text-[10px] font-bold">Active</span>
+</div>
+<div class="p-2 bg-white border border-slate-200 rounded-lg flex items-center justify-between opacity-80 shadow-2xs">
+<div>
+<span class="font-semibold text-slate-700 block text-[11px]">#TCK-0892</span>
+<span class="text-[10px] text-slate-400">Pallet packaging tear • July</span>
+</div>
+<span class="px-1.5 py-0.5 rounded bg-slate-100 text-slate-700 text-[10px] font-medium">Resolved</span>
+</div>
+</div>
+</div>
+</div>
+</aside>
+</div></div>
+<script>
+  // Simple interactive filter toggle demonstration
+  function setActiveTab(el) {
+    el.parentElement.querySelectorAll('button').forEach(btn => {
+      btn.classList.remove('bg-secondary-fixed', 'text-on-secondary-fixed-variant');
+      btn.classList.add('text-outline');
+    });
+    el.classList.add('bg-secondary-fixed', 'text-on-secondary-fixed-variant');
+    el.classList.remove('text-outline');
+  }
+</script></main>
+<!-- END: MainContentArea -->
+<!-- ========================================================================= -->
+<!-- MODAL: Claim & Assign Agent Modal -->
+<!-- ========================================================================= -->
+<div class="hidden fixed inset-0 bg-slate-900/60 backdrop-blur-xs z-50 flex items-center justify-center p-4" id="assignModal">
+<div class="bg-white rounded-2xl max-w-md w-full p-5 shadow-2xl border border-slate-200 space-y-4">
+<div class="flex items-center justify-between border-b border-slate-100 pb-3">
+<div>
+<h3 class="text-base font-bold text-slate-900">Claim or Assign Order Conversation</h3>
+<p class="text-xs text-slate-500">Order #ORD-8821 • Al Noor Restaurant</p>
+</div>
+<button class="p-1 rounded-lg text-slate-400 hover:text-slate-600 hover:bg-slate-100" onclick="closeModal('assignModal')">
+<svg class="w-5 h-5" fill="none" stroke="currentColor" viewbox="0 0 24 24"><path d="M6 18L18 6M6 6l12 12" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"></path></svg>
+</button>
+</div>
+<div class="space-y-2">
+<label class="text-xs font-bold text-slate-700">Select Responsible Agent:</label>
+<!-- Agent 1: Kenneth Ofkeli -->
+<label class="flex items-center justify-between p-3 rounded-xl border border-slate-200 hover:bg-emerald-50/50 hover:border-emerald-300 cursor-pointer transition">
+<div class="flex items-center space-x-3">
+<input checked="" class="text-emerald-600 focus:ring-emerald-500" name="agent_select" type="radio"/>
+<div class="w-8 h-8 rounded-full bg-slate-900 text-white flex items-center justify-center font-bold text-xs">KO</div>
+<div>
+<p class="text-xs font-bold text-slate-900">Kenneth Ofkeli (You)</p>
+<span class="text-[10px] text-emerald-700 font-semibold">Available • 4 active chats</span>
+</div>
+</div>
+<span class="text-[10px] font-bold px-2 py-0.5 rounded bg-emerald-100 text-emerald-800">Low Load</span>
+</label>
+<!-- Agent 2: Sarah Jenkins -->
+<label class="flex items-center justify-between p-3 rounded-xl border border-slate-200 hover:bg-slate-50 cursor-pointer transition">
+<div class="flex items-center space-x-3">
+<input class="text-emerald-600 focus:ring-emerald-500" name="agent_select" type="radio"/>
+<div class="w-8 h-8 rounded-full bg-purple-700 text-white flex items-center justify-center font-bold text-xs">SJ</div>
+<div>
+<p class="text-xs font-bold text-slate-900">Sarah Jenkins</p>
+<span class="text-[10px] text-slate-500">Available • 7 active chats</span>
+</div>
+</div>
+<span class="text-[10px] font-semibold px-2 py-0.5 rounded bg-slate-100 text-slate-700">Medium</span>
+</label>
+<!-- Agent 3: Tariq Mansoor (Assigned Rep) -->
+<label class="flex items-center justify-between p-3 rounded-xl border border-slate-200 hover:bg-slate-50 cursor-pointer transition">
+<div class="flex items-center space-x-3">
+<input class="text-emerald-600 focus:ring-emerald-500" name="agent_select" type="radio"/>
+<div class="w-8 h-8 rounded-full bg-amber-700 text-white flex items-center justify-center font-bold text-xs">TM</div>
+<div>
+<p class="text-xs font-bold text-slate-900">Tariq Mansoor (Account Rep)</p>
+<span class="text-[10px] text-slate-500">In Call • 9 active chats</span>
+</div>
+</div>
+<span class="text-[10px] font-bold px-2 py-0.5 rounded bg-amber-100 text-amber-800">Account Owner</span>
+</label>
+<!-- Agent 4: Layla Qasim -->
+<label class="flex items-center justify-between p-3 rounded-xl border border-slate-200 hover:bg-slate-50 cursor-pointer transition">
+<div class="flex items-center space-x-3">
+<input class="text-emerald-600 focus:ring-emerald-500" name="agent_select" type="radio"/>
+<div class="w-8 h-8 rounded-full bg-teal-700 text-white flex items-center justify-center font-bold text-xs">LQ</div>
+<div>
+<p class="text-xs font-bold text-slate-900">Layla Qasim</p>
+<span class="text-[10px] text-slate-500">Available • 5 active chats</span>
+</div>
+</div>
+<span class="text-[10px] font-semibold px-2 py-0.5 rounded bg-slate-100 text-slate-700">Low Load</span>
+</label>
+</div>
+<div class="pt-3 border-t border-slate-100 flex items-center justify-end space-x-2">
+<button class="px-4 py-2 text-xs font-semibold text-slate-600 hover:bg-slate-100 rounded-xl transition" onclick="closeModal('assignModal')">
+          Cancel
+        </button>
+<button class="px-4 py-2 text-xs font-bold bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl shadow-xs transition" onclick="confirmAssignment()">
+          Confirm &amp; Claim
+        </button>
+</div>
+</div>
+</div>
+<!-- ========================================================================= -->
+<!-- DRAWER: Create / Review Order Drawer (Right Slide-over) -->
+<!-- ========================================================================= -->
+<div class="hidden fixed inset-0 z-50 overflow-hidden bg-slate-900/50 backdrop-blur-xs flex justify-end" id="orderDrawer">
+<div class="w-full max-w-xl bg-white h-full shadow-2xl flex flex-col justify-between">
+<!-- Drawer Header -->
+<div class="p-5 border-b border-slate-200 flex items-center justify-between">
+<div>
+<h2 class="text-base font-bold text-slate-900">Order Creation &amp; Inventory Verification</h2>
+<p class="text-xs text-slate-500">Al Noor Restaurant • Bay 3 • Reference #ORD-8821</p>
+</div>
+<button class="p-1 rounded-lg text-slate-400 hover:text-slate-600 hover:bg-slate-100" onclick="closeDrawer('orderDrawer')">
+<svg class="w-5 h-5" fill="none" stroke="currentColor" viewbox="0 0 24 24"><path d="M6 18L18 6M6 6l12 12" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"></path></svg>
+</button>
+</div>
+<!-- Drawer Body: SKU Line Items -->
+<div class="p-5 overflow-y-auto space-y-4 flex-1">
+<div class="flex items-center justify-between">
+<span class="text-xs font-bold uppercase tracking-wider text-slate-500">Order Line Items</span>
+<button class="text-xs font-bold text-emerald-700 hover:text-emerald-800">+ Add SKU</button>
+</div>
+<!-- SKU 1 -->
+<div class="p-3 bg-slate-50 border border-slate-200 rounded-xl flex items-center justify-between">
+<div>
+<p class="text-xs font-bold text-slate-900">Premium Basmati Rice (20kg Bag)</p>
+<span class="text-[11px] text-slate-500">SKU: GRO-RICE-20K • Stock: 142 in Riyadh Hub</span>
+</div>
+<div class="flex items-center space-x-3">
+<span class="text-xs font-bold text-slate-700">10 bags</span>
+<span class="text-xs font-black text-slate-900">SAR 1,800.00</span>
+</div>
+</div>
+<!-- SKU 2 -->
+<div class="p-3 bg-slate-50 border border-slate-200 rounded-xl flex items-center justify-between">
+<div>
+<p class="text-xs font-bold text-slate-900">San Marzano Crushed Tomatoes 12x800g</p>
+<span class="text-[11px] text-slate-500">SKU: CAN-TOM-800 • Stock: 64 in Riyadh Hub</span>
+</div>
+<div class="flex items-center space-x-3">
+<span class="text-xs font-bold text-slate-700">15 cases</span>
+<span class="text-xs font-black text-slate-900">SAR 1,770.00</span>
+</div>
+</div>
+<!-- SKU 3 -->
+<div class="p-3 bg-slate-50 border border-slate-200 rounded-xl flex items-center justify-between">
+<div>
+<p class="text-xs font-bold text-slate-900">Extra Virgin Olive Oil (5L Tin)</p>
+<span class="text-[11px] text-slate-500">SKU: OIL-EVOO-5L • Stock: 39 in Riyadh Hub</span>
+</div>
+<div class="flex items-center space-x-3">
+<span class="text-xs font-bold text-slate-700">5 tins</span>
+<span class="text-xs font-black text-slate-900">SAR 1,250.00</span>
+</div>
+</div>
+<!-- Delivery & Logistics Notes -->
+<div class="pt-3 border-t border-slate-100 space-y-3">
+<div>
+<label class="text-xs font-bold text-slate-700 block mb-1">Delivery Time Window</label>
+<select class="w-full text-xs py-2 px-3 rounded-xl border-slate-200 bg-slate-50">
+<option>Tomorrow Morning (08:00 AM - 11:00 AM) [Recommended]</option>
+<option>Tomorrow Afternoon (01:00 PM - 04:00 PM)</option>
+<option>Urgent Tonight Delivery (Night Shift)</option>
+</select>
+</div>
+<div>
+<label class="text-xs font-bold text-slate-700 block mb-1">Driver / Dock Notes</label>
+<textarea class="w-full text-xs py-2 px-3 rounded-xl border-slate-200 bg-slate-50" rows="2">Bay 3 access code: #4092. Hand receipt directly to Chef Faisal or Sous Chef Omar.</textarea>
+</div>
+</div>
+<!-- Pricing Summary -->
+<div class="p-4 bg-emerald-50/60 border border-emerald-200 rounded-2xl space-y-1.5 text-xs">
+<div class="flex justify-between text-slate-600">
+<span>Subtotal (3 Items):</span>
+<span class="font-semibold">SAR 4,820.00</span>
+</div>
+<div class="flex justify-between text-slate-600">
+<span>VAT (15% Included):</span>
+<span class="font-semibold">SAR 628.70</span>
+</div>
+<div class="flex justify-between text-slate-600">
+<span>Delivery Fee:</span>
+<span class="font-semibold text-emerald-700">FREE (VIP Net-30)</span>
+</div>
+<div class="flex justify-between text-slate-900 font-extrabold text-sm pt-2 border-t border-emerald-200">
+<span>Total Order Amount:</span>
+<span class="text-emerald-800">SAR 4,820.00</span>
+</div>
+</div>
+</div>
+<!-- Drawer Footer -->
+<div class="p-4 border-t border-slate-200 flex items-center justify-between bg-slate-50">
+<button class="px-4 py-2 text-xs font-bold text-slate-600 hover:bg-slate-200 rounded-xl transition" onclick="closeDrawer('orderDrawer')">
+          Back
+        </button>
+<button class="px-5 py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs rounded-xl shadow-xs transition" onclick="confirmOrderGeneration()">
+          Generate &amp; Send PO to WhatsApp
+        </button>
+</div>
+</div>
+</div>
+<!-- ========================================================================= -->
+<!-- DRAWER: Raise Issue Drawer -->
+<!-- ========================================================================= -->
+<div class="hidden fixed inset-0 z-50 overflow-hidden bg-slate-900/50 backdrop-blur-xs flex justify-end" id="issueDrawer">
+<div class="w-full max-w-md bg-white h-full shadow-2xl flex flex-col justify-between">
+<!-- Drawer Header -->
+<div class="p-5 border-b border-slate-200 flex items-center justify-between">
+<div>
+<h2 class="text-base font-bold text-slate-900">Raise Support Ticket</h2>
+<p class="text-xs text-slate-500">Al Noor Restaurant • Bay 3</p>
+</div>
+<button class="p-1 rounded-lg text-slate-400 hover:text-slate-600 hover:bg-slate-100" onclick="closeDrawer('issueDrawer')">
+<svg class="w-5 h-5" fill="none" stroke="currentColor" viewbox="0 0 24 24"><path d="M6 18L18 6M6 6l12 12" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"></path></svg>
+</button>
+</div>
+<!-- Drawer Body -->
+<div class="p-5 space-y-4 flex-1">
+<div>
+<label class="text-xs font-bold text-slate-700 block mb-1">Incident Category</label>
+<select class="w-full text-xs py-2 px-3 rounded-xl border-slate-200 bg-slate-50">
+<option>Damaged Goods / Packaging</option>
+<option>Missing Items on Pallet</option>
+<option>Late Driver / Delayed Delivery</option>
+<option>Billing / Duplicate Charge Dispute</option>
+</select>
+</div>
+<div>
+<label class="text-xs font-bold text-slate-700 block mb-1">Priority Level</label>
+<div class="grid grid-cols-3 gap-2">
+<button class="py-1.5 text-xs font-semibold rounded-lg border border-slate-200 hover:bg-slate-100" type="button">Low</button>
+<button class="py-1.5 text-xs font-bold rounded-lg border border-amber-300 bg-amber-50 text-amber-900" type="button">Medium</button>
+<button class="py-1.5 text-xs font-bold rounded-lg border border-rose-300 bg-rose-50 text-rose-800" type="button">Urgent</button>
+</div>
+</div>
+<div>
+<label class="text-xs font-bold text-slate-700 block mb-1">Detailed Incident Description</label>
+<textarea class="w-full text-xs py-2 px-3 rounded-xl border-slate-200 bg-slate-50" placeholder="Describe items affected, batch numbers, chef remarks..." rows="4"></textarea>
+</div>
+</div>
+<!-- Drawer Footer -->
+<div class="p-4 border-t border-slate-200 flex items-center justify-end space-x-2 bg-slate-50">
+<button class="px-4 py-2 text-xs font-semibold text-slate-600 hover:bg-slate-200 rounded-xl transition" onclick="closeDrawer('issueDrawer')">
+          Cancel
+        </button>
+<button class="px-4 py-2 bg-rose-600 hover:bg-rose-700 text-white font-bold text-xs rounded-xl shadow-xs transition" onclick="submitIssue()">
+          Create &amp; Escalate Ticket
+        </button>
+</div>
+</div>
+</div>
+<!-- ========================================================================= -->
+<!-- JavaScript Interactions -->
+<!-- ========================================================================= -->
+<script data-purpose="chat-interactivity">
+    // Select Conversation & Update Workspace
+    function selectConversation(element, restaurantName, chefName, orderNo) {
+      // Remove active class from all items
+      document.querySelectorAll('.convo-item').forEach(item => {
+        item.classList.remove('bg-emerald-50/70', 'border-l-4', 'border-emerald-500');
+        item.classList.add('hover:bg-slate-50');
+      });
+
+      // Add active state to clicked item
+      element.classList.add('bg-emerald-50/70', 'border-l-4', 'border-emerald-500');
+      element.classList.remove('hover:bg-slate-50');
+
+      // Update Center Workspace Headers
+      document.getElementById('chatRestaurantName').innerText = restaurantName;
+      document.getElementById('chatChefName').innerText = chefName;
+      document.getElementById('chatOrderNumber').innerText = orderNo;
+    }
+
+    // Filter conversations via pill tabs
+    function filterConversations(tabName) {
+      const tabs = document.querySelectorAll('.feed-tab');
+      tabs.forEach(tab => {
+        tab.classList.remove('bg-emerald-50', 'text-emerald-800', 'border', 'border-emerald-200', 'font-semibold');
+        tab.classList.add('text-slate-600', 'hover:bg-slate-100');
+      });
+      event.currentTarget.classList.add('bg-emerald-50', 'text-emerald-800', 'border', 'border-emerald-200', 'font-semibold');
+    }
+
+    // Insert canned template into input
+    function insertTemplate(text) {
+      if (!text) return;
+      const input = document.getElementById('chatInput');
+      input.value = text;
+      input.focus();
+    }
+
+    // Send Chat Message
+    function sendChatMessage() {
+      const input = document.getElementById('chatInput');
+      const text = input.value.trim();
+      if (!text) return;
+
+      const chatFeed = document.getElementById('chatFeed');
+      const now = new Date();
+      const timeStr = now.getHours().toString().padStart(2, '0') + ':' + now.getMinutes().toString().padStart(2, '0');
+
+      const messageHTML = `
+        <div class="flex items-end justify-end space-x-2.5 max-w-xl ml-auto animate-fade-in">
+          <div>
+            <div class="chat-bubble-agent p-3.5 rounded-2xl rounded-br-xs text-xs text-slate-900 shadow-2xs space-y-1">
+              <p>${escapeHTML(text)}</p>
+            </div>
+            <div class="flex items-center justify-end space-x-1 pr-1 mt-1">
+              <span class="text-[10px] text-slate-400">${timeStr}</span>
+              <span class="text-emerald-600">
+                <svg class="w-3.5 h-3.5 inline" viewBox="0 0 24 24" fill="currentColor"><path d="M18 7l-1.41-1.41-6.34 6.34 1.41 1.41L18 7zm4.24-1.41L11.66 16.17 7.41 11.93l-1.41 1.41 5.66 5.66 12-12-1.42-1.41zM.41 13.34l5.66 5.66 1.41-1.41-5.66-5.66L.41 13.34z"/></svg>
+              </span>
+            </div>
+          </div>
+          <div class="w-8 h-8 rounded-full bg-emerald-700 text-white flex items-center justify-center font-bold text-xs flex-shrink-0">
+            KO
+          </div>
+        </div>
+      `;
+
+      chatFeed.insertAdjacentHTML('beforeend', messageHTML);
+      input.value = '';
+      chatFeed.scrollTop = chatFeed.scrollHeight;
+    }
+
+    // Modal & Drawer toggles
+    function openModal(id) {
+      document.getElementById(id).classList.remove('hidden');
+    }
+
+    function closeModal(id) {
+      document.getElementById(id).classList.add('hidden');
+    }
+
+    function openDrawer(id) {
+      document.getElementById(id).classList.remove('hidden');
+    }
+
+    function closeDrawer(id) {
+      document.getElementById(id).classList.add('hidden');
+    }
+
+    function confirmAssignment() {
+      closeModal('assignModal');
+      alert('Conversation successfully claimed and assigned to Kenneth Ofkeli!');
+    }
+
+    function confirmOrderGeneration() {
+      closeDrawer('orderDrawer');
+      const input = document.getElementById('chatInput');
+      input.value = "Here is your official Sowtek Order Confirmation for #ORD-8821 totaling SAR 4,820.00. Scheduled for Bay 3 delivery tomorrow at 10:30 AM.";
+      sendChatMessage();
+    }
+
+    function submitIssue() {
+      closeDrawer('issueDrawer');
+      alert('Ticket #ISS-305 successfully created and dispatched to the warehouse manager.');
+    }
+
+    function escapeHTML(str) {
+      return str.replace(/[&<>'"]/g, 
+        tag => ({
+          '&': '&amp;',
+          '<': '&lt;',
+          '>': '&gt;',
+          "'": '&#39;',
+          '"': '&quot;'
+        }[tag] || tag)
+      );
+    }
+  </script>
+</body></html>

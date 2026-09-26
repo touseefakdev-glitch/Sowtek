@@ -1,0 +1,689 @@
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta content="width=device-width, initial-scale=1.0" name="viewport"><meta content="web_dashboard" name="shell-type"><style>@layer base{html,body{margin:0;padding:0;}body{overscroll-behavior:none;}main>:first-child{margin-top:0!important;}main>:last-child{margin-bottom:0!important;}}::-webkit-scrollbar{display:none;}</style><script src="https://cdn.tailwindcss.com"></script><script id="tailwind-config">tailwind.config={darkMode:"class",theme:{extend:{colors:{"inverse-on-surface":"#eaf1ff","on-background":"#0b1c30","secondary":"#006c49","secondary-fixed-dim":"#4edea3","primary-fixed-dim":"#bec6e0","surface-container-low":"#eff4ff","surface-container-high":"#dce9ff","tertiary-container":"#001a42","surface-tint":"#565e74","on-secondary":"#ffffff","inverse-primary":"#bec6e0","on-tertiary":"#ffffff","on-surface":"#0b1c30","error":"#ba1a1a","tertiary":"#000000","secondary-fixed":"#6ffbbe","primary-container":"#131b2e","tertiary-fixed-dim":"#adc6ff","surface":"#f8f9ff","primary-fixed":"#dae2fd","error-container":"#ffdad6","outline":"#76777d","surface-bright":"#f8f9ff","surface-container":"#e5eeff","secondary-container":"#6cf8bb","primary":"#000000","inverse-surface":"#213145","on-primary-fixed":"#131b2e","on-tertiary-fixed-variant":"#004395","on-secondary-container":"#00714d","surface-container-lowest":"#ffffff","on-error-container":"#93000a","on-tertiary-fixed":"#001a42","on-primary-fixed-variant":"#3f465c","surface-container-highest":"#d3e4fe","on-error":"#ffffff","outline-variant":"#c6c6cd","on-surface-variant":"#45464d","on-secondary-fixed-variant":"#005236","on-primary-container":"#7c839b","on-secondary-fixed":"#002113","background":"#f8f9ff","tertiary-fixed":"#d8e2ff","on-primary":"#ffffff","on-tertiary-container":"#3980f4","surface-variant":"#d3e4fe","surface-dim":"#cbdbf5"},borderRadius:{DEFAULT:"0.25rem",lg:"0.5rem",xl:"0.75rem",full:"9999px"},spacing:{"space-xs":"0.25rem","space-xl":"1.5rem","space-sm":"0.5rem","gutter-compact":"0.75rem",margin:"1.25rem","space-md":"0.75rem","space-lg":"1rem",gutter:"1rem","margin-mobile":"0.75rem"},fontFamily:{"body-lg":["Inter"],"body-sm":["Inter"],"display-lg":["Plus Jakarta Sans"],"label-sm":["Inter"],"headline-sm":["Plus Jakarta Sans"],"label-lg":["Inter"],"label-md":["Inter"],"body-md":["Inter"],"headline-md":["Plus Jakarta Sans"],"headline-lg":["Plus Jakarta Sans"]},fontSize:{"body-lg":["15px",{lineHeight:"22px",fontWeight:"400"}],"body-sm":["12px",{lineHeight:"16px",fontWeight:"400"}],"display-lg":["30px",{lineHeight:"38px",letterSpacing:"-0.02em",fontWeight:"700"}],"label-sm":["10px",{lineHeight:"12px",letterSpacing:"0.04em",fontWeight:"700"}],"headline-sm":["15px",{lineHeight:"20px",fontWeight:"600"}],"label-lg":["13px",{lineHeight:"16px",letterSpacing:"0.01em",fontWeight:"600"}],"label-md":["11px",{lineHeight:"14px",letterSpacing:"0.02em",fontWeight:"600"}],"body-md":["13px",{lineHeight:"18px",fontWeight:"400"}],"headline-md":["18px",{lineHeight:"24px",letterSpacing:"-0.01em",fontWeight:"600"}],"headline-lg":["22px",{lineHeight:"28px",letterSpacing:"-0.015em",fontWeight:"700"}]}}}};</script><link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@100..900&amp;family=Plus+Jakarta+Sans:wght@100..900&amp;display=swap" rel="stylesheet"></head><body class="bg-surface font-body-md text-on-surface"><aside class="fixed left-0 top-0 h-full w-64 bg-surface-container-lowest shadow-[0_1px_8px_rgba(0,0,0,0.04)] z-50 flex flex-col justify-between"><div class="flex flex-col"><div class="h-16 px-space-xl flex items-center gap-space-sm"><div class="w-8 h-8 rounded-lg bg-primary-container flex items-center justify-center text-secondary-container"><span class="material-symbols-outlined text-[20px]">local_shipping</span></div><div class="flex flex-col"><span class="font-headline-sm text-headline-sm text-on-surface tracking-tight leading-none">Sowtek</span><span class="font-label-sm text-label-sm text-secondary font-bold uppercase tracking-wider mt-0.5">OrderFlow</span></div></div><div class="px-space-md py-space-xs"><nav class="space-y-1" data-active-classes="bg-primary-container text-on-secondary shadow-sm font-semibold"><a class="flex items-center justify-between px-space-md py-space-sm rounded-lg text-on-surface-variant hover:bg-surface-container-high hover:text-on-surface transition-colors" data-path="unified-inbox" href="#"><div class="flex items-center gap-space-md"><span class="material-symbols-outlined text-[18px]">chat</span><span class="font-label-lg text-label-lg">Unified Inbox</span></div><span class="px-1.5 py-0.5 rounded-full bg-secondary text-on-secondary font-label-sm text-label-sm">14</span></a><a class="flex items-center gap-space-md px-space-md py-space-sm rounded-lg text-on-surface-variant hover:bg-surface-container-high hover:text-on-surface transition-colors" data-path="overview" href="#"><span class="material-symbols-outlined text-[18px]">dashboard</span><span class="font-label-lg text-label-lg">Overview</span></a><a class="flex items-center gap-space-md px-space-md py-space-sm rounded-lg text-on-surface-variant hover:bg-surface-container-high hover:text-on-surface transition-colors" data-path="orders" href="#"><span class="material-symbols-outlined text-[18px]">receipt_long</span><span class="font-label-lg text-label-lg">Orders</span></a><a class="flex items-center justify-between px-space-md py-space-sm rounded-lg text-on-surface-variant hover:bg-surface-container-high hover:text-on-surface transition-colors" data-path="issues-tickets" href="#"><div class="flex items-center gap-space-md"><span class="material-symbols-outlined text-[18px]">error</span><span class="font-label-lg text-label-lg">Issues &amp; Tickets</span></div><span class="px-1.5 py-0.5 rounded-full bg-error-container text-on-error-container font-label-sm text-label-sm font-bold">3</span></a><a class="flex items-center gap-space-md px-space-md py-space-sm rounded-lg text-on-surface-variant hover:bg-surface-container-high hover:text-on-surface transition-colors" data-path="restaurants" href="#"><span class="material-symbols-outlined text-[18px]">restaurant</span><span class="font-label-lg text-label-lg">Restaurants</span></a><a aria-current="page" class="flex items-center gap-space-md px-space-md py-space-sm rounded-lg transition-colors bg-primary-container text-on-secondary shadow-sm font-semibold" data-path="products" href="#"><span class="material-symbols-outlined text-[18px]">inventory_2</span><span class="font-label-lg text-label-lg">Products</span></a><a class="flex items-center gap-space-md px-space-md py-space-sm rounded-lg text-on-surface-variant hover:bg-surface-container-high hover:text-on-surface transition-colors" data-path="reports" href="#"><span class="material-symbols-outlined text-[18px]">bar_chart</span><span class="font-label-lg text-label-lg">Reports</span></a><a class="flex items-center gap-space-md px-space-md py-space-sm rounded-lg text-on-surface-variant hover:bg-surface-container-high hover:text-on-surface transition-colors" data-path="settings" href="#"><span class="material-symbols-outlined text-[18px]">settings</span><span class="font-label-lg text-label-lg">Settings</span></a></nav></div></div><div class="p-space-md space-y-space-xs"><div class="p-space-md rounded-xl bg-surface-container-low flex items-center justify-between"><div class="flex items-center gap-space-sm min-w-0"><div class="relative flex-shrink-0"><div class="w-9 h-9 rounded-full bg-primary-container flex items-center justify-center text-on-secondary font-label-md text-label-md font-bold">KO</div><span class="absolute bottom-0 right-0 w-2.5 h-2.5 rounded-full bg-secondary border-2 border-surface-container-lowest"></span></div><div class="min-w-0 flex flex-col"><span class="font-label-md text-label-md text-on-surface truncate font-semibold">Kenneth Ofkeli</span><span class="font-label-sm text-label-sm text-secondary truncate flex items-center gap-1"><span class="material-symbols-outlined text-[12px]">timer</span>Avail 00:10:22</span></div></div><button class="text-on-surface-variant hover:text-on-surface"><span class="material-symbols-outlined text-[18px]">more_vert</span></button></div><div class="flex items-center justify-around pt-space-xs text-on-surface-variant"><a class="flex items-center gap-1 hover:text-on-surface font-label-md text-label-md py-1 px-2 rounded-lg hover:bg-surface-container-high transition-colors" data-path="help-center" href="#"><span class="material-symbols-outlined text-[16px]">help</span>Help Center</a><a class="relative flex items-center gap-1 hover:text-on-surface font-label-md text-label-md py-1 px-2 rounded-lg hover:bg-surface-container-high transition-colors" data-path="notifications" href="#"><span class="material-symbols-outlined text-[16px]">notifications</span>Alerts<span class="w-2 h-2 rounded-full bg-secondary absolute top-1 right-1"></span></a></div></div></aside><div class="pl-64 min-h-screen flex flex-col bg-surface"><header class="fixed top-0 left-64 right-0 h-16 bg-surface-container-lowest/90 backdrop-blur-xl shadow-[0_1px_8px_rgba(0,0,0,0.04)] z-40 flex items-center justify-between px-space-xl"><div class="flex items-center gap-space-md flex-1 max-w-lg"><div class="w-full flex items-center gap-space-sm px-space-md py-1.5 rounded-lg bg-surface-container-low"><span class="material-symbols-outlined text-on-surface-variant text-[18px]">search</span><input class="bg-transparent border-none outline-none font-body-sm text-body-sm text-on-surface placeholder:text-on-surface-variant w-full" placeholder="Search catalog, SKUs, restaurants, or orders..." type="text"></div></div><div class="flex items-center gap-space-lg"><div class="hidden md:flex items-center gap-space-xs px-2.5 py-1 rounded-full bg-secondary-fixed text-on-secondary-fixed font-label-sm text-label-sm font-bold"><span class="w-1.5 h-1.5 rounded-full bg-secondary"></span>WhatsApp Gateway Online</div><div class="flex items-center gap-space-sm text-on-surface-variant"><button class="w-9 h-9 rounded-lg hover:bg-surface-container-high hover:text-on-surface flex items-center justify-center transition-colors"><span class="material-symbols-outlined text-[20px]">tune</span></button><button class="w-9 h-9 rounded-lg hover:bg-surface-container-high hover:text-on-surface flex items-center justify-center transition-colors relative"><span class="material-symbols-outlined text-[20px]">chat_bubble</span><span class="w-2 h-2 rounded-full bg-secondary absolute top-2 right-2"></span></button></div><div class="w-8 h-8 rounded-full bg-primary flex items-center justify-center"><span class="material-symbols-outlined text-on-primary text-[18px]">person</span></div></div></header><main class="w-full pt-16 bg-surface px-space-xl py-space-xl flex-1"><div class="flex flex-col w-full font-body-md text-on-surface gap-space-lg pb-12">
+<!-- Master Container -->
+<div class="w-full bg-surface-container-lowest rounded-xl shadow-sm p-space-xl flex flex-col gap-space-xl">
+<!-- Top Bar / Header Section -->
+<div class="flex flex-col xl:flex-row xl:items-center justify-between gap-space-lg">
+<div class="flex flex-col">
+<div class="flex items-center gap-space-xs text-on-surface-variant font-label-md text-label-md">
+<span>Inventory &amp; Wholesale SKU Management</span>
+<span>·</span>
+<span class="font-semibold text-secondary">128 Total Items</span>
+</div>
+<h1 class="font-headline-lg text-headline-lg text-on-surface tracking-tight mt-0.5">Product Catalog</h1>
+</div>
+<!-- Quick KPI Stats Bar -->
+<div class="flex flex-wrap items-center gap-space-sm bg-surface-container-low p-1.5 rounded-xl">
+<div class="flex items-center gap-space-xs px-3 py-1.5 rounded-lg bg-surface-container-lowest shadow-sm">
+<span class="w-2 h-2 rounded-full bg-primary"></span>
+<span class="font-label-sm text-label-sm text-on-surface-variant uppercase">Total SKUs:</span>
+<span class="font-headline-sm text-headline-sm text-on-surface">128</span>
+</div>
+<div class="flex items-center gap-space-xs px-3 py-1.5 rounded-lg bg-surface-container-lowest shadow-sm">
+<span class="w-2 h-2 rounded-full bg-secondary"></span>
+<span class="font-label-sm text-label-sm text-secondary uppercase">In Stock:</span>
+<span class="font-headline-sm text-headline-sm text-secondary">114</span>
+</div>
+<div class="flex items-center gap-space-xs px-3 py-1.5 rounded-lg bg-surface-container-lowest shadow-sm">
+<span class="w-2 h-2 rounded-full bg-[#f59e0b]"></span>
+<span class="font-label-sm text-label-sm text-[#b45309] uppercase">Low Stock Alert:</span>
+<span class="font-headline-sm text-headline-sm text-[#b45309]">9</span>
+</div>
+<div class="flex items-center gap-space-xs px-3 py-1.5 rounded-lg bg-surface-container-lowest shadow-sm">
+<span class="w-2 h-2 rounded-full bg-error"></span>
+<span class="font-label-sm text-label-sm text-error uppercase">Out of Stock:</span>
+<span class="font-headline-sm text-headline-sm text-error">5</span>
+</div>
+</div>
+</div>
+<!-- Search, Filters, Bulk Actions & Primary CTA Bar -->
+<div class="flex flex-col gap-space-md">
+<!-- Search & Primary Row -->
+<div class="flex flex-col lg:flex-row items-stretch lg:items-center justify-between gap-space-md">
+<!-- Search Field -->
+<div class="flex-1 min-w-0 max-w-xl">
+<div class="flex items-center gap-space-sm px-space-md py-2.5 rounded-lg bg-surface-container-low transition-all focus-within:bg-surface-container-lowest focus-within:shadow-sm">
+<span class="material-symbols-outlined text-on-surface-variant text-[20px]">search</span>
+<input class="bg-transparent border-none outline-none font-body-md text-body-md text-on-surface placeholder:text-on-surface-variant w-full" id="catalogSearchInput" placeholder="Search by product name, SKU code, or category..." type="text">
+</div>
+</div>
+<!-- Action CTAs -->
+<div class="flex items-center gap-space-sm self-end lg:self-auto">
+<button class="px-3.5 py-2.5 rounded-lg bg-surface-container-low hover:bg-surface-container-high text-on-surface-variant hover:text-on-surface font-label-lg text-label-lg flex items-center gap-space-xs transition-colors">
+<span class="material-symbols-outlined text-[18px]">file_download</span>
+<span>Export CSV</span>
+</button>
+<button class="px-4 py-2.5 rounded-lg bg-secondary hover:opacity-90 text-on-secondary font-label-lg text-label-lg flex items-center gap-space-xs shadow-sm transition-opacity">
+<span class="material-symbols-outlined text-[18px]">add_circle</span>
+<span>+ Add Product</span>
+</button>
+</div>
+</div>
+<!-- Filter Controls Row -->
+<div class="flex flex-wrap items-center justify-between gap-space-md bg-surface-container-low/60 p-space-sm rounded-xl">
+<!-- Status Tabs -->
+<div class="flex items-center gap-1 overflow-x-auto">
+<button class="filter-tab px-3 py-1.5 rounded-lg bg-surface-container-lowest text-on-surface font-label-md text-label-md shadow-sm" data-filter="all">
+            All <span class="ml-1 opacity-70">128</span>
+</button>
+<button class="filter-tab px-3 py-1.5 rounded-lg text-on-surface-variant hover:text-on-surface font-label-md text-label-md" data-filter="available">
+            Available <span class="ml-1 opacity-70">114</span>
+</button>
+<button class="filter-tab px-3 py-1.5 rounded-lg text-on-surface-variant hover:text-on-surface font-label-md text-label-md" data-filter="low">
+            Low Stock <span class="ml-1 opacity-70">9</span>
+</button>
+<button class="filter-tab px-3 py-1.5 rounded-lg text-on-surface-variant hover:text-on-surface font-label-md text-label-md" data-filter="out">
+            Out of Stock <span class="ml-1 opacity-70">5</span>
+</button>
+</div>
+<!-- Category Dropdown / Selector -->
+<div class="flex items-center gap-space-xs">
+<span class="font-label-sm text-label-sm text-on-surface-variant uppercase tracking-wider hidden sm:inline">Category:</span>
+<div class="relative">
+<select class="appearance-none bg-surface-container-lowest text-on-surface font-label-md text-label-md pl-3 pr-8 py-1.5 rounded-lg shadow-sm outline-none cursor-pointer" id="categorySelector">
+<option value="all">All Categories</option>
+<option value="Grains &amp; Rice">Grains &amp; Rice</option>
+<option value="Canned Goods">Canned Goods</option>
+<option value="Oils &amp; Fats">Oils &amp; Fats</option>
+<option value="Dairy &amp; Chilled">Dairy &amp; Chilled</option>
+<option value="Spices &amp; Dry">Spices &amp; Dry</option>
+<option value="Fresh Meat">Fresh Meat</option>
+</select>
+<span class="material-symbols-outlined absolute right-2 top-1.5 pointer-events-none text-[16px] text-on-surface-variant">expand_more</span>
+</div>
+</div>
+</div>
+</div>
+<!-- Data Table Container -->
+<div class="w-full overflow-x-auto rounded-xl bg-surface-container-lowest shadow-sm">
+<table class="w-full text-left border-collapse">
+<thead>
+<tr class="bg-surface-container-low text-on-surface-variant font-label-sm text-label-sm uppercase tracking-wider">
+<th class="py-3 px-4 w-12 text-center">
+<input class="w-4 h-4 rounded bg-surface-container-lowest text-secondary focus:ring-0 cursor-pointer" id="selectAllCheckbox" type="checkbox">
+</th>
+<th class="py-3 px-4 font-semibold">Product Name &amp; Details</th>
+<th class="py-3 px-4 font-semibold">SKU Code</th>
+<th class="py-3 px-4 font-semibold">Category</th>
+<th class="py-3 px-4 font-semibold">Unit / Packaging</th>
+<th class="py-3 px-4 font-semibold text-right">Wholesale Price (SAR)</th>
+<th class="py-3 px-4 font-semibold">Live Warehouse Stock</th>
+<th class="py-3 px-4 font-semibold">Stock Status</th>
+<th class="py-3 px-4 font-semibold text-right">Actions</th>
+</tr>
+</thead>
+<tbody class="divide-y divide-surface-container" id="catalogTableBody">
+<!-- Row 1 -->
+<tr class="product-row hover:bg-surface-container-low/50 transition-colors" data-category="Grains &amp; Rice" data-status="available">
+<td class="py-3.5 px-4 text-center">
+<input class="row-checkbox w-4 h-4 rounded bg-surface-container text-secondary focus:ring-0 cursor-pointer" type="checkbox">
+</td>
+<td class="py-3.5 px-4">
+<div class="flex items-center gap-space-md">
+<div class="w-10 h-10 rounded-lg bg-surface-container flex items-center justify-center flex-shrink-0 text-on-surface-variant">
+<span class="material-symbols-outlined text-[22px]">grain</span>
+</div>
+<div class="flex flex-col min-w-0">
+<span class="font-headline-sm text-headline-sm text-on-surface font-semibold truncate">Premium Basmati Rice (20kg)</span>
+<span class="font-body-sm text-body-sm text-on-surface-variant truncate">Aged Long Grain Extra White</span>
+</div>
+</div>
+</td>
+<td class="py-3.5 px-4">
+<span class="px-2 py-0.5 rounded bg-surface-container font-label-md text-label-md text-on-surface-variant font-mono">GRN-402</span>
+</td>
+<td class="py-3.5 px-4">
+<span class="font-label-md text-label-md text-on-surface">Grains &amp; Rice</span>
+</td>
+<td class="py-3.5 px-4 font-body-md text-body-md text-on-surface">20kg Bag</td>
+<td class="py-3.5 px-4 text-right">
+<span class="font-headline-sm text-headline-sm text-on-surface font-bold">180.00</span>
+</td>
+<td class="py-3.5 px-4">
+<div class="flex flex-col">
+<span class="font-headline-sm text-headline-sm text-on-surface">142 bags</span>
+<span class="font-label-sm text-label-sm text-on-surface-variant">Riyadh Bay 4</span>
+</div>
+</td>
+<td class="py-3.5 px-4">
+<span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-secondary-fixed text-on-secondary-fixed font-label-sm text-label-sm font-semibold">
+<span class="w-1.5 h-1.5 rounded-full bg-secondary"></span>
+                Available
+              </span>
+</td>
+<td class="py-3.5 px-4 text-right">
+<div class="flex items-center justify-end gap-space-xs">
+<button class="px-2.5 py-1 rounded font-label-md text-label-md text-on-surface-variant hover:text-on-surface hover:bg-surface-container-high transition-colors">Edit</button>
+<button class="toggle-btn w-9 h-5 rounded-full bg-secondary p-0.5 flex items-center transition-colors focus:outline-none" data-enabled="true">
+<div class="w-4 h-4 rounded-full bg-surface-container-lowest shadow-sm transform translate-x-4 transition-transform"></div>
+</button>
+<button class="w-7 h-7 flex items-center justify-center rounded hover:bg-surface-container-high text-on-surface-variant transition-colors">
+<span class="material-symbols-outlined text-[18px]">more_vert</span>
+</button>
+</div>
+</td>
+</tr>
+<!-- Row 2 -->
+<tr class="product-row hover:bg-surface-container-low/50 transition-colors" data-category="Canned Goods" data-status="low">
+<td class="py-3.5 px-4 text-center">
+<input class="row-checkbox w-4 h-4 rounded bg-surface-container text-secondary focus:ring-0 cursor-pointer" type="checkbox">
+</td>
+<td class="py-3.5 px-4">
+<div class="flex items-center gap-space-md">
+<div class="w-10 h-10 rounded-lg bg-surface-container flex items-center justify-center flex-shrink-0 text-on-surface-variant">
+<span class="material-symbols-outlined text-[22px]">soup_kitchen</span>
+</div>
+<div class="flex flex-col min-w-0">
+<span class="font-headline-sm text-headline-sm text-on-surface font-semibold truncate">San Marzano Crushed Tomatoes</span>
+<span class="font-body-sm text-body-sm text-on-surface-variant truncate">DOP Certified Campania IT</span>
+</div>
+</div>
+</td>
+<td class="py-3.5 px-4">
+<span class="px-2 py-0.5 rounded bg-surface-container font-label-md text-label-md text-on-surface-variant font-mono">CAN-118</span>
+</td>
+<td class="py-3.5 px-4">
+<span class="font-label-md text-label-md text-on-surface">Canned Goods</span>
+</td>
+<td class="py-3.5 px-4 font-body-md text-body-md text-on-surface">12×800g Case</td>
+<td class="py-3.5 px-4 text-right">
+<span class="font-headline-sm text-headline-sm text-on-surface font-bold">118.00</span>
+</td>
+<td class="py-3.5 px-4">
+<div class="flex flex-col">
+<span class="font-headline-sm text-headline-sm text-[#b45309]">14 cases</span>
+<span class="font-label-sm text-label-sm text-on-surface-variant">Re-order in progress</span>
+</div>
+</td>
+<td class="py-3.5 px-4">
+<span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-surface-container-high text-[#b45309] font-label-sm text-label-sm font-semibold">
+<span class="w-1.5 h-1.5 rounded-full bg-[#f59e0b]"></span>
+                Low Stock
+              </span>
+</td>
+<td class="py-3.5 px-4 text-right">
+<div class="flex items-center justify-end gap-space-xs">
+<button class="px-2.5 py-1 rounded font-label-md text-label-md text-on-surface-variant hover:text-on-surface hover:bg-surface-container-high transition-colors">Edit</button>
+<button class="toggle-btn w-9 h-5 rounded-full bg-secondary p-0.5 flex items-center transition-colors focus:outline-none" data-enabled="true">
+<div class="w-4 h-4 rounded-full bg-surface-container-lowest shadow-sm transform translate-x-4 transition-transform"></div>
+</button>
+<button class="w-7 h-7 flex items-center justify-center rounded hover:bg-surface-container-high text-on-surface-variant transition-colors">
+<span class="material-symbols-outlined text-[18px]">more_vert</span>
+</button>
+</div>
+</td>
+</tr>
+<!-- Row 3 -->
+<tr class="product-row hover:bg-surface-container-low/50 transition-colors" data-category="Oils &amp; Fats" data-status="available">
+<td class="py-3.5 px-4 text-center">
+<input class="row-checkbox w-4 h-4 rounded bg-surface-container text-secondary focus:ring-0 cursor-pointer" type="checkbox">
+</td>
+<td class="py-3.5 px-4">
+<div class="flex items-center gap-space-md">
+<div class="w-10 h-10 rounded-lg bg-surface-container flex items-center justify-center flex-shrink-0 text-on-surface-variant">
+<span class="material-symbols-outlined text-[22px]">water_drop</span>
+</div>
+<div class="flex flex-col min-w-0">
+<span class="font-headline-sm text-headline-sm text-on-surface font-semibold truncate">Extra Virgin Olive Oil 5L Tin</span>
+<span class="font-body-sm text-body-sm text-on-surface-variant truncate">Cold Pressed Al Jouf 0.3% Acidity</span>
+</div>
+</div>
+</td>
+<td class="py-3.5 px-4">
+<span class="px-2 py-0.5 rounded bg-surface-container font-label-md text-label-md text-on-surface-variant font-mono">OIL-092</span>
+</td>
+<td class="py-3.5 px-4">
+<span class="font-label-md text-label-md text-on-surface">Oils &amp; Fats</span>
+</td>
+<td class="py-3.5 px-4 font-body-md text-body-md text-on-surface">5L Tin</td>
+<td class="py-3.5 px-4 text-right">
+<span class="font-headline-sm text-headline-sm text-on-surface font-bold">250.00</span>
+</td>
+<td class="py-3.5 px-4">
+<div class="flex flex-col">
+<span class="font-headline-sm text-headline-sm text-on-surface">39 tins</span>
+<span class="font-label-sm text-label-sm text-on-surface-variant">Riyadh Bay 2</span>
+</div>
+</td>
+<td class="py-3.5 px-4">
+<span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-secondary-fixed text-on-secondary-fixed font-label-sm text-label-sm font-semibold">
+<span class="w-1.5 h-1.5 rounded-full bg-secondary"></span>
+                Available
+              </span>
+</td>
+<td class="py-3.5 px-4 text-right">
+<div class="flex items-center justify-end gap-space-xs">
+<button class="px-2.5 py-1 rounded font-label-md text-label-md text-on-surface-variant hover:text-on-surface hover:bg-surface-container-high transition-colors">Edit</button>
+<button class="toggle-btn w-9 h-5 rounded-full bg-secondary p-0.5 flex items-center transition-colors focus:outline-none" data-enabled="true">
+<div class="w-4 h-4 rounded-full bg-surface-container-lowest shadow-sm transform translate-x-4 transition-transform"></div>
+</button>
+<button class="w-7 h-7 flex items-center justify-center rounded hover:bg-surface-container-high text-on-surface-variant transition-colors">
+<span class="material-symbols-outlined text-[18px]">more_vert</span>
+</button>
+</div>
+</td>
+</tr>
+<!-- Row 4 -->
+<tr class="product-row hover:bg-surface-container-low/50 transition-colors" data-category="Dairy &amp; Chilled" data-status="available">
+<td class="py-3.5 px-4 text-center">
+<input class="row-checkbox w-4 h-4 rounded bg-surface-container text-secondary focus:ring-0 cursor-pointer" type="checkbox">
+</td>
+<td class="py-3.5 px-4">
+<div class="flex items-center gap-space-md">
+<div class="w-10 h-10 rounded-lg bg-surface-container flex items-center justify-center flex-shrink-0 text-on-surface-variant">
+<span class="material-symbols-outlined text-[22px]">egg_alt</span>
+</div>
+<div class="flex flex-col min-w-0">
+<span class="font-headline-sm text-headline-sm text-on-surface font-semibold truncate">White Truffle Infused Butter (500g)</span>
+<span class="font-body-sm text-body-sm text-on-surface-variant truncate">Chilled Artisan Dairy Line</span>
+</div>
+</div>
+</td>
+<td class="py-3.5 px-4">
+<span class="px-2 py-0.5 rounded bg-surface-container font-label-md text-label-md text-on-surface-variant font-mono">DRY-055</span>
+</td>
+<td class="py-3.5 px-4">
+<span class="font-label-md text-label-md text-on-surface">Dairy &amp; Chilled</span>
+</td>
+<td class="py-3.5 px-4 font-body-md text-body-md text-on-surface">500g Tub</td>
+<td class="py-3.5 px-4 text-right">
+<span class="font-headline-sm text-headline-sm text-on-surface font-bold">95.00</span>
+</td>
+<td class="py-3.5 px-4">
+<div class="flex flex-col">
+<span class="font-headline-sm text-headline-sm text-on-surface">18 tubs</span>
+<span class="font-label-sm text-label-sm text-on-surface-variant">Cold Storage Bay 1</span>
+</div>
+</td>
+<td class="py-3.5 px-4">
+<span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-secondary-fixed text-on-secondary-fixed font-label-sm text-label-sm font-semibold">
+<span class="w-1.5 h-1.5 rounded-full bg-secondary"></span>
+                Available
+              </span>
+</td>
+<td class="py-3.5 px-4 text-right">
+<div class="flex items-center justify-end gap-space-xs">
+<button class="px-2.5 py-1 rounded font-label-md text-label-md text-on-surface-variant hover:text-on-surface hover:bg-surface-container-high transition-colors">Edit</button>
+<button class="toggle-btn w-9 h-5 rounded-full bg-secondary p-0.5 flex items-center transition-colors focus:outline-none" data-enabled="true">
+<div class="w-4 h-4 rounded-full bg-surface-container-lowest shadow-sm transform translate-x-4 transition-transform"></div>
+</button>
+<button class="w-7 h-7 flex items-center justify-center rounded hover:bg-surface-container-high text-on-surface-variant transition-colors">
+<span class="material-symbols-outlined text-[18px]">more_vert</span>
+</button>
+</div>
+</td>
+</tr>
+<!-- Row 5 -->
+<tr class="product-row hover:bg-surface-container-low/50 transition-colors" data-category="Dairy &amp; Chilled" data-status="out">
+<td class="py-3.5 px-4 text-center">
+<input class="row-checkbox w-4 h-4 rounded bg-surface-container text-secondary focus:ring-0 cursor-pointer" type="checkbox">
+</td>
+<td class="py-3.5 px-4">
+<div class="flex items-center gap-space-md">
+<div class="w-10 h-10 rounded-lg bg-surface-container flex items-center justify-center flex-shrink-0 text-on-surface-variant">
+<span class="material-symbols-outlined text-[22px]">kitchen</span>
+</div>
+<div class="flex flex-col min-w-0">
+<span class="font-headline-sm text-headline-sm text-on-surface font-semibold truncate">Italian Mozzarella Fior di Latte</span>
+<span class="font-body-sm text-body-sm text-on-surface-variant truncate">Fresh Vacuum Block</span>
+</div>
+</div>
+</td>
+<td class="py-3.5 px-4">
+<span class="px-2 py-0.5 rounded bg-surface-container font-label-md text-label-md text-on-surface-variant font-mono">DRY-104</span>
+</td>
+<td class="py-3.5 px-4">
+<span class="font-label-md text-label-md text-on-surface">Dairy &amp; Chilled</span>
+</td>
+<td class="py-3.5 px-4 font-body-md text-body-md text-on-surface">5kg Block</td>
+<td class="py-3.5 px-4 text-right">
+<span class="font-headline-sm text-headline-sm text-on-surface font-bold">145.00</span>
+</td>
+<td class="py-3.5 px-4">
+<div class="flex flex-col">
+<span class="font-headline-sm text-headline-sm text-error">0 blocks</span>
+<span class="font-label-sm text-label-sm text-on-surface-variant">Incoming tomorrow 8 AM</span>
+</div>
+</td>
+<td class="py-3.5 px-4">
+<span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-error-container text-on-error-container font-label-sm text-label-sm font-semibold">
+<span class="w-1.5 h-1.5 rounded-full bg-error"></span>
+                Out of Stock
+              </span>
+</td>
+<td class="py-3.5 px-4 text-right">
+<div class="flex items-center justify-end gap-space-xs">
+<button class="px-2.5 py-1 rounded font-label-md text-label-md text-on-surface-variant hover:text-on-surface hover:bg-surface-container-high transition-colors">Edit</button>
+<button class="toggle-btn w-9 h-5 rounded-full bg-surface-variant p-0.5 flex items-center transition-colors focus:outline-none" data-enabled="false">
+<div class="w-4 h-4 rounded-full bg-surface-container-lowest shadow-sm transform translate-x-0 transition-transform"></div>
+</button>
+<button class="w-7 h-7 flex items-center justify-center rounded hover:bg-surface-container-high text-on-surface-variant transition-colors">
+<span class="material-symbols-outlined text-[18px]">more_vert</span>
+</button>
+</div>
+</td>
+</tr>
+<!-- Row 6 -->
+<tr class="product-row hover:bg-surface-container-low/50 transition-colors" data-category="Grains &amp; Rice" data-status="available">
+<td class="py-3.5 px-4 text-center">
+<input class="row-checkbox w-4 h-4 rounded bg-surface-container text-secondary focus:ring-0 cursor-pointer" type="checkbox">
+</td>
+<td class="py-3.5 px-4">
+<div class="flex items-center gap-space-md">
+<div class="w-10 h-10 rounded-lg bg-surface-container flex items-center justify-center flex-shrink-0 text-on-surface-variant">
+<span class="material-symbols-outlined text-[22px]">bakery_dining</span>
+</div>
+<div class="flex flex-col min-w-0">
+<span class="font-headline-sm text-headline-sm text-on-surface font-semibold truncate">Double Zero (00) Pizza Flour</span>
+<span class="font-body-sm text-body-sm text-on-surface-variant truncate">Caputo Manitoba Blend</span>
+</div>
+</div>
+</td>
+<td class="py-3.5 px-4">
+<span class="px-2 py-0.5 rounded bg-surface-container font-label-md text-label-md text-on-surface-variant font-mono">GRN-512</span>
+</td>
+<td class="py-3.5 px-4">
+<span class="font-label-md text-label-md text-on-surface">Grains &amp; Rice</span>
+</td>
+<td class="py-3.5 px-4 font-body-md text-body-md text-on-surface">25kg Sack</td>
+<td class="py-3.5 px-4 text-right">
+<span class="font-headline-sm text-headline-sm text-on-surface font-bold">135.00</span>
+</td>
+<td class="py-3.5 px-4">
+<div class="flex flex-col">
+<span class="font-headline-sm text-headline-sm text-on-surface">88 sacks</span>
+<span class="font-label-sm text-label-sm text-on-surface-variant">Riyadh Bay 4</span>
+</div>
+</td>
+<td class="py-3.5 px-4">
+<span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-secondary-fixed text-on-secondary-fixed font-label-sm text-label-sm font-semibold">
+<span class="w-1.5 h-1.5 rounded-full bg-secondary"></span>
+                Available
+              </span>
+</td>
+<td class="py-3.5 px-4 text-right">
+<div class="flex items-center justify-end gap-space-xs">
+<button class="px-2.5 py-1 rounded font-label-md text-label-md text-on-surface-variant hover:text-on-surface hover:bg-surface-container-high transition-colors">Edit</button>
+<button class="toggle-btn w-9 h-5 rounded-full bg-secondary p-0.5 flex items-center transition-colors focus:outline-none" data-enabled="true">
+<div class="w-4 h-4 rounded-full bg-surface-container-lowest shadow-sm transform translate-x-4 transition-transform"></div>
+</button>
+<button class="w-7 h-7 flex items-center justify-center rounded hover:bg-surface-container-high text-on-surface-variant transition-colors">
+<span class="material-symbols-outlined text-[18px]">more_vert</span>
+</button>
+</div>
+</td>
+</tr>
+<!-- Row 7 -->
+<tr class="product-row hover:bg-surface-container-low/50 transition-colors" data-category="Canned Goods" data-status="low">
+<td class="py-3.5 px-4 text-center">
+<input class="row-checkbox w-4 h-4 rounded bg-surface-container text-secondary focus:ring-0 cursor-pointer" type="checkbox">
+</td>
+<td class="py-3.5 px-4">
+<div class="flex items-center gap-space-md">
+<div class="w-10 h-10 rounded-lg bg-surface-container flex items-center justify-center flex-shrink-0 text-on-surface-variant">
+<span class="material-symbols-outlined text-[22px]">inventory</span>
+</div>
+<div class="flex flex-col min-w-0">
+<span class="font-headline-sm text-headline-sm text-on-surface font-semibold truncate">Whole Peeled Plum Tomatoes</span>
+<span class="font-body-sm text-body-sm text-on-surface-variant truncate">Foodservice Pouch Pack</span>
+</div>
+</div>
+</td>
+<td class="py-3.5 px-4">
+<span class="px-2 py-0.5 rounded bg-surface-container font-label-md text-label-md text-on-surface-variant font-mono">CAN-204</span>
+</td>
+<td class="py-3.5 px-4">
+<span class="font-label-md text-label-md text-on-surface">Canned Goods</span>
+</td>
+<td class="py-3.5 px-4 font-body-md text-body-md text-on-surface">6×2.5kg Tin</td>
+<td class="py-3.5 px-4 text-right">
+<span class="font-headline-sm text-headline-sm text-on-surface font-bold">165.00</span>
+</td>
+<td class="py-3.5 px-4">
+<div class="flex flex-col">
+<span class="font-headline-sm text-headline-sm text-[#b45309]">8 cases</span>
+<span class="font-label-sm text-label-sm text-on-surface-variant">Critically low</span>
+</div>
+</td>
+<td class="py-3.5 px-4">
+<span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-surface-container-high text-[#b45309] font-label-sm text-label-sm font-semibold">
+<span class="w-1.5 h-1.5 rounded-full bg-[#f59e0b]"></span>
+                Low Stock
+              </span>
+</td>
+<td class="py-3.5 px-4 text-right">
+<div class="flex items-center justify-end gap-space-xs">
+<button class="px-2.5 py-1 rounded font-label-md text-label-md text-on-surface-variant hover:text-on-surface hover:bg-surface-container-high transition-colors">Edit</button>
+<button class="toggle-btn w-9 h-5 rounded-full bg-secondary p-0.5 flex items-center transition-colors focus:outline-none" data-enabled="true">
+<div class="w-4 h-4 rounded-full bg-surface-container-lowest shadow-sm transform translate-x-4 transition-transform"></div>
+</button>
+<button class="w-7 h-7 flex items-center justify-center rounded hover:bg-surface-container-high text-on-surface-variant transition-colors">
+<span class="material-symbols-outlined text-[18px]">more_vert</span>
+</button>
+</div>
+</td>
+</tr>
+<!-- Row 8 -->
+<tr class="product-row hover:bg-surface-container-low/50 transition-colors" data-category="Spices &amp; Dry" data-status="available">
+<td class="py-3.5 px-4 text-center">
+<input class="row-checkbox w-4 h-4 rounded bg-surface-container text-secondary focus:ring-0 cursor-pointer" type="checkbox">
+</td>
+<td class="py-3.5 px-4">
+<div class="flex items-center gap-space-md">
+<div class="w-10 h-10 rounded-lg bg-surface-container flex items-center justify-center flex-shrink-0 text-on-surface-variant">
+<span class="material-symbols-outlined text-[22px]">spa</span>
+</div>
+<div class="flex flex-col min-w-0">
+<span class="font-headline-sm text-headline-sm text-on-surface font-semibold truncate">Spanish Saffron Threads (Category A)</span>
+<span class="font-body-sm text-body-sm text-on-surface-variant truncate">La Mancha Superior Select</span>
+</div>
+</div>
+</td>
+<td class="py-3.5 px-4">
+<span class="px-2 py-0.5 rounded bg-surface-container font-label-md text-label-md text-on-surface-variant font-mono">SPC-019</span>
+</td>
+<td class="py-3.5 px-4">
+<span class="font-label-md text-label-md text-on-surface">Spices &amp; Dry</span>
+</td>
+<td class="py-3.5 px-4 font-body-md text-body-md text-on-surface">100g Tin</td>
+<td class="py-3.5 px-4 text-right">
+<span class="font-headline-sm text-headline-sm text-on-surface font-bold">420.00</span>
+</td>
+<td class="py-3.5 px-4">
+<div class="flex flex-col">
+<span class="font-headline-sm text-headline-sm text-on-surface">26 tins</span>
+<span class="font-label-sm text-label-sm text-on-surface-variant">Vault 2</span>
+</div>
+</td>
+<td class="py-3.5 px-4">
+<span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-secondary-fixed text-on-secondary-fixed font-label-sm text-label-sm font-semibold">
+<span class="w-1.5 h-1.5 rounded-full bg-secondary"></span>
+                Available
+              </span>
+</td>
+<td class="py-3.5 px-4 text-right">
+<div class="flex items-center justify-end gap-space-xs">
+<button class="px-2.5 py-1 rounded font-label-md text-label-md text-on-surface-variant hover:text-on-surface hover:bg-surface-container-high transition-colors">Edit</button>
+<button class="toggle-btn w-9 h-5 rounded-full bg-secondary p-0.5 flex items-center transition-colors focus:outline-none" data-enabled="true">
+<div class="w-4 h-4 rounded-full bg-surface-container-lowest shadow-sm transform translate-x-4 transition-transform"></div>
+</button>
+<button class="w-7 h-7 flex items-center justify-center rounded hover:bg-surface-container-high text-on-surface-variant transition-colors">
+<span class="material-symbols-outlined text-[18px]">more_vert</span>
+</button>
+</div>
+</td>
+</tr>
+<!-- Row 9 -->
+<tr class="product-row hover:bg-surface-container-low/50 transition-colors" data-category="Fresh Meat" data-status="out">
+<td class="py-3.5 px-4 text-center">
+<input class="row-checkbox w-4 h-4 rounded bg-surface-container text-secondary focus:ring-0 cursor-pointer" type="checkbox">
+</td>
+<td class="py-3.5 px-4">
+<div class="flex items-center gap-space-md">
+<div class="w-10 h-10 rounded-lg bg-surface-container flex items-center justify-center flex-shrink-0 text-on-surface-variant">
+<span class="material-symbols-outlined text-[22px]">set_meal</span>
+</div>
+<div class="flex flex-col min-w-0">
+<span class="font-headline-sm text-headline-sm text-on-surface font-semibold truncate">Premium Black Angus Beef Ribeye</span>
+<span class="font-body-sm text-body-sm text-on-surface-variant truncate">Chilled Halal Grain-Fed MB3+</span>
+</div>
+</div>
+</td>
+<td class="py-3.5 px-4">
+<span class="px-2 py-0.5 rounded bg-surface-container font-label-md text-label-md text-on-surface-variant font-mono">MET-301</span>
+</td>
+<td class="py-3.5 px-4">
+<span class="font-label-md text-label-md text-on-surface">Fresh Meat</span>
+</td>
+<td class="py-3.5 px-4 font-body-md text-body-md text-on-surface">1kg (Per kg)</td>
+<td class="py-3.5 px-4 text-right">
+<span class="font-headline-sm text-headline-sm text-on-surface font-bold">110.00</span>
+</td>
+<td class="py-3.5 px-4">
+<div class="flex flex-col">
+<span class="font-headline-sm text-headline-sm text-error">0 kg</span>
+<span class="font-label-sm text-label-sm text-on-surface-variant">Awaiting customs clearance</span>
+</div>
+</td>
+<td class="py-3.5 px-4">
+<span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-error-container text-on-error-container font-label-sm text-label-sm font-semibold">
+<span class="w-1.5 h-1.5 rounded-full bg-error"></span>
+                Out of Stock
+              </span>
+</td>
+<td class="py-3.5 px-4 text-right">
+<div class="flex items-center justify-end gap-space-xs">
+<button class="px-2.5 py-1 rounded font-label-md text-label-md text-on-surface-variant hover:text-on-surface hover:bg-surface-container-high transition-colors">Edit</button>
+<button class="toggle-btn w-9 h-5 rounded-full bg-surface-variant p-0.5 flex items-center transition-colors focus:outline-none" data-enabled="false">
+<div class="w-4 h-4 rounded-full bg-surface-container-lowest shadow-sm transform translate-x-0 transition-transform"></div>
+</button>
+<button class="w-7 h-7 flex items-center justify-center rounded hover:bg-surface-container-high text-on-surface-variant transition-colors">
+<span class="material-symbols-outlined text-[18px]">more_vert</span>
+</button>
+</div>
+</td>
+</tr>
+</tbody>
+</table>
+</div>
+<!-- Table Pagination Footer -->
+<div class="flex flex-col sm:flex-row items-center justify-between gap-space-md pt-space-xs text-on-surface-variant font-body-sm text-body-sm">
+<div class="flex items-center gap-space-md">
+<span>Showing <strong class="text-on-surface font-semibold">1 to 9</strong> of <strong class="text-on-surface font-semibold">128</strong> products</span>
+<div class="flex items-center gap-space-xs">
+<span>Show:</span>
+<select class="bg-surface-container-low text-on-surface rounded px-2 py-1 outline-none text-body-sm cursor-pointer">
+<option>10 per page</option>
+<option>25 per page</option>
+<option>50 per page</option>
+</select>
+</div>
+</div>
+<div class="flex items-center gap-1">
+<button class="px-2.5 py-1.5 rounded-lg bg-surface-container-low hover:bg-surface-container-high text-on-surface-variant hover:text-on-surface font-label-md text-label-md transition-colors flex items-center gap-1">
+<span class="material-symbols-outlined text-[16px]">chevron_left</span>
+<span>Previous</span>
+</button>
+<button class="w-8 h-8 rounded-lg bg-primary text-on-primary font-label-md text-label-md font-semibold">1</button>
+<button class="w-8 h-8 rounded-lg hover:bg-surface-container-high text-on-surface-variant hover:text-on-surface font-label-md text-label-md transition-colors">2</button>
+<button class="w-8 h-8 rounded-lg hover:bg-surface-container-high text-on-surface-variant hover:text-on-surface font-label-md text-label-md transition-colors">3</button>
+<button class="px-2.5 py-1.5 rounded-lg bg-surface-container-low hover:bg-surface-container-high text-on-surface-variant hover:text-on-surface font-label-md text-label-md transition-colors flex items-center gap-1">
+<span>Next</span>
+<span class="material-symbols-outlined text-[16px]">chevron_right</span>
+</button>
+</div>
+</div>
+</div>
+</div>
+<script>
+  (function() {
+    // Select All Checkbox Handler
+    const selectAll = document.getElementById('selectAllCheckbox');
+    const rowCheckboxes = document.querySelectorAll('.row-checkbox');
+
+    if (selectAll) {
+      selectAll.addEventListener('change', (e) => {
+        rowCheckboxes.forEach(cb => cb.checked = e.target.checked);
+      });
+    }
+
+    // Toggle Switches Handler
+    const toggleBtns = document.querySelectorAll('.toggle-btn');
+    toggleBtns.forEach(btn => {
+      btn.addEventListener('click', () => {
+        const isEnabled = btn.getAttribute('data-enabled') === 'true';
+        const circle = btn.querySelector('div');
+        if (isEnabled) {
+          btn.setAttribute('data-enabled', 'false');
+          btn.classList.remove('bg-secondary');
+          btn.classList.add('bg-surface-variant');
+          circle.classList.remove('translate-x-4');
+          circle.classList.add('translate-x-0');
+        } else {
+          btn.setAttribute('data-enabled', 'true');
+          btn.classList.remove('bg-surface-variant');
+          btn.classList.add('bg-secondary');
+          circle.classList.remove('translate-x-0');
+          circle.classList.add('translate-x-4');
+        }
+      });
+    });
+
+    // Client-side Filter Logic for Status & Category & Search
+    const searchInput = document.getElementById('catalogSearchInput');
+    const filterTabs = document.querySelectorAll('.filter-tab');
+    const categorySelector = document.getElementById('categorySelector');
+    const rows = document.querySelectorAll('.product-row');
+
+    let currentStatus = 'all';
+    let currentCategory = 'all';
+    let searchVal = '';
+
+    function applyFilters() {
+      rows.forEach(row => {
+        const rowStatus = row.getAttribute('data-status');
+        const rowCat = row.getAttribute('data-category');
+        const textContent = row.textContent.toLowerCase();
+
+        const matchStatus = (currentStatus === 'all') || (rowStatus === currentStatus);
+        const matchCategory = (currentCategory === 'all') || (rowCat === currentCategory);
+        const matchSearch = !searchVal || textContent.includes(searchVal);
+
+        if (matchStatus && matchCategory && matchSearch) {
+          row.style.display = '';
+        } else {
+          row.style.display = 'none';
+        }
+      });
+    }
+
+    filterTabs.forEach(tab => {
+      tab.addEventListener('click', () => {
+        filterTabs.forEach(t => {
+          t.classList.remove('bg-surface-container-lowest', 'text-on-surface', 'shadow-sm');
+          t.classList.add('text-on-surface-variant');
+        });
+        tab.classList.add('bg-surface-container-lowest', 'text-on-surface', 'shadow-sm');
+        tab.classList.remove('text-on-surface-variant');
+
+        currentStatus = tab.getAttribute('data-filter');
+        applyFilters();
+      });
+    });
+
+    if (categorySelector) {
+      categorySelector.addEventListener('change', (e) => {
+        currentCategory = e.target.value;
+        applyFilters();
+      });
+    }
+
+    if (searchInput) {
+      searchInput.addEventListener('input', (e) => {
+        searchVal = e.target.value.toLowerCase().trim();
+        applyFilters();
+      });
+    }
+  })();
+</script></main></div></body></html>

@@ -1,0 +1,349 @@
+<!DOCTYPE html><html lang="en" class="h-full"><head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Sowtek OrderFlow - Login</title>
+  
+  <!-- Tailwind CSS v3 with forms and container-queries plugins -->
+  <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+  
+  <!-- Fonts: Plus Jakarta Sans + Inter -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin="">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&amp;family=Plus+Jakarta+Sans:wght@400;500;600;700;800;900&amp;display=swap" rel="stylesheet">
+  
+  <!-- Google Material Symbols Outlined -->
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200">
+
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            brand: {
+              navy: '#142340',
+              lime: '#70b928',
+              'lime-light': '#eef8eb',
+              'lime-border': '#d6eed0',
+              canvas: '#f1f3f7'
+            }
+          },
+          fontFamily: {
+            sans: ['"Plus Jakarta Sans"', 'Inter', 'sans-serif'],
+          },
+          boxShadow: {
+            'card': '0 2px 10px rgba(0,0,0,0.03), 0 1px 3px rgba(0,0,0,0.02)',
+            'card-lg': '0 10px 25px -5px rgba(20, 35, 64, 0.05), 0 8px 10px -6px rgba(20, 35, 64, 0.03)'
+          }
+        }
+      }
+    }
+  </script>
+
+  <style>
+    body {
+      font-family: 'Plus Jakarta Sans', Inter, sans-serif;
+      background-color: #f1f3f7;
+    }
+    .material-symbols-outlined {
+      font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 20;
+    }
+  </style>
+</head>
+<body class="h-full flex flex-col justify-between text-slate-800 antialiased selection:bg-[#eef8eb] selection:text-[#2c771c]">
+
+  <!-- Top Right Utility Bar: Language Switcher and System Status -->
+  <div class="w-full px-8 py-6 flex justify-between items-center z-10">
+    <!-- Subtle Live Platform Status Indicator -->
+    <div class="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-white/80 border border-slate-200/80 shadow-xs backdrop-blur-xs">
+      <span class="relative flex h-2 w-2">
+        <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-[#70b928] opacity-75"></span>
+        <span class="relative inline-flex rounded-full h-2 w-2 bg-[#70b928]"></span>
+      </span>
+      <span class="text-[11px] font-semibold text-slate-600">WhatsApp Gateway Active</span>
+      <span class="text-slate-300 text-xs">|</span>
+      <span class="text-[11px] font-medium text-slate-500">4 Agents Online</span>
+    </div>
+
+    <!-- Language toggle: EN | العربية -->
+    <div class="inline-flex items-center bg-white border border-slate-200/90 rounded-xl p-1 shadow-xs">
+      <button type="button" id="btn-lang-en" onclick="setLanguage('en')" class="px-3 py-1 rounded-lg text-xs font-bold bg-[#142340] text-white transition-all shadow-xs">
+        EN
+      </button>
+      <button type="button" id="btn-lang-ar" onclick="setLanguage('ar')" class="px-3 py-1 rounded-lg text-xs font-medium text-slate-600 hover:text-slate-900 transition-all">
+        العربية
+      </button>
+    </div>
+  </div>
+
+  <!-- Main Content Container: Centered Card -->
+  <main class="flex-1 flex items-center justify-center px-4 py-8 -mt-6">
+    <div class="w-full max-w-[440px]">
+      
+      <!-- Card Container (rounded-2xl, bg-white, border border-slate-200/80, shadow-card) -->
+      <div class="bg-white rounded-2xl border border-slate-200/80 shadow-card p-8 sm:p-10 relative">
+        
+        <!-- Sowtek Logo Top Center (navy mark + "sowtek" wordmark + orderflow sub) -->
+        <div class="flex flex-col items-center mb-8">
+          <div class="flex items-center gap-3">
+            <!-- Brand Navy Logo Mark -->
+            <div class="w-10 h-10 rounded-xl bg-[#142340] flex items-center justify-center shadow-md shadow-[#142340]/10 text-white">
+              <svg width="22" height="22" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <path d="M4 8C4 5.79086 5.79086 4 8 4H10C11.1046 4 12 4.89543 12 6V8C12 9.10457 11.1046 10 10 10H6C4.89543 10 4 10.8954 4 12V14C4 15.1046 4.89543 16 6 16H8C9.10457 16 10 16.8954 10 18V20H8C5.79086 20 4 18.2091 4 16V8Z" fill="currentColor"></path>
+                <path d="M20 16C20 18.2091 18.2091 20 16 20H14C12.8954 20 12 19.1046 12 18V16C12 14.8954 12.8954 14 14 14H18C19.1046 14 20 13.1046 20 12V10C20 8.89543 19.1046 8 18 8H16C14.8954 8 14 7.10457 14 6V4H16C18.2091 4 20 5.79086 20 8V16Z" fill="#70b928"></path>
+              </svg>
+            </div>
+            
+            <div class="flex flex-col">
+              <span class="text-xl font-black text-[#142340] tracking-tight leading-none">sowtek</span>
+              <span class="text-[9px] font-bold tracking-widest text-[#70b928] uppercase mt-0.5">ORDERFLOW</span>
+            </div>
+          </div>
+          
+          <div class="mt-4 px-2.5 py-0.5 rounded-full bg-[#eef8eb] border border-[#d6eed0] text-[10px] font-bold text-[#2c771c] inline-flex items-center gap-1.5">
+            <span class="w-1.5 h-1.5 rounded-full bg-[#70b928]"></span>
+            B2B Restaurant Supplier Portal
+          </div>
+        </div>
+
+        <!-- Headline & Subtitle -->
+        <div class="text-center mb-7">
+          <h1 id="txt-headline" class="text-2xl font-black text-[#142340] tracking-tight">Welcome back</h1>
+          <p id="txt-subhead" class="text-xs text-slate-500 mt-1.5">Sign in with your agent credentials to access the Unified Inbox</p>
+        </div>
+
+        <!-- Login Form -->
+        <form onsubmit="handleLogin(event)" class="space-y-4">
+          <!-- Email Input -->
+          <div>
+            <label id="lbl-email" for="email" class="block text-xs font-semibold text-slate-700 mb-1.5">
+              Work Email Address
+            </label>
+            <div class="relative">
+              <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-slate-400">
+                <span class="material-symbols-outlined text-[18px]">mail</span>
+              </div>
+              <input type="email" name="email" id="email" required="" value="kenneth.ofkeli@sowtek.io" placeholder="name@sowtek.io" class="block w-full pl-9 pr-3 py-2.5 text-xs text-slate-900 bg-white border border-slate-200/90 rounded-xl focus:ring-2 focus:ring-[#142340]/20 focus:border-[#142340] transition placeholder:text-slate-400">
+            </div>
+          </div>
+
+          <!-- Password Input -->
+          <div>
+            <div class="flex items-center justify-between mb-1.5">
+              <label id="lbl-password" for="password" class="block text-xs font-semibold text-slate-700">
+                Password
+              </label>
+              <a href="#" onclick="showToast('Password reset link sent to registered email')" class="text-[11px] font-medium text-slate-500 hover:text-[#142340] transition">
+                Forgot password?
+              </a>
+            </div>
+            <div class="relative">
+              <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-slate-400">
+                <span class="material-symbols-outlined text-[18px]">lock</span>
+              </div>
+              <input type="password" name="password" id="password" required="" value="••••••••••••" placeholder="Enter password" class="block w-full pl-9 pr-10 py-2.5 text-xs text-slate-900 bg-white border border-slate-200/90 rounded-xl focus:ring-2 focus:ring-[#142340]/20 focus:border-[#142340] transition placeholder:text-slate-400">
+              <button type="button" onclick="togglePasswordVisibility()" class="absolute inset-y-0 right-0 pr-3 flex items-center text-slate-400 hover:text-slate-600 transition" aria-label="Toggle password visibility">
+                <span id="pwd-icon" class="material-symbols-outlined text-[18px]">visibility</span>
+              </button>
+            </div>
+          </div>
+
+          <!-- Remember Me & Shift Status -->
+          <div class="flex items-center justify-between pt-1">
+            <label class="flex items-center gap-2 cursor-pointer">
+              <input type="checkbox" checked="" class="w-4 h-4 text-[#142340] border-slate-300 rounded focus:ring-[#142340] cursor-pointer">
+              <span id="lbl-remember" class="text-xs text-slate-600 select-none">Remember this workstation</span>
+            </label>
+            <div class="flex items-center gap-1.5">
+              <span class="w-1.5 h-1.5 rounded-full bg-emerald-500"></span>
+              <span class="text-[11px] font-medium text-emerald-700">Shift Active</span>
+            </div>
+          </div>
+
+          <!-- Primary CTA: "Sign in" full-width bg-[#142340] -->
+          <div class="pt-2">
+            <button type="submit" id="btn-submit" class="w-full flex items-center justify-center gap-2 bg-[#142340] hover:bg-slate-800 text-white rounded-xl py-3 px-4 text-xs font-bold transition shadow-md shadow-[#142340]/10 hover:shadow-lg focus:outline-none focus:ring-2 focus:ring-[#142340] focus:ring-offset-2">
+              <span id="btn-text">Sign in to OrderFlow</span>
+              <span class="material-symbols-outlined text-[16px]">arrow_forward</span>
+            </button>
+          </div>
+        </form>
+
+        <!-- Quick Switch Demo Profile (Convenience for testing workflow) -->
+        <div class="mt-6 pt-5 border-t border-slate-100">
+          <p class="text-[10px] font-bold uppercase tracking-wider text-slate-400 mb-2.5 text-center">Quick Switch Agent Profile</p>
+          <div class="grid grid-cols-2 gap-2">
+            <button type="button" onclick="selectAgent('Kenneth Ofkeli', 'kenneth.ofkeli@sowtek.io', 'Senior Dispatcher', 'KO')" class="flex items-center gap-2 p-2 rounded-xl border border-slate-200/90 hover:border-[#142340] hover:bg-slate-50 transition text-left group">
+              <div class="w-7 h-7 rounded-full bg-[#142340] text-white flex items-center justify-center text-[10px] font-bold group-hover:bg-[#70b928] transition">
+                KO
+              </div>
+              <div class="truncate">
+                <p class="text-xs font-bold text-slate-800 leading-tight">Kenneth O.</p>
+                <p class="text-[10px] text-slate-500 truncate">Senior Agent</p>
+              </div>
+            </button>
+
+            <button type="button" onclick="selectAgent('Sarah Tariq', 'sarah.tariq@sowtek.io', 'Fulfillment Lead', 'ST')" class="flex items-center gap-2 p-2 rounded-xl border border-slate-200/90 hover:border-[#142340] hover:bg-slate-50 transition text-left group">
+              <div class="w-7 h-7 rounded-full bg-slate-200 text-slate-700 flex items-center justify-center text-[10px] font-bold group-hover:bg-[#70b928] group-hover:text-white transition">
+                ST
+              </div>
+              <div class="truncate">
+                <p class="text-xs font-bold text-slate-800 leading-tight">Sarah Tariq</p>
+                <p class="text-[10px] text-slate-500 truncate">Fulfillment</p>
+              </div>
+            </button>
+          </div>
+        </div>
+
+        <!-- Single Sign-On / Security Note -->
+        <div class="mt-5 text-center">
+          <p class="text-[11px] text-slate-400 flex items-center justify-center gap-1.5">
+            <span class="material-symbols-outlined text-[14px] text-slate-400">verified_user</span>
+            <span>Protected by Sowtek Enterprise 2FA &amp; SSL</span>
+          </p>
+        </div>
+
+      </div>
+
+      <!-- Secondary Help Link Below Card -->
+      <div class="text-center mt-5">
+        <p class="text-xs text-slate-500">
+          Need access or report a dispatch issue? 
+          <a href="#" onclick="showToast('Contacting supervisor support desk...')" class="font-semibold text-[#142340] hover:text-[#70b928] underline underline-offset-2 transition">
+            Contact Supervisor
+          </a>
+        </p>
+      </div>
+
+    </div>
+  </main>
+
+  <!-- Clean Bottom Footer -->
+  <footer class="w-full px-8 py-5 flex flex-col sm:flex-row justify-between items-center text-[11px] text-slate-400 gap-2 border-t border-slate-200/60 bg-white/40 backdrop-blur-xs">
+    <div class="flex items-center gap-2">
+      <span class="font-semibold text-slate-600">Sowtek OrderFlow</span>
+      <span>•</span>
+      <span>Restaurant Supply Logistics OS</span>
+      <span>•</span>
+      <span>v2.4.1</span>
+    </div>
+    <div class="flex items-center gap-4">
+      <a href="#" class="hover:text-slate-600 transition">Privacy Policy</a>
+      <a href="#" class="hover:text-slate-600 transition">SLA Terms</a>
+      <a href="#" class="hover:text-slate-600 transition">System Status</a>
+      <span class="text-emerald-600 font-semibold flex items-center gap-1">
+        <span class="w-1.5 h-1.5 rounded-full bg-emerald-500"></span>
+        All Systems Normal
+      </span>
+    </div>
+  </footer>
+
+  <!-- Toast Notification (Fixed bottom-5 right-5 bg-slate-900 text-white rounded-xl) -->
+  <div id="toast" class="fixed bottom-5 right-5 bg-slate-900 text-white px-4 py-3 rounded-xl text-xs font-semibold shadow-xl border border-slate-800 flex items-center gap-2.5 transition-all duration-300 transform translate-y-20 opacity-0 z-50 pointer-events-none">
+    <span class="material-symbols-outlined text-emerald-400 text-[18px]">check_circle</span>
+    <span id="toast-text">Signed in successfully</span>
+  </div>
+
+  <script>
+    let currentLang = 'en';
+
+    function setLanguage(lang) {
+      currentLang = lang;
+      const html = document.documentElement;
+      const btnEn = document.getElementById('btn-lang-en');
+      const btnAr = document.getElementById('btn-lang-ar');
+      const headline = document.getElementById('txt-headline');
+      const subhead = document.getElementById('txt-subhead');
+      const lblEmail = document.getElementById('lbl-email');
+      const lblPassword = document.getElementById('lbl-password');
+      const lblRemember = document.getElementById('lbl-remember');
+      const btnText = document.getElementById('btn-text');
+
+      if (lang === 'ar') {
+        html.setAttribute('dir', 'rtl');
+        html.setAttribute('lang', 'ar');
+        
+        btnAr.className = "px-3 py-1 rounded-lg text-xs font-bold bg-[#142340] text-white transition-all shadow-xs";
+        btnEn.className = "px-3 py-1 rounded-lg text-xs font-medium text-slate-600 hover:text-slate-900 transition-all";
+
+        headline.textContent = 'مرحباً بعودتك';
+        subhead.textContent = 'سجّل الدخول باستخدام بيانات وكيلك للوصول إلى صندوق الوارد الموحد';
+        lblEmail.textContent = 'البريد الإلكتروني للعمل';
+        lblPassword.textContent = 'كلمة المرور';
+        lblRemember.textContent = 'تذكر محطة العمل هذه';
+        btnText.textContent = 'تسجيل الدخول إلى النظام';
+        
+        showToast('تم التحويل إلى اللغة العربية');
+      } else {
+        html.removeAttribute('dir');
+        html.setAttribute('lang', 'en');
+
+        btnEn.className = "px-3 py-1 rounded-lg text-xs font-bold bg-[#142340] text-white transition-all shadow-xs";
+        btnAr.className = "px-3 py-1 rounded-lg text-xs font-medium text-slate-600 hover:text-slate-900 transition-all";
+
+        headline.textContent = 'Welcome back';
+        subhead.textContent = 'Sign in with your agent credentials to access the Unified Inbox';
+        lblEmail.textContent = 'Work Email Address';
+        lblPassword.textContent = 'Password';
+        lblRemember.textContent = 'Remember this workstation';
+        btnText.textContent = 'Sign in to OrderFlow';
+        
+        showToast('Switched to English');
+      }
+    }
+
+    function togglePasswordVisibility() {
+      const pwdInput = document.getElementById('password');
+      const icon = document.getElementById('pwd-icon');
+      if (pwdInput.type === 'password') {
+        pwdInput.type = 'text';
+        icon.textContent = 'visibility_off';
+      } else {
+        pwdInput.type = 'password';
+        icon.textContent = 'visibility';
+      }
+    }
+
+    function selectAgent(name, email, role, initials) {
+      document.getElementById('email').value = email;
+      showToast(`Selected profile: ${name} (${role})`);
+    }
+
+    function handleLogin(e) {
+      e.preventDefault();
+      const btn = document.getElementById('btn-submit');
+      const originalHtml = btn.innerHTML;
+      
+      btn.disabled = true;
+      btn.innerHTML = `
+        <svg class="animate-spin -ml-1 mr-2 h-4 w-4 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+          <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+          <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+        </svg>
+        <span>Authenticating Kenneth Ofkeli...</span>
+      `;
+
+      setTimeout(() => {
+        showToast('Authentication confirmed. Redirecting to Unified Inbox...');
+        setTimeout(() => {
+          btn.innerHTML = originalHtml;
+          btn.disabled = false;
+        }, 1500);
+      }, 900);
+    }
+
+    function showToast(message) {
+      const toast = document.getElementById('toast');
+      const toastText = document.getElementById('toast-text');
+      toastText.textContent = message;
+      
+      toast.classList.remove('translate-y-20', 'opacity-0');
+      toast.classList.add('translate-y-0', 'opacity-100');
+
+      setTimeout(() => {
+        toast.classList.remove('translate-y-0', 'opacity-100');
+        toast.classList.add('translate-y-20', 'opacity-0');
+      }, 2800);
+    }
+  </script>
+
+</body></html>

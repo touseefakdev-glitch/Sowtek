@@ -1,0 +1,382 @@
+<!DOCTYPE html>
+
+<html lang="en"><head><meta charset="utf-8"/><meta content="width=device-width, initial-scale=1.0" name="viewport"/><meta content="web_dashboard" name="shell-type"/><style>@layer base{html,body{margin:0;padding:0;}body{overscroll-behavior:none;}main>:first-child{margin-top:0!important;}main>:last-child{margin-bottom:0!important;}}::-webkit-scrollbar{display:none;}</style><script src="https://cdn.tailwindcss.com"></script><script id="tailwind-config">tailwind.config={darkMode:"class",theme:{extend:{colors:{"inverse-on-surface":"#eaf1ff","on-background":"#0b1c30","secondary":"#006c49","secondary-fixed-dim":"#4edea3","primary-fixed-dim":"#bec6e0","surface-container-low":"#eff4ff","surface-container-high":"#dce9ff","tertiary-container":"#001a42","surface-tint":"#565e74","on-secondary":"#ffffff","inverse-primary":"#bec6e0","on-tertiary":"#ffffff","on-surface":"#0b1c30","error":"#ba1a1a","tertiary":"#000000","secondary-fixed":"#6ffbbe","primary-container":"#131b2e","tertiary-fixed-dim":"#adc6ff","surface":"#f8f9ff","primary-fixed":"#dae2fd","error-container":"#ffdad6","outline":"#76777d","surface-bright":"#f8f9ff","surface-container":"#e5eeff","secondary-container":"#6cf8bb","primary":"#000000","inverse-surface":"#213145","on-primary-fixed":"#131b2e","on-tertiary-fixed-variant":"#004395","on-secondary-container":"#00714d","surface-container-lowest":"#ffffff","on-error-container":"#93000a","on-tertiary-fixed":"#001a42","on-primary-fixed-variant":"#3f465c","surface-container-highest":"#d3e4fe","on-error":"#ffffff","outline-variant":"#c6c6cd","on-surface-variant":"#45464d","on-secondary-fixed-variant":"#005236","on-primary-container":"#7c839b","on-secondary-fixed":"#002113","background":"#f8f9ff","tertiary-fixed":"#d8e2ff","on-primary":"#ffffff","on-tertiary-container":"#3980f4","surface-variant":"#d3e4fe","surface-dim":"#cbdbf5"},borderRadius:{DEFAULT:"0.25rem",lg:"0.5rem",xl:"0.75rem",full:"9999px"},spacing:{"space-xs":"0.25rem","space-xl":"1.5rem","space-sm":"0.5rem","gutter-compact":"0.75rem",margin:"1.25rem","space-md":"0.75rem","space-lg":"1rem",gutter:"1rem","margin-mobile":"0.75rem"},fontFamily:{"body-lg":["Inter"],"body-sm":["Inter"],"display-lg":["Plus Jakarta Sans"],"label-sm":["Inter"],"headline-sm":["Plus Jakarta Sans"],"label-lg":["Inter"],"label-md":["Inter"],"body-md":["Inter"],"headline-md":["Plus Jakarta Sans"],"headline-lg":["Plus Jakarta Sans"]},fontSize:{"body-lg":["15px",{lineHeight:"22px",fontWeight:"400"}],"body-sm":["12px",{lineHeight:"16px",fontWeight:"400"}],"display-lg":["30px",{lineHeight:"38px",letterSpacing:"-0.02em",fontWeight:"700"}],"label-sm":["10px",{lineHeight:"12px",letterSpacing:"0.04em",fontWeight:"700"}],"headline-sm":["15px",{lineHeight:"20px",fontWeight:"600"}],"label-lg":["13px",{lineHeight:"16px",letterSpacing:"0.01em",fontWeight:"600"}],"label-md":["11px",{lineHeight:"14px",letterSpacing:"0.02em",fontWeight:"600"}],"body-md":["13px",{lineHeight:"18px",fontWeight:"400"}],"headline-md":["18px",{lineHeight:"24px",letterSpacing:"-0.01em",fontWeight:"600"}],"headline-lg":["22px",{lineHeight:"28px",letterSpacing:"-0.015em",fontWeight:"700"}]}}}};</script><link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@100..900&amp;family=Plus+Jakarta+Sans:wght@100..900&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/></head><body class="bg-surface font-body-md text-on-surface"><aside class="fixed left-0 top-0 h-full w-64 bg-surface-container-lowest shadow-[0_1px_8px_rgba(0,0,0,0.04)] z-50 flex flex-col justify-between"><div class="flex flex-col"><div class="h-16 px-space-xl flex items-center gap-space-sm"><div class="w-8 h-8 rounded-lg bg-primary-container flex items-center justify-center text-secondary-container"><span class="material-symbols-outlined text-[20px]">local_shipping</span></div><div class="flex flex-col"><span class="font-headline-sm text-headline-sm text-on-surface tracking-tight leading-none">Sowtek</span><span class="font-label-sm text-label-sm text-secondary font-bold uppercase tracking-wider mt-0.5">OrderFlow</span></div></div><div class="px-space-md py-space-xs"><nav class="space-y-1" data-active-classes="bg-primary-container text-on-secondary shadow-sm font-semibold"><a class="flex items-center justify-between px-space-md py-space-sm rounded-lg text-on-surface-variant hover:bg-surface-container-high hover:text-on-surface transition-colors" data-path="unified-inbox" href="#"><span class="font-label-lg text-label-lg">Unified Inbox</span><span class="px-1.5 py-0.5 rounded-full bg-secondary text-on-secondary font-label-sm text-label-sm">14</span></a><a class="flex items-center justify-between px-space-md py-space-sm rounded-lg text-on-surface-variant hover:bg-surface-container-high hover:text-on-surface transition-colors" data-path="overview" href="#"><span class="font-label-lg text-label-lg">Overview</span></a><a class="flex items-center justify-between px-space-md py-space-sm rounded-lg text-on-surface-variant hover:bg-surface-container-high hover:text-on-surface transition-colors" data-path="orders" href="#"><span class="font-label-lg text-label-lg">Orders</span></a><a class="flex items-center justify-between px-space-md py-space-sm rounded-lg text-on-surface-variant hover:bg-surface-container-high hover:text-on-surface transition-colors" data-path="issues-tickets" href="#"><span class="font-label-lg text-label-lg">Issues &amp; Tickets</span><span class="px-1.5 py-0.5 rounded-full bg-error-container text-on-error-container font-label-sm text-label-sm font-bold">3</span></a><a class="flex items-center justify-between px-space-md py-space-sm rounded-lg text-on-surface-variant hover:bg-surface-container-high hover:text-on-surface transition-colors" data-path="restaurants" href="#"><span class="font-label-lg text-label-lg">Restaurants</span></a><a class="flex items-center justify-between px-space-md py-space-sm rounded-lg text-on-surface-variant hover:bg-surface-container-high hover:text-on-surface transition-colors" data-path="products" href="#"><span class="font-label-lg text-label-lg">Products</span></a><a class="flex items-center justify-between px-space-md py-space-sm rounded-lg text-on-surface-variant hover:bg-surface-container-high hover:text-on-surface transition-colors" data-path="notifications" href="#"><span class="font-label-lg text-label-lg">Notifications</span><span class="px-1.5 py-0.5 rounded-full bg-secondary text-on-secondary font-label-sm text-label-sm">5</span></a><a class="flex items-center justify-between px-space-md py-space-sm rounded-lg text-on-surface-variant hover:bg-surface-container-high hover:text-on-surface transition-colors" data-path="reports" href="#"><span class="font-label-lg text-label-lg">Reports</span></a><a aria-current="page" class="flex items-center justify-between px-space-md py-space-sm rounded-lg transition-colors bg-primary-container text-on-secondary shadow-sm font-semibold" data-path="settings" href="#"><span class="font-label-lg text-label-lg">Settings</span></a></nav></div></div><div class="p-space-md space-y-space-xs"><div class="p-space-md rounded-xl bg-surface-container-low flex items-center justify-between"><div class="flex items-center gap-space-sm min-w-0"><div class="relative flex-shrink-0"><div class="w-9 h-9 rounded-full bg-primary-container flex items-center justify-center text-on-secondary font-label-md text-label-md font-bold">KO</div><span class="absolute bottom-0 right-0 w-2.5 h-2.5 rounded-full bg-secondary border-2 border-surface-container-lowest"></span></div><div class="min-w-0 flex flex-col"><span class="font-label-md text-label-md text-on-surface truncate font-semibold">Kenneth Ofkeli</span><span class="font-label-sm text-label-sm text-secondary truncate flex items-center gap-1"><span class="material-symbols-outlined text-[12px]">timer</span>Avail 00:10:22</span></div></div><button class="text-on-surface-variant hover:text-on-surface"><span class="material-symbols-outlined text-[18px]">more_vert</span></button></div><div class="flex items-center justify-around pt-space-xs text-on-surface-variant"><a class="hover:text-on-surface font-label-md text-label-md py-1 px-2 rounded-lg hover:bg-surface-container-high transition-colors" data-path="help-center" href="#">Help Center</a><a class="relative hover:text-on-surface font-label-md text-label-md py-1 px-2 rounded-lg hover:bg-surface-container-high transition-colors" data-path="notifications" href="#">Alerts<span class="w-2 h-2 rounded-full bg-secondary absolute top-1 right-1"></span></a></div></div></aside><div class="pl-64 min-h-screen flex flex-col bg-surface"><header class="fixed top-0 left-64 right-0 h-16 bg-surface-container-lowest/90 backdrop-blur-xl shadow-[0_1px_8px_rgba(0,0,0,0.04)] z-40 flex items-center justify-between px-space-xl"><div class="flex items-center gap-space-md flex-1 max-w-lg"><div class="w-full flex items-center gap-space-sm px-space-md py-1.5 rounded-lg bg-surface-container-low"><span class="material-symbols-outlined text-on-surface-variant text-[18px]">search</span><input class="bg-transparent border-none outline-none font-body-sm text-body-sm text-on-surface placeholder:text-on-surface-variant w-full" placeholder="Search catalog, SKUs, restaurants, or orders..." type="text"/></div></div><div class="flex items-center gap-space-lg"><div class="hidden md:flex items-center gap-space-xs px-2.5 py-1 rounded-full bg-secondary-fixed text-on-secondary-fixed font-label-sm text-label-sm font-bold"><span class="w-1.5 h-1.5 rounded-full bg-secondary"></span>WhatsApp Gateway Online</div><div class="flex items-center gap-space-sm text-on-surface-variant"><button class="w-9 h-9 rounded-lg hover:bg-surface-container-high hover:text-on-surface flex items-center justify-center transition-colors"><span class="material-symbols-outlined text-[20px]">tune</span></button><a class="w-9 h-9 rounded-lg hover:bg-surface-container-high hover:text-on-surface flex items-center justify-center transition-colors relative" data-path="notifications" href="#"><span class="material-symbols-outlined text-[20px]">notifications</span><span class="w-2 h-2 rounded-full bg-secondary absolute top-2 right-2"></span></a></div><div class="w-8 h-8 rounded-full bg-primary flex items-center justify-center"><span class="material-symbols-outlined text-on-primary text-[18px]">person</span></div></div></header><main class="w-full pt-16 bg-surface px-space-xl py-space-xl flex-1"><div class="flex flex-col w-full gap-space-lg">
+<!-- Top Context Ribbon -->
+<div class="flex flex-col md:flex-row md:items-center md:justify-between gap-space-sm bg-surface-container-lowest p-space-md rounded-xl shadow-sm">
+<div class="flex items-center gap-space-md">
+<div class="w-10 h-10 rounded-lg bg-surface-container-high flex items-center justify-center text-primary-container">
+<span class="material-symbols-outlined text-[24px]">tune</span>
+</div>
+<div>
+<div class="flex items-center gap-space-xs text-on-surface-variant font-label-sm text-label-sm uppercase tracking-wider">
+<span>Enterprise Hub</span>
+<span class="material-symbols-outlined text-[14px]">chevron_right</span>
+<span class="text-secondary font-bold">Workspace Configuration</span>
+</div>
+<h1 class="font-headline-md text-headline-md text-on-surface font-bold tracking-tight">System Settings &amp; Access Controls</h1>
+</div>
+</div>
+<div class="flex items-center gap-space-sm">
+<div class="flex items-center gap-space-xs px-3 py-1.5 rounded-lg bg-surface-container-low text-on-surface-variant font-label-md text-label-md">
+<span class="material-symbols-outlined text-[16px] text-secondary">verified_user</span>
+<span>Org ID: <span class="font-mono font-bold text-on-surface">SA-RIY-99201</span></span>
+</div>
+<button class="flex items-center gap-space-xs px-3.5 py-1.5 rounded-lg bg-surface-container-high hover:bg-surface-container text-on-surface font-label-lg text-label-lg transition-colors">
+<span class="material-symbols-outlined text-[18px]">history</span>
+<span>Audit Logs</span>
+</button>
+</div>
+</div>
+<!-- Main Settings Two-Card Workspace -->
+<div class="flex flex-col lg:flex-row gap-space-lg items-start w-full">
+<!-- LEFT CARD: Settings Navigation List -->
+<div class="w-full lg:w-80 flex-shrink-0 bg-surface-container-lowest rounded-xl shadow-sm p-space-md flex flex-col gap-space-md border-2 border-surface-container">
+<!-- Nav Card Header -->
+<div class="px-space-xs pt-space-xs">
+<span class="font-label-sm text-label-sm uppercase tracking-wider text-secondary font-bold">Settings &amp; Preferences</span>
+<h2 class="font-headline-sm text-headline-sm text-on-surface mt-1 font-bold">Settings &amp; Workspace</h2>
+<p class="font-body-sm text-body-sm text-on-surface-variant mt-1">Manage dispatch team, WhatsApp gateways, and SLA rules.</p>
+</div>
+<!-- Navigation Items List -->
+<nav class="flex flex-col gap-1.5 w-full" id="settings-nav">
+<!-- 1. Users & Roles (Active) -->
+<a class="group flex items-center justify-between px-space-md py-2.5 rounded-xl bg-surface-container text-on-surface font-label-lg text-label-lg transition-all shadow-sm" href="#users">
+<div class="flex items-center gap-space-sm min-w-0">
+<span class="material-symbols-outlined text-[20px] text-primary-container" style="font-variation-settings: 'FILL' 1;">manage_accounts</span>
+<span class="truncate font-bold">Users &amp; Roles</span>
+</div>
+<span class="px-2 py-0.5 rounded-full bg-primary-container text-on-primary font-label-sm text-label-sm font-semibold">8 members</span>
+</a>
+<!-- 2. WhatsApp Channel -->
+<a class="group flex items-center justify-between px-space-md py-2.5 rounded-xl text-on-surface-variant hover:bg-surface-container-high hover:text-on-surface font-label-lg text-label-lg transition-all" href="#whatsapp">
+<div class="flex items-center gap-space-sm min-w-0">
+<span class="material-symbols-outlined text-[20px] text-secondary">chat_bubble</span>
+<span class="truncate font-medium">WhatsApp Channel</span>
+</div>
+<span class="px-2 py-0.5 rounded-full bg-secondary-container text-on-secondary-container font-label-sm text-label-sm font-bold flex items-center gap-1">
+<span class="w-1.5 h-1.5 rounded-full bg-secondary"></span> 2 active
+        </span>
+</a>
+<!-- 3. Products & Inventory -->
+<a class="group flex items-center justify-between px-space-md py-2.5 rounded-xl text-on-surface-variant hover:bg-surface-container-high hover:text-on-surface font-label-lg text-label-lg transition-all" href="#products">
+<div class="flex items-center gap-space-sm min-w-0">
+<span class="material-symbols-outlined text-[20px]">inventory_2</span>
+<span class="truncate font-medium">Products &amp; Pricing</span>
+</div>
+<span class="px-2 py-0.5 rounded-full bg-surface-container-low text-on-surface-variant font-label-sm text-label-sm font-semibold">128 SKUs</span>
+</a>
+<!-- 4. Automation & Bots -->
+<a class="group flex items-center justify-between px-space-md py-2.5 rounded-xl text-on-surface-variant hover:bg-surface-container-high hover:text-on-surface font-label-lg text-label-lg transition-all" href="#automation">
+<div class="flex items-center gap-space-sm min-w-0">
+<span class="material-symbols-outlined text-[20px]">bolt</span>
+<span class="truncate font-medium">Automation &amp; Bots</span>
+</div>
+<span class="px-2 py-0.5 rounded-full bg-surface-container-low text-on-surface-variant font-label-sm text-label-sm font-semibold">4 rules</span>
+</a>
+<!-- 5. Notifications & Alerts -->
+<a class="group flex items-center justify-between px-space-md py-2.5 rounded-xl text-on-surface-variant hover:bg-surface-container-high hover:text-on-surface font-label-lg text-label-lg transition-all" href="#notifications">
+<div class="flex items-center gap-space-sm min-w-0">
+<span class="material-symbols-outlined text-[20px]">notifications_active</span>
+<span class="truncate font-medium">Notifications &amp; Alerts</span>
+</div>
+<span class="px-2 py-0.5 rounded-full bg-surface-container-low text-on-surface-variant font-label-sm text-label-sm font-semibold">Configured</span>
+</a>
+<!-- 6. General Workspace -->
+<a class="group flex items-center justify-between px-space-md py-2.5 rounded-xl text-on-surface-variant hover:bg-surface-container-high hover:text-on-surface font-label-lg text-label-lg transition-all" href="#general">
+<div class="flex items-center gap-space-sm min-w-0">
+<span class="material-symbols-outlined text-[20px]">tune</span>
+<span class="truncate font-medium">General Workspace</span>
+</div>
+<span class="material-symbols-outlined text-[16px] text-outline-variant">chevron_right</span>
+</a>
+</nav>
+<!-- Operational Mini Stats & Gateway Latency Box -->
+<div class="mt-space-md p-space-md rounded-xl bg-surface-container-low flex flex-col gap-space-sm">
+<div class="flex items-center justify-between">
+<span class="font-label-sm text-label-sm uppercase font-bold text-on-surface-variant tracking-wider">Gateway Telemetry</span>
+<span class="flex items-center gap-1 font-label-sm text-label-sm text-secondary font-bold">
+<span class="w-2 h-2 rounded-full bg-secondary animate-pulse"></span> 99.98%
+        </span>
+</div>
+<div class="space-y-1.5 pt-1">
+<div class="flex items-center justify-between text-body-sm font-body-sm">
+<span class="text-on-surface-variant">Cloud Webhook</span>
+<span class="font-mono font-semibold text-on-surface">82 ms</span>
+</div>
+<div class="flex items-center justify-between text-body-sm font-body-sm">
+<span class="text-on-surface-variant">Meta BSP API</span>
+<span class="font-semibold text-secondary">Operational</span>
+</div>
+<div class="flex items-center justify-between text-body-sm font-body-sm">
+<span class="text-on-surface-variant">Dispatch Queue</span>
+<span class="font-mono font-semibold text-on-surface">0 backlogged</span>
+</div>
+</div>
+<div class="pt-space-xs mt-1">
+<a class="flex items-center justify-between text-primary font-label-md text-label-md font-semibold hover:underline" href="#docs">
+<span>Developer Documentation</span>
+<span class="material-symbols-outlined text-[14px]">open_in_new</span>
+</a>
+</div>
+</div>
+<!-- Quick Session Indicator -->
+<div class="p-space-sm rounded-lg bg-surface-container flex items-center gap-space-sm text-on-surface-variant">
+<span class="material-symbols-outlined text-[18px] text-secondary">lock</span>
+<span class="font-label-sm text-label-sm font-medium">Encrypted with AES-256 HSM Storage</span>
+</div>
+</div>
+<!-- RIGHT CARD: Active Section Form (Users & Roles Management) -->
+<div class="flex-1 w-full bg-surface-container-lowest rounded-xl shadow-sm p-space-xl flex flex-col justify-between border-2 border-surface-container">
+<div>
+<!-- Section Header Bar -->
+<div class="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-space-md pb-space-lg">
+<div>
+<div class="flex items-center gap-space-xs text-on-surface-variant font-label-md text-label-md">
+<span>Settings</span>
+<span class="material-symbols-outlined text-[14px]">chevron_right</span>
+<span class="text-primary-container font-semibold">Users &amp; Roles Management</span>
+</div>
+<h2 class="font-headline-lg text-headline-lg text-on-surface tracking-tight mt-1 font-bold">Users, Roles &amp; Permission Matrix</h2>
+<p class="font-body-md text-body-md text-on-surface-variant mt-1 max-w-2xl">
+            Configure agent dispatch authorization tiers, bay allocations, wholesale order approval thresholds, and WhatsApp inbound triage privileges.
+          </p>
+</div>
+<div class="flex items-center gap-space-xs flex-shrink-0">
+<button class="flex items-center gap-space-xs px-3.5 py-2 rounded-xl bg-surface-container-high hover:bg-surface-container text-on-surface font-label-lg text-label-lg transition-colors shadow-sm" type="button">
+<span class="material-symbols-outlined text-[18px]">person_add</span>
+<span>+ Invite Team Member</span>
+</button>
+</div>
+</div>
+<!-- FORM BEGIN -->
+<form class="space-y-space-xl" id="settings-role-form" onsubmit="event.preventDefault();">
+<!-- SECTION 1: Team Member Profile & Core Access -->
+<div class="flex flex-col gap-space-md">
+<div class="flex items-center justify-between pb-space-xs bg-surface-container-low px-space-md py-space-sm rounded-lg">
+<div class="flex items-center gap-space-xs">
+<span class="material-symbols-outlined text-[18px] text-primary-container">badge</span>
+<span class="font-label-lg text-label-lg font-bold text-on-surface uppercase tracking-wider">Member Identity &amp; Credentials</span>
+</div>
+<span class="font-label-sm text-label-sm text-secondary bg-secondary-container px-2 py-0.5 rounded-full font-bold">Active Station</span>
+</div>
+<div class="grid grid-cols-1 md:grid-cols-2 gap-space-md">
+<!-- Full Name -->
+<div class="flex flex-col gap-1.5">
+<label class="font-label-md text-label-md text-on-surface-variant font-semibold">Full Name</label>
+<div class="relative flex items-center">
+<span class="absolute left-3 text-on-surface-variant material-symbols-outlined text-[18px]">person</span>
+<input class="w-full pl-9 pr-3 py-2 rounded-lg bg-surface-container-low text-on-surface font-body-md text-body-md focus:bg-surface-container-lowest focus:outline-none focus:ring-2 focus:ring-primary-container transition-all" type="text" value="Kenneth Ofkeli"/>
+</div>
+<span class="font-body-sm text-body-sm text-on-surface-variant">Primary contact name shown in internal order audits.</span>
+</div>
+<!-- Work Email -->
+<div class="flex flex-col gap-1.5">
+<label class="font-label-md text-label-md text-on-surface-variant font-semibold">Enterprise Work Email</label>
+<div class="relative flex items-center">
+<span class="absolute left-3 text-on-surface-variant material-symbols-outlined text-[18px]">mail</span>
+<input class="w-full pl-9 pr-3 py-2 rounded-lg bg-surface-container-low text-on-surface font-body-md text-body-md focus:bg-surface-container-lowest focus:outline-none focus:ring-2 focus:ring-primary-container transition-all" type="email" value="k.ofkeli@sowtek.sa"/>
+</div>
+<span class="font-body-sm text-body-sm text-on-surface-variant">Used for SSO login, dispatch alert digests, and system notices.</span>
+</div>
+<!-- Phone / WhatsApp Direct -->
+<div class="flex flex-col gap-1.5">
+<label class="font-label-md text-label-md text-on-surface-variant font-semibold">WhatsApp Direct / Escalations Line</label>
+<div class="relative flex items-center">
+<span class="absolute left-3 text-secondary material-symbols-outlined text-[18px]">chat</span>
+<input class="w-full pl-9 pr-3 py-2 rounded-lg bg-surface-container-low text-on-surface font-body-md text-body-md font-mono focus:bg-surface-container-lowest focus:outline-none focus:ring-2 focus:ring-primary-container transition-all" type="text" value="+966 50 123 4567"/>
+</div>
+<span class="font-body-sm text-body-sm text-on-surface-variant">Authenticated phone for two-step challenge tokens.</span>
+</div>
+<!-- Assigned Workspace Role -->
+<div class="flex flex-col gap-1.5">
+<label class="font-label-md text-label-md text-on-surface-variant font-semibold">Assigned Workspace Role</label>
+<div class="relative flex items-center">
+<span class="absolute left-3 text-on-surface-variant material-symbols-outlined text-[18px]">security</span>
+<select class="w-full pl-9 pr-8 py-2 rounded-lg bg-surface-container-low text-on-surface font-body-md text-body-md focus:bg-surface-container-lowest focus:outline-none focus:ring-2 focus:ring-primary-container appearance-none transition-all cursor-pointer">
+<option selected="">Senior Dispatch Supervisor &amp; Triage Lead</option>
+<option>Order Entry Specialist</option>
+<option>Escalations Handler</option>
+<option>Warehouse Bay Manager</option>
+<option>Administrator</option>
+</select>
+<span class="absolute right-3 pointer-events-none text-on-surface-variant material-symbols-outlined text-[18px]">expand_more</span>
+</div>
+<span class="font-body-sm text-body-sm text-on-surface-variant">Inherits role bundle: Catalog editing, priority queue routing, order overriding.</span>
+</div>
+</div>
+</div>
+<!-- SECTION 2: Operational Dispatch & Bay Permissions -->
+<div class="flex flex-col gap-space-md">
+<div class="flex items-center justify-between pb-space-xs bg-surface-container-low px-space-md py-space-sm rounded-lg">
+<div class="flex items-center gap-space-xs">
+<span class="material-symbols-outlined text-[18px] text-primary-container">local_shipping</span>
+<span class="font-label-lg text-label-lg font-bold text-on-surface uppercase tracking-wider">Dispatch Bay &amp; SLA Queue Permissions</span>
+</div>
+<span class="font-label-sm text-label-sm text-on-surface-variant font-medium">B2B Logistics Scope</span>
+</div>
+<div class="grid grid-cols-1 md:grid-cols-3 gap-space-md">
+<!-- Primary Warehouse Hub -->
+<div class="flex flex-col gap-1.5">
+<label class="font-label-md text-label-md text-on-surface-variant font-semibold">Primary Warehouse Hub</label>
+<div class="relative flex items-center">
+<span class="absolute left-3 text-on-surface-variant material-symbols-outlined text-[18px]">warehouse</span>
+<select class="w-full pl-9 pr-8 py-2 rounded-lg bg-surface-container-low text-on-surface font-body-md text-body-md focus:bg-surface-container-lowest focus:outline-none focus:ring-2 focus:ring-primary-container appearance-none transition-all cursor-pointer">
+<option selected="">Riyadh Central Logistics DC (Bay 1-4)</option>
+<option>Jeddah Port Cold Storage Hub</option>
+<option>Dammam Distribution Center</option>
+</select>
+<span class="absolute right-3 pointer-events-none text-on-surface-variant material-symbols-outlined text-[18px]">expand_more</span>
+</div>
+</div>
+<!-- Maximum Order Approval Limit -->
+<div class="flex flex-col gap-1.5">
+<label class="font-label-md text-label-md text-on-surface-variant font-semibold">Max Order Approval Limit</label>
+<div class="relative flex items-center">
+<span class="absolute left-3 text-on-surface-variant font-mono font-bold text-label-sm">SAR</span>
+<input class="w-full pl-11 pr-3 py-2 rounded-lg bg-surface-container-low text-on-surface font-body-md text-body-md font-mono font-semibold focus:bg-surface-container-lowest focus:outline-none focus:ring-2 focus:ring-primary-container transition-all" type="text" value="50,000.00"/>
+</div>
+<span class="font-body-sm text-body-sm text-on-surface-variant">Orders &gt; SAR 50k auto-escalate to Operations Dir.</span>
+</div>
+<!-- WhatsApp Queue Assignment -->
+<div class="flex flex-col gap-1.5">
+<label class="font-label-md text-label-md text-on-surface-variant font-semibold">WhatsApp Queue Assignment</label>
+<div class="relative flex items-center">
+<span class="absolute left-3 text-secondary material-symbols-outlined text-[18px]">forum</span>
+<select class="w-full pl-9 pr-8 py-2 rounded-lg bg-surface-container-low text-on-surface font-body-md text-body-md focus:bg-surface-container-lowest focus:outline-none focus:ring-2 focus:ring-primary-container appearance-none transition-all cursor-pointer">
+<option selected="">VIP Restaurants &amp; Emergency Reorders</option>
+<option>General Inbound Wholesale Inquiries</option>
+<option>Delivery Drivers &amp; Fleet Hotline</option>
+</select>
+<span class="absolute right-3 pointer-events-none text-on-surface-variant material-symbols-outlined text-[18px]">expand_more</span>
+</div>
+</div>
+</div>
+<!-- Privilege Matrix Checks -->
+<div class="p-space-md rounded-xl bg-surface-container-low flex flex-col gap-space-sm mt-1">
+<span class="font-label-md text-label-md text-on-surface font-bold">Special Operational Overrides</span>
+<label class="flex items-start gap-space-sm cursor-pointer select-none">
+<input checked="" class="mt-0.5 rounded text-primary focus:ring-0 w-4 h-4" type="checkbox"/>
+<div class="flex flex-col">
+<span class="font-label-lg text-label-lg text-on-surface font-semibold">Authorize immediate credit memos and hotshot replacement dispatches (up to SAR 5,000)</span>
+<span class="font-body-sm text-body-sm text-on-surface-variant">Allows issuing fast delivery credits for spoiled perishables without executive countersignature.</span>
+</div>
+</label>
+<label class="flex items-start gap-space-sm cursor-pointer select-none">
+<input checked="" class="mt-0.5 rounded text-primary focus:ring-0 w-4 h-4" type="checkbox"/>
+<div class="flex flex-col">
+<span class="font-label-lg text-label-lg text-on-surface font-semibold">Modify wholesale SKU pricing and custom restaurant contract rate cards</span>
+<span class="font-body-sm text-body-sm text-on-surface-variant">Permits dynamic volume discount application during live WhatsApp quote generation.</span>
+</div>
+</label>
+<label class="flex items-start gap-space-sm cursor-pointer select-none opacity-60">
+<input class="mt-0.5 rounded text-primary focus:ring-0 w-4 h-4" disabled="" type="checkbox"/>
+<div class="flex flex-col">
+<span class="font-label-lg text-label-lg text-on-surface font-semibold">Reconfigure WhatsApp Webhook gateway endpoints &amp; API keys (Admin Only)</span>
+<span class="font-body-sm text-body-sm text-on-surface-variant">Restricted to Super Admin role tier. Kenneth Ofkeli requires promotion for Meta BSP credential access.</span>
+</div>
+</label>
+</div>
+</div>
+<!-- SECTION 3: Security & Session Rules -->
+<div class="flex flex-col gap-space-md">
+<div class="flex items-center justify-between pb-space-xs bg-surface-container-low px-space-md py-space-sm rounded-lg">
+<div class="flex items-center gap-space-xs">
+<span class="material-symbols-outlined text-[18px] text-primary-container">shield</span>
+<span class="font-label-lg text-label-lg font-bold text-on-surface uppercase tracking-wider">Security &amp; Session Inactivity</span>
+</div>
+<span class="font-label-sm text-label-sm text-secondary flex items-center gap-1 font-bold">
+<span class="material-symbols-outlined text-[14px]">check_circle</span> Compliant
+            </span>
+</div>
+<div class="grid grid-cols-1 md:grid-cols-2 gap-space-md">
+<!-- Two-Factor Authentication Box -->
+<div class="p-space-md rounded-xl bg-surface-container-low flex items-center justify-between">
+<div class="flex items-center gap-space-sm">
+<div class="w-9 h-9 rounded-lg bg-secondary-container flex items-center justify-center text-on-secondary-container">
+<span class="material-symbols-outlined text-[20px]">sms</span>
+</div>
+<div class="flex flex-col">
+<span class="font-label-lg text-label-lg text-on-surface font-semibold">Two-Factor Authentication (2FA)</span>
+<span class="font-body-sm text-body-sm text-secondary font-medium flex items-center gap-1">
+<span class="w-1.5 h-1.5 rounded-full bg-secondary"></span> Enabled via WhatsApp SMS OTP
+                  </span>
+</div>
+</div>
+<button class="px-3 py-1.5 rounded-lg bg-surface-container-lowest hover:bg-surface-container text-on-surface font-label-md text-label-md font-semibold transition-colors shadow-sm" type="button">
+                Re-pair Device
+              </button>
+</div>
+<!-- Session Idle Auto-Lock -->
+<div class="flex flex-col gap-1.5">
+<label class="font-label-md text-label-md text-on-surface-variant font-semibold">Session Idle Auto-Lock</label>
+<div class="relative flex items-center">
+<span class="absolute left-3 text-on-surface-variant material-symbols-outlined text-[18px]">timer</span>
+<select class="w-full pl-9 pr-8 py-2 rounded-lg bg-surface-container-low text-on-surface font-body-md text-body-md focus:bg-surface-container-lowest focus:outline-none focus:ring-2 focus:ring-primary-container appearance-none transition-all cursor-pointer">
+<option selected="">15 minutes of inactivity (Recommended)</option>
+<option>30 minutes</option>
+<option>1 hour</option>
+<option>Disable lock on trusted dispatch IP</option>
+</select>
+<span class="absolute right-3 pointer-events-none text-on-surface-variant material-symbols-outlined text-[18px]">expand_more</span>
+</div>
+<span class="font-body-sm text-body-sm text-on-surface-variant">Terminates WhatsApp inbox sessions to avoid unattended customer message handling.</span>
+</div>
+</div>
+</div>
+</form>
+</div>
+<!-- BOTTOM ACTION BAR -->
+<div class="pt-space-lg mt-space-xl bg-surface-container-low -mx-space-xl -mb-space-xl px-space-xl py-space-md rounded-b-xl flex flex-col sm:flex-row sm:items-center sm:justify-between gap-space-md">
+<div class="flex items-center gap-space-xs text-on-surface-variant font-body-sm text-body-sm">
+<span class="material-symbols-outlined text-[16px] text-on-surface-variant">cloud_upload</span>
+<span>Last modified by <strong class="text-on-surface">Hassan Al-Yahya (Super Admin)</strong> on Oct 14, 2024 at 16:42 AST</span>
+</div>
+<div class="flex items-center gap-space-sm self-end sm:self-auto">
+<button class="px-4 py-2 text-label-lg font-label-lg font-medium text-on-surface-variant hover:text-on-surface hover:bg-surface-container-high rounded-lg transition-colors" type="button">
+          Discard Changes
+        </button>
+<button class="px-6 py-2.5 rounded-lg bg-primary-container hover:bg-black text-on-secondary font-label-lg text-label-lg font-semibold shadow-sm flex items-center gap-2 transition-all" id="save-settings-btn" type="button">
+<span class="material-symbols-outlined text-[18px]">save</span>
+<span>Save Role Permissions</span>
+</button>
+</div>
+</div>
+</div>
+</div>
+<!-- Interactive Feedback Toast (Hidden by default) -->
+<div class="fixed bottom-6 right-6 hidden bg-primary-container text-on-primary px-space-lg py-space-md rounded-xl shadow-xl z-50 flex items-center gap-space-md animate-bounce" id="save-toast">
+<div class="w-7 h-7 rounded-full bg-secondary flex items-center justify-center text-on-secondary">
+<span class="material-symbols-outlined text-[18px]">check</span>
+</div>
+<div class="flex flex-col">
+<span class="font-label-lg text-label-lg font-bold">Permissions Synced Successfully</span>
+<span class="font-body-sm text-body-sm text-secondary-fixed">WhatsApp webhook routing &amp; Bay limits updated.</span>
+</div>
+</div>
+</div>
+<script>
+  // Simple micro-interaction for Save button
+  const saveBtn = document.getElementById('save-settings-btn');
+  const toast = document.getElementById('save-toast');
+
+  if (saveBtn && toast) {
+    saveBtn.addEventListener('click', () => {
+      saveBtn.disabled = true;
+      const originalContent = saveBtn.innerHTML;
+      saveBtn.innerHTML = '<span class="material-symbols-outlined text-[18px] animate-spin">sync</span><span>Saving...</span>';
+      
+      setTimeout(() => {
+        saveBtn.innerHTML = '<span class="material-symbols-outlined text-[18px]">check</span><span>Saved!</span>';
+        toast.classList.remove('hidden');
+        
+        setTimeout(() => {
+          toast.classList.add('hidden');
+          saveBtn.innerHTML = originalContent;
+          saveBtn.disabled = false;
+        }, 3000);
+      }, 700);
+    });
+  }
+</script></main></div></body></html>
